@@ -52,6 +52,19 @@ body {
     min-height: 100vh;
 }
 
+.tarjeta-principal {
+    background: var(--fondo-tarjeta);
+    border-radius: var(--radio-borde-grande);
+    box-shadow: var(--sombra-media);
+    border: 1px solid var(--color-borde);
+    overflow: hidden;
+    /* Cambios para hacerlo más grande y separado */
+    max-width: 1100px;      /* Más ancho */
+    width: 130%;             /* Ocupa casi todo el espacio disponible */
+    padding: 40px 32px;     /* Más espacio interno */
+}
+
+
 /* Sidebar Styles */
 .sidebar {
     background: linear-gradient(180deg, #1a1a1a 0%, #2d2d2d 100%);
