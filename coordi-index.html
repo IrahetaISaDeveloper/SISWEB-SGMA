@@ -89,15 +89,25 @@
                     </div>
                     <div class="caja-estado">
                         <span class="cantidad">12</span>
-                        <span class="etiqueta">Vehículos Activos</span>
+                        <span class="etiqueta">Vehículos PTC</span>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="tarjeta-principal">
+            <div class="header-tarjeta">
+                <h2>Información vehículos del dia</h2>
+            </div>
+            <div class="contenido-tarjeta">
+                <div class="resumen-estado">
                     <div class="caja-estado">
                         <span class="cantidad">5</span>
-                        <span class="etiqueta">En Reparación</span>
+                        <span class="etiqueta">Vehículos ingresados</span>
                     </div>
                     <div class="caja-estado">
                         <span class="cantidad">3</span>
-                        <span class="etiqueta">En Espera</span>
+                        <span class="etiqueta">Vehículos despachados</span>
                     </div>
                 </div>
             </div>
@@ -125,29 +135,47 @@
             <div class="header-tarjeta">
                 <h2>Módulos y Progreso</h2>
                 <div class="filtros-modulos">
-                    <button class="boton-filtro" data-filter="all">Todos</button>
-                    <button class="boton-filtro" data-filter="in-process">En Proceso</button>
-                    <button class="boton-filtro" data-filter="finished">Finalizados</button>
-                    <button class="boton-filtro" data-filter="not-started">No Iniciados</button>
+                    <button class="boton-filtro activo" data-year="primer">Primer Año</button>
+                    <button class="boton-filtro" data-year="segundo">Segundo Año</button>
+                    <button class="boton-filtro" data-year="tercero">Tercer Año</button>
                 </div>
             </div>
             <div class="contenido-tarjeta">
                 <div class="lista-modulos">
-                    <div class="elemento-modulo in-process" data-status="in-process">
+                    <!-- Todos los módulos tienen data-year="primer" -->
+                    <div class="elemento-modulo in-process" data-year="primer" data-status="in-process">
                         <span class="titulo-modulo">Módulo 1: Revisión de Frenos</span>
                         <span class="estado-modulo estado-en-proceso">En Proceso</span>
                     </div>
-                    <div class="elemento-modulo finished" data-status="finished">
+                    <div class="elemento-modulo finished" data-year="primer" data-status="finished">
                         <span class="titulo-modulo">Módulo 2: Cambio de Aceite</span>
                         <span class="estado-modulo estado-finalizado">Finalizado</span>
                     </div>
-                    <div class="elemento-modulo not-started" data-status="not-started">
+                    <div class="elemento-modulo not-started" data-year="primer" data-status="not-started">
                         <span class="titulo-modulo">Módulo 3: Diagnóstico Eléctrico</span>
                         <span class="estado-modulo estado-no-iniciado">No Iniciado</span>
                     </div>
-                    <div class="elemento-modulo in-process" data-status="in-process">
+                    <div class="elemento-modulo in-process" data-year="primer" data-status="in-process">
                         <span class="titulo-modulo">Módulo 4: Suspensión y Dirección</span>
                         <span class="estado-modulo estado-en-proceso">En Proceso</span>
+                    </div>
+                    <!-- Agrega algunos módulos a segundo año -->
+                    <div class="elemento-modulo finished" data-year="segundo" data-status="finished">
+                        <span class="titulo-modulo">Módulo 5: Sistemas de Inyección Electrónica</span>
+                        <span class="estado-modulo estado-finalizado">Finalizado</span>
+                    </div>
+                    <div class="elemento-modulo in-process" data-year="segundo" data-status="in-process">
+                        <span class="titulo-modulo">Módulo 6: Diagnóstico de Motor</span>
+                        <span class="estado-modulo estado-en-proceso">En Proceso</span>
+                    </div>
+                    <!-- Agrega algunos módulos a tercer año -->
+                    <div class="elemento-modulo not-started" data-year="tercero" data-status="not-started">
+                        <span class="titulo-modulo">Módulo 7: Sistemas Eléctricos Avanzados</span>
+                        <span class="estado-modulo estado-no-iniciado">No Iniciado</span>
+                    </div>
+                    <div class="elemento-modulo finished" data-year="tercero" data-status="finished">
+                        <span class="titulo-modulo">Módulo 8: Gestión de Taller</span>
+                        <span class="estado-modulo estado-finalizado">Finalizado</span>
                     </div>
                 </div>
             </div>
@@ -157,6 +185,34 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="js/coordi-index.js"></script>
+    <script>
+    // Mostrar solo los módulos del año seleccionado
+    document.addEventListener('DOMContentLoaded', function () {
+        function mostrarModulosPorAno(ano) {
+            document.querySelectorAll('.elemento-modulo').forEach(function (modulo) {
+                if (modulo.getAttribute('data-year') === ano) {
+                    modulo.style.display = '';
+                } else {
+                    modulo.style.display = 'none';
+                }
+            });
+        }
+
+        // Selección visual y funcional de filtro
+        document.querySelectorAll('.boton-filtro[data-year]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.boton-filtro[data-year]').forEach(function (b) {
+                    b.classList.remove('activo');
+                });
+                btn.classList.add('activo');
+                mostrarModulosPorAno(btn.getAttribute('data-year'));
+            });
+        });
+
+        // Mostrar por defecto los de primer año
+        mostrarModulosPorAno('primer');
+    });
+    </script>
 </body>
 
 </html>

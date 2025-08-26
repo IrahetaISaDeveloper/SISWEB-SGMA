@@ -69,7 +69,7 @@
 
   <main class="contenedor-principal">
     
-    <h1>CRUD de Usuarios</h1>
+    <h1>Administración de Usuarios</h1>
 
     <form id="formulario-usuario" class="formulario-usuario">
       <div class="grupo-formulario">
@@ -105,6 +105,22 @@
     </form>
 
     <hr class="separador-seccion" />
+
+    <!-- Filtros y buscador -->
+    <div class="filtros-usuarios">
+      <input type="text" id="buscador-usuarios" placeholder="Buscar estudiante/docente..." />
+      <select id="filtro-ano">
+        <option value="">Todos los años</option>
+        <option value="1">Primer Año</option>
+        <option value="2">Segundo Año</option>
+        <option value="3">Tercer Año</option>
+      </select>
+      <select id="filtro-grupo">
+        <option value="">Todos los grupos</option>
+        <option value="1">Grupo 1</option>
+        <option value="2">Grupo 2</option>
+      </select>
+    </div>
 
     <div class="tabla-responsiva">
       <table>

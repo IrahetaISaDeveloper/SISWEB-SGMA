@@ -515,3 +515,28 @@ table button:last-of-type:hover {
 .swal-custom-confirm-button:hover {
     background-color: #ad1414 !important;
 }
+
+.filtros-modulos {
+    display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+#buscador-modulos {
+    width: 260px;
+    min-width: 180px;
+    max-width: 320px;
+    padding: 12px 12px;
+    font-size: 1.08em;
+}
+
+#filtro-ano-modulo,
+#filtro-estado-modulo {
+  width: 150px;
+  min-width: 100px;
+  padding: 10px 10px;
+  font-size: 1em;
+
+}

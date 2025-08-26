@@ -570,3 +570,28 @@ table button:last-of-type:hover {
 .swal-custom-confirm-button:hover {
   background-color: #ad1414 !important;
 }
+
+/* Filtros y buscador de usuarios */
+.filtros-usuarios {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+#buscador-usuarios {
+  width: 260px;
+  min-width: 380px;
+  max-width: 380px;
+  padding: 12px 12px;
+  font-size: 1.08em;
+}
+
+#filtro-ano,
+#filtro-grupo {
+  width: 150px;
+  min-width: 100px;
+  padding: 10px 10px;
+  font-size: 1em;
+}
