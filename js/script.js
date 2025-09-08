@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             try {
-                // Cambia la URL a la de tu backend si es necesario
+                
                 const response = await fetch('http://localhost:8080/api/instructorAuth/instructorLogin', {
                     method: 'POST',
                     headers: {
