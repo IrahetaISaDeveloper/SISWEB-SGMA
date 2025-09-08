@@ -182,7 +182,7 @@ body {
 @media (max-width: 576px) {
     body {
         padding: 15px;
-        background-size: cover; /* Adjust background for small screens */
+        background-size: cover;
     }
 
     .contenedor-inicio-sesion {

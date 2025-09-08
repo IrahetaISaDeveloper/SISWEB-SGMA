@@ -56,7 +56,6 @@ body {
   flex-direction: column;
 }
 
-/* Estilos de la barra de navegación */
 .barra-navegacion {
   display: flex;
   justify-content: space-between;
@@ -65,7 +64,6 @@ body {
   padding: var(--espaciado-s) var(--espaciado-l);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   border-bottom: 1px solid var(--color-borde-navbar);
-  /* Bordes blancos */
 }
 
 .barra-navegacion-izquierda {
@@ -79,7 +77,6 @@ body {
 
 .logotipo-imagen {
   height: 50px;
-  /* Tamaño del logo */
 }
 
 .barra-navegacion-centro ul {
@@ -150,8 +147,6 @@ body {
   object-fit: cover;
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.3);
 }
-
-
 
 .contenido-principal-admin {
   padding: 20px;

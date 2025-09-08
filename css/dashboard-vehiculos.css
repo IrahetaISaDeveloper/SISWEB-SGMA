@@ -58,14 +58,12 @@ body {
     box-shadow: var(--sombra-media);
     border: 1px solid var(--color-borde);
     overflow: hidden;
-    /* Cambios para hacerlo más grande y separado */
     max-width: 1100px;      /* Más ancho */
     width: 130%;             /* Ocupa casi todo el espacio disponible */
     padding: 40px 32px;     /* Más espacio interno */
 }
 
 
-/* Sidebar Styles */
 .sidebar {
     background: linear-gradient(180deg, #1a1a1a 0%, #2d2d2d 100%);
     width: var(--ancho-sidebar);
@@ -228,7 +226,6 @@ body {
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
-/* Dropdown en sidebar */
 .dropdown-sidebar {
     position: relative;
 }
@@ -272,7 +269,6 @@ body {
     display: block;
 }
 
-/* Tooltip */
 .tooltip {
     position: absolute;
     left: calc(100% + 15px);
@@ -312,14 +308,12 @@ body {
     display: none;
 }
 
-/* Contenedor principal */
 .contenedor-principal {
     margin-left: var(--ancho-sidebar);
     min-height: 100vh;
     background-color: var(--fondo-app);
 }
 
-/* Header de usuario */
 .header-usuario {
     background: var(--fondo-header);
     padding: var(--espaciado-l);
@@ -371,7 +365,6 @@ body {
     font-size: 1.1rem;
 }
 
-/* Layout del contenido */
 .contenido-layout {
     display: grid;
     grid-template-columns: 350px 1fr;
@@ -380,7 +373,6 @@ body {
     min-height: calc(100vh - 180px);
 }
 
-/* Panel lateral mejorado */
 .panel-lateral {
     background: transparent;
 }
@@ -492,7 +484,6 @@ body {
     color: var(--texto-oscuro);
 }
 
-/* Contenido principal mejorado */
 .contenido-principal {
     background: transparent;
 }
@@ -546,7 +537,6 @@ body {
     background: #3182ce;
 }
 
-/* Controles de filtro mejorados */
 .controles-filtro {
     padding: var(--espaciado-l);
     display: flex;
@@ -609,7 +599,6 @@ body {
     box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
 }
 
-/* Tabla moderna */
 .tabla-container {
     overflow-x: auto;
 }
@@ -640,7 +629,6 @@ body {
     background: var(--color-hover);
 }
 
-/* Elementos de la tabla */
 .checkbox-all,
 .checkbox-row {
     width: 16px;
@@ -726,7 +714,6 @@ body {
     display: block;
 }
 
-/* Acciones de tabla */
 .acciones-tabla {
     display: flex;
     gap: var(--espaciado-xs);
@@ -784,7 +771,6 @@ body {
     color: white;
 }
 
-/* Paginación */
 .paginacion {
     padding: var(--espaciado-l);
     display: flex;
@@ -833,7 +819,6 @@ body {
     cursor: not-allowed;
 }
 
-/* Modal mejorado */
 .modal-overlay {
     display: none;
     position: fixed;
@@ -970,7 +955,6 @@ body {
     background: #38a169;
 }
 
-/* Responsive */
 @media (max-width: 1024px) {
     .contenido-layout {
         grid-template-columns: 1fr;

@@ -233,7 +233,6 @@ body {
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
-/* Dropdown en sidebar */
 .dropdown-sidebar {
     position: relative;
 }
@@ -277,7 +276,6 @@ body {
     display: block;
 }
 
-/* Tooltip */
 .tooltip {
     position: absolute;
     left: calc(100% + 15px);
