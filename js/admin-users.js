@@ -1,6 +1,9 @@
-const API_URL = 'https://685b5bb389952852c2d94520.mockapi.io/tbUsers';
-const ROLES_API_URL = 'https://685b5bb389952852c2d94520.mockapi.io/tbRoles';
-
+const ROLES_API_URL = 'http://localhost:8080/api/Roles/getAllRoles';
+const INSTRUCTORS_API_URL = 'http://localhost:8080/api/instructors/getDataInstructors';
+const LEVELS_API_URL = 'http://localhost:8080/api/levels/getDataLevels';
+const GRADES_API_URL = 'http://localhost:8080/api/grades/getAllGrades';
+const ADD_INSTRUCTOR_API_URL = 'http://localhost:8080/api/instructors/addNewInstructor';
+const UPDATE_INSTRUCTOR_API_URL = 'http://localhost:8080/api/instructors/updateInstructor/';
 const IMG_API_URL = 'https://api.imgbb.com/1/upload?key=eaf6049b5324954d994475cb0c0a6156';
 
 const formulario = document.getElementById('formulario-usuario');
@@ -8,6 +11,7 @@ const nombreCompletoEl = document.getElementById('nombreCompleto');
 const correoEl = document.getElementById('correo');
 const contrasenaEl = document.getElementById('contrasena');
 const idRolEl = document.getElementById('idRol');
+const idLevelEl = document.getElementById('idLevel');
 const fotoPerfilArchivoEl = document.getElementById('fotoPerfil-archivo');
 const urlFotoPerfilEl = document.getElementById('url-foto-perfil');
 const previsualizacionFotoPerfilEl = document.getElementById('previsualizacion-foto-perfil');
@@ -15,19 +19,24 @@ const idUsuarioEl = document.getElementById('idUsuario');
 const btnCancelar = document.getElementById('btn-cancelar');
 const btnEnviar = document.getElementById('btn-enviar');
 const cuerpoTablaUsuarios = document.getElementById('cuerpo-tabla-usuarios');
-const barraNavegacionDerecha = document.querySelector('.barra-navegacion-derecha');
+const filtroAnoEl = document.getElementById('filtro-ano');
+const filtroGrupoEl = document.getElementById('filtro-grupo');
+const buscadorUsuariosEl = document.getElementById('buscador-usuarios');
 
 let roles = [];
+let instructoresOriginal = [];
+let grades = [];
 
 async function cargarRoles() {
   try {
     const res = await fetch(ROLES_API_URL);
-    roles = await res.json();
+    const data = await res.json();
+    roles = Array.isArray(data) ? data : (data.data || []);
     idRolEl.innerHTML = '';
     roles.forEach(rol => {
       const opcion = document.createElement('option');
-      opcion.value = rol.roleId;
-      opcion.textContent = rol.roleName;
+      opcion.value = rol.rolId;
+      opcion.textContent = rol.rolName;
       idRolEl.appendChild(opcion);
     });
   } catch (error) {
@@ -46,22 +55,24 @@ async function cargarRoles() {
   }
 }
 
-function obtenerNombreRolPorId(idRol) {
-  const rol = roles.find(r => r.roleId === idRol);
-  return rol ? rol.roleName : 'Desconocido';
-}
-
-async function cargarUsuarios() {
+async function cargarLevels() {
   try {
-    const res = await fetch(API_URL);
+    const res = await fetch(LEVELS_API_URL);
     const data = await res.json();
-    cargarTabla(data);
+    const levels = Array.isArray(data) ? data : (data.data || []);
+    idLevelEl.innerHTML = '';
+    levels.forEach(level => {
+      const opcion = document.createElement('option');
+      opcion.value = level.levelId || level.id; // Asegura que el value sea el id numérico
+      opcion.textContent = `${level.levelName} (${level.levelId || level.id})`; // Muestra nombre y id si quieres
+      idLevelEl.appendChild(opcion);
+    });
   } catch (error) {
-    console.error('Error al cargar los usuarios:', error);
+    console.error('Error al cargar los niveles:', error);
     Swal.fire({
       icon: 'error',
       title: 'Error',
-      text: 'No se pudieron cargar los usuarios. Intenta de nuevo más tarde.',
+      text: 'No se pudieron cargar los niveles académicos. Intenta de nuevo más tarde.',
       customClass: {
         popup: 'swal-custom-popup',
         title: 'swal-custom-title',
@@ -72,121 +83,109 @@ async function cargarUsuarios() {
   }
 }
 
-function cargarTabla(usuarios) {
+async function cargarGrupos() {
+  try {
+    const res = await fetch(GRADES_API_URL);
+    const data = await res.json();
+    grades = Array.isArray(data) ? data : (data.data || []);
+    filtroGrupoEl.innerHTML = '<option value="">Todos los grupos</option>';
+    grades.forEach(grade => {
+      const opcion = document.createElement('option');
+      opcion.value = grade.gradeGroup;
+      opcion.textContent = `Grupo ${grade.gradeGroup}`;
+      filtroGrupoEl.appendChild(opcion);
+    });
+  } catch (error) {
+    console.error('Error al cargar los grupos:', error);
+    // Puedes mostrar un mensaje si lo deseas
+  }
+}
+
+async function cargarUsuarios() {
+  try {
+    const res = await fetch(INSTRUCTORS_API_URL);
+    const data = await res.json();
+    // Ajusta según la estructura real del JSON
+    let instructores = [];
+    if (data && data.data && Array.isArray(data.data.content)) {
+      instructores = data.data.content;
+    }
+    instructoresOriginal = instructores; // Guarda la lista original para filtrar
+    filtrarYMostrarUsuarios();
+  } catch (error) {
+    console.error('Error al cargar los instructores:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'No se pudieron cargar los instructores. Intenta de nuevo más tarde.',
+      customClass: {
+        popup: 'swal-custom-popup',
+        title: 'swal-custom-title',
+        content: 'swal-custom-content',
+        confirmButton: 'swal-custom-confirm-button'
+      }
+    });
+  }
+}
+
+function filtrarYMostrarUsuarios() {
+  let lista = instructoresOriginal.slice();
+
+  // Filtro por año
+  const levelId = filtroAnoEl.value;
+  if (levelId) {
+    lista = lista.filter(i => String(i.levelId) === levelId);
+  }
+
+  // Filtro por grupo
+  const grupo = filtroGrupoEl.value;
+  if (grupo) {
+    lista = lista.filter(i => String(i.gradeGroup) === grupo);
+  }
+
+  // Filtro por texto buscador
+  const texto = buscadorUsuariosEl.value.trim().toLowerCase();
+  if (texto) {
+    lista = lista.filter(i =>
+      `${i.firstName} ${i.lastName}`.toLowerCase().includes(texto) ||
+      (i.email && i.email.toLowerCase().includes(texto))
+    );
+  }
+
+  cargarTabla(lista);
+}
+
+function cargarTabla(instructores) {
   cuerpoTablaUsuarios.innerHTML = '';
-  usuarios.forEach(usuario => {
+  instructores.forEach(instructor => {
     cuerpoTablaUsuarios.innerHTML += `
         <tr>
-            <td><img src="${usuario.fotoPerfil || 'https://i.ibb.co/N6fL89pF/yo.jpg'}" alt="Foto de ${usuario.fullName}" class="miniatura-perfil" /></td>
-            <td>${usuario.fullName}</td>
-            <td>${usuario.email}</td>
-            <td>${obtenerNombreRolPorId(usuario.tbRoleId)}</td>
+            <td><img src="${instructor.instructorImage || 'https://i.ibb.co/N6fL89pF/yo.jpg'}" alt="Foto de ${instructor.firstName} ${instructor.lastName}" class="miniatura-perfil" /></td>
+            <td>${instructor.firstName} ${instructor.lastName}</td>
+            <td>${instructor.email}</td>
+            <td>${instructor.roleName}</td>
+            <td>${instructor.levelName}</td>
             <td>
-                <button onclick="cargarParaEditarUsuario('${usuario.id}')">Editar</button>
-                <button onclick="borrarUsuario('${usuario.id}')">Eliminar</button>
+                <div style="display:flex;gap:8px;">
+                  <button onclick="cargarParaEditarUsuario('${instructor.instructorId}')">Editar</button>
+                  <button onclick="borrarUsuario('${instructor.instructorId}')">Eliminar</button>
+                </div>
             </td>
         </tr>
-        `;
+    `;
   });
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
   await cargarRoles();
+  await cargarLevels();
+  await cargarGrupos();
   await cargarUsuarios();
+
+  filtroAnoEl.addEventListener('change', filtrarYMostrarUsuarios);
+  filtroGrupoEl.addEventListener('change', filtrarYMostrarUsuarios);
+  buscadorUsuariosEl.addEventListener('input', filtrarYMostrarUsuarios);
 });
-
-async function borrarUsuario(id) {
-  const result = await Swal.fire({
-    title: '¿Estás seguro?',
-    text: "¡No podrás revertir esto!",
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonText: 'Sí, eliminar',
-    cancelButtonText: 'Cancelar',
-    customClass: {
-      popup: 'swal-custom-popup',
-      title: 'swal-custom-title',
-      content: 'swal-custom-content',
-      confirmButton: 'swal-custom-confirm-button',
-      cancelButton: 'swal-custom-cancel-button' // You might want to define a custom class for cancel button too
-    }
-  });
-
-  if (result.isConfirmed) {
-    try {
-      await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-      cargarUsuarios();
-      Swal.fire({
-        icon: 'success',
-        title: '¡Eliminado!',
-        text: 'El usuario ha sido eliminado.',
-        customClass: {
-          popup: 'swal-custom-popup',
-          title: 'swal-custom-title',
-          content: 'swal-custom-content',
-          confirmButton: 'swal-custom-confirm-button'
-        }
-      });
-    } catch (error) {
-      console.error('Error al borrar usuario:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'No se pudo eliminar el usuario. Intenta de nuevo.',
-        customClass: {
-          popup: 'swal-custom-popup',
-          title: 'swal-custom-title',
-          content: 'swal-custom-content',
-          confirmButton: 'swal-custom-confirm-button'
-        }
-      });
-    }
-  } else {
-    Swal.fire({
-      icon: 'info',
-      title: 'Cancelado',
-      text: 'La eliminación del usuario ha sido cancelada.',
-      customClass: {
-        popup: 'swal-custom-popup',
-        title: 'swal-custom-title',
-        content: 'swal-custom-content',
-        confirmButton: 'swal-custom-confirm-button'
-      }
-    });
-  }
-}
-
-async function cargarParaEditarUsuario(id) {
-  try {
-    const res = await fetch(`${API_URL}/${id}`);
-    const usuario = await res.json();
-
-    nombreCompletoEl.value = usuario.fullName;
-    correoEl.value = usuario.email;
-    contrasenaEl.value = usuario.password;
-    idRolEl.value = usuario.tbRoleId;
-    urlFotoPerfilEl.value = usuario.fotoPerfil;
-    previsualizacionFotoPerfilEl.src = usuario.fotoPerfil || 'https://i.ibb.co/N6fL89pF/yo.jpg';
-    fotoPerfilArchivoEl.value = ''; // Clear file input when editing
-    idUsuarioEl.value = usuario.id;
-
-    btnEnviar.textContent = 'Actualizar Usuario';
-    btnCancelar.hidden = false;
-  } catch (error) {
-    console.error('Error al cargar usuario para editar:', error);
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'No se pudo cargar la información del usuario para editar.',
-      customClass: {
-        popup: 'swal-custom-popup',
-        title: 'swal-custom-title',
-        content: 'swal-custom-content',
-        confirmButton: 'swal-custom-confirm-button'
-      }
-    });
-  }
-}
 
 fotoPerfilArchivoEl.addEventListener('change', function() {
   const archivo = this.files[0];
@@ -209,6 +208,9 @@ btnCancelar.addEventListener('click', () => {
   btnCancelar.hidden = true;
   fotoPerfilArchivoEl.value = ''; // Clear file input
   previsualizacionFotoPerfilEl.src = ''; // Clear image preview
+  contrasenaEl.disabled = false;
+  const contrasenaGroup = document.getElementById('contrasena').closest('.grupo-formulario');
+  if (contrasenaGroup) contrasenaGroup.style.display = '';
 });
 
 async function subirImagen(archivo) {
@@ -239,96 +241,73 @@ async function subirImagen(archivo) {
   }
 }
 
-// Validation functions
-function validateFullName(name) {
-  if (!name.trim()) {
-    return 'El nombre completo es obligatorio.';
-  }
-  if (name.trim().length < 3) {
-    return 'El nombre completo debe tener al menos 3 caracteres.';
-  }
-  return null;
-}
-
-function validateEmail(email) {
-  if (!email.trim()) {
-    return 'El correo electrónico es obligatorio.';
-  }
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    return 'Introduce un correo electrónico válido.';
-  }
-  return null;
-}
-
-function validatePassword(password, isEditing) {
-  if (!isEditing && !password.trim()) {
-    return 'La contraseña es obligatoria.';
-  }
-  if (password.trim() && password.trim().length < 6) {
-    return 'La contraseña debe tener al menos 6 caracteres.';
-  }
-  return null;
-}
-
-function validateRole(roleId) {
-  if (!roleId || roleId === '0') { // Assuming '0' might be a default or invalid option
-    return 'Selecciona un rol válido.';
-  }
-  return null;
-}
-
 formulario.addEventListener('submit', async e => {
   e.preventDefault();
 
-  const isEditing = !!idUsuarioEl.value; // True if idUsuarioEl has a value
+  const firstName = nombreCompletoEl.value.trim();
+  const lastName = document.getElementById('apellidos').value.trim();
+  const email = correoEl.value.trim();
+  let password = contrasenaEl.value.trim();
+  const isEditing = !!idUsuarioEl.value;
+  const roleId = idRolEl.value;
+  const levelId = idLevelEl.value;
 
-  // Perform validations
-  const fullNameError = validateFullName(nombreCompletoEl.value);
-  const emailError = validateEmail(correoEl.value);
-  const passwordError = validatePassword(contrasenaEl.value, isEditing);
-  const roleError = validateRole(idRolEl.value);
-
-  if (fullNameError || emailError || passwordError || roleError) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Error de Validación',
-      html: [fullNameError, emailError, passwordError, roleError].filter(Boolean).join('<br>'),
-      customClass: {
-        popup: 'swal-custom-popup',
-        title: 'swal-custom-title',
-        content: 'swal-custom-content',
-        confirmButton: 'swal-custom-confirm-button'
-      }
-    });
+  if (!firstName || firstName.length < 3) {
+    Swal.fire({ icon: 'error', title: 'Error', text: 'El nombre es obligatorio y debe tener al menos 3 caracteres.' });
+    return;
+  }
+  if (!lastName || lastName.length < 2) {
+    Swal.fire({ icon: 'error', title: 'Error', text: 'El apellido es obligatorio y debe tener al menos 2 caracteres.' });
+    return;
+  }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    Swal.fire({ icon: 'error', title: 'Error', text: 'Introduce un correo electrónico válido.' });
+    return;
+  }
+  if (!isEditing && (!password || password.length < 6)) {
+    Swal.fire({ icon: 'error', title: 'Error', text: 'La contraseña debe tener al menos 6 caracteres.' });
+    return;
+  }
+  if (!roleId) {
+    Swal.fire({ icon: 'error', title: 'Error', text: 'Selecciona un rol válido.' });
+    return;
+  }
+  if (!levelId) {
+    Swal.fire({ icon: 'error', title: 'Error', text: 'Selecciona un año académico válido.' });
     return;
   }
 
-  let urlFoto = urlFotoPerfilEl.value;
+  let instructorImage = urlFotoPerfilEl.value;
   if (fotoPerfilArchivoEl.files.length > 0) {
     const nuevaUrlFoto = await subirImagen(fotoPerfilArchivoEl.files[0]);
     if (nuevaUrlFoto) {
-      urlFoto = nuevaUrlFoto;
+      instructorImage = nuevaUrlFoto;
     } else {
-      // If image upload fails, stop the submission
       return;
     }
-  } else if (!urlFoto) {
-    urlFoto = 'https://i.ibb.co/N6fL89pF/yo.jpg'; // Default image if none provided and not editing existing
+  } else if (!instructorImage) {
+    instructorImage = 'https://i.ibb.co/N6fL89pF/yo.jpg';
   }
 
-
+  // Estructura para el registro/actualización de instructores
   const cargaUtil = {
-    fullName: nombreCompletoEl.value,
-    email: correoEl.value,
-    password: contrasenaEl.value,
-    tbRoleId: idRolEl.value,
-    fotoPerfil: urlFoto
+    firstName,
+    lastName,
+    email,
+    levelId: Number(levelId),
+    roleId: Number(roleId),
+    instructorImage
   };
+  if (!isEditing) {
+    cargaUtil.password = password;
+  }
+  if (isEditing) {
+    cargaUtil.instructorId = Number(idUsuarioEl.value);
+  }
 
   try {
     if (isEditing) {
-      await fetch(`${API_URL}/${idUsuarioEl.value}`, {
+      await fetch(`${UPDATE_INSTRUCTOR_API_URL}${idUsuarioEl.value}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(cargaUtil)
@@ -336,7 +315,7 @@ formulario.addEventListener('submit', async e => {
       Swal.fire({
         icon: 'success',
         title: '¡Actualizado!',
-        text: 'El usuario ha sido actualizado correctamente.',
+        text: 'El instructor ha sido actualizado correctamente.',
         customClass: {
           popup: 'swal-custom-popup',
           title: 'swal-custom-title',
@@ -345,7 +324,7 @@ formulario.addEventListener('submit', async e => {
         }
       });
     } else {
-      await fetch(API_URL, {
+      await fetch(ADD_INSTRUCTOR_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(cargaUtil)
@@ -353,7 +332,7 @@ formulario.addEventListener('submit', async e => {
       Swal.fire({
         icon: 'success',
         title: '¡Agregado!',
-        text: 'El usuario ha sido agregado correctamente.',
+        text: 'El instructor ha sido agregado correctamente.',
         customClass: {
           popup: 'swal-custom-popup',
           title: 'swal-custom-title',
@@ -363,11 +342,11 @@ formulario.addEventListener('submit', async e => {
       });
     }
   } catch (error) {
-    console.error('Error al guardar usuario:', error);
+    console.error('Error al guardar instructor:', error);
     Swal.fire({
       icon: 'error',
       title: 'Error',
-      text: 'No se pudo guardar el usuario. Intenta de nuevo.',
+      text: 'No se pudo guardar el instructor. Intenta de nuevo.',
       customClass: {
         popup: 'swal-custom-popup',
         title: 'swal-custom-title',
@@ -378,14 +357,108 @@ formulario.addEventListener('submit', async e => {
   }
 
   formulario.reset();
-  idUsuarioEl.value = ''; // Clear hidden ID after submission
+  idUsuarioEl.value = '';
   btnCancelar.hidden = true;
   btnEnviar.textContent = 'Agregar Usuario';
   fotoPerfilArchivoEl.value = '';
-  previsualizacionFotoPerfilEl.src = ''; // Clear image preview
+  previsualizacionFotoPerfilEl.src = '';
+  contrasenaEl.disabled = false;
   cargarUsuarios();
 });
 
-barraNavegacionDerecha.addEventListener('click', () => {
-    window.location.href = '#'; // Redirige al apartado de perfil, ajusta esta URL según tu estructura
-});
+async function cargarParaEditarUsuario(id) {
+  try {
+    const res = await fetch(`http://localhost:8080/api/instructors/getInstructorById/${id}`);
+    const result = await res.json();
+    const instructor = result.data || {};
+
+    nombreCompletoEl.value = instructor.firstName || '';
+    document.getElementById('apellidos').value = instructor.lastName || '';
+    correoEl.value = instructor.email || '';
+    // Muestra el campo de contraseña y déjalo en blanco
+    const contrasenaGroup = document.getElementById('contrasena').closest('.grupo-formulario');
+    if (contrasenaGroup) contrasenaGroup.style.display = '';
+    contrasenaEl.value = '';
+
+    idRolEl.value = instructor.roleId || '';
+    setTimeout(() => {
+      idLevelEl.value = instructor.levelId || '';
+    }, 0);
+
+    urlFotoPerfilEl.value = instructor.instructorImage || '';
+    previsualizacionFotoPerfilEl.src = instructor.instructorImage || 'https://i.ibb.co/N6fL89pF/yo.jpg';
+    fotoPerfilArchivoEl.value = '';
+    idUsuarioEl.value = instructor.instructorId || '';
+
+    btnEnviar.textContent = 'Actualizar Usuario';
+    btnCancelar.hidden = false;
+  } catch (error) {
+    console.error('Error al cargar usuario para editar:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'No se pudo cargar la información del usuario para editar.',
+      customClass: {
+        popup: 'swal-custom-popup',
+        title: 'swal-custom-title',
+        content: 'swal-custom-content',
+        confirmButton: 'swal-custom-confirm-button'
+      }
+    });
+  }
+}
+
+async function borrarUsuario(id) {
+  const result = await Swal.fire({
+    title: '¿Estás seguro?',
+    text: 'Esta acción eliminará el usuario de forma permanente.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar',
+    customClass: {
+      popup: 'swal-custom-popup',
+      title: 'swal-custom-title',
+      content: 'swal-custom-content',
+      confirmButton: 'swal-custom-confirm-button',
+      cancelButton: 'swal-custom-cancel-button'
+    }
+  });
+
+  if (result.isConfirmed) {
+    try {
+      const res = await fetch(`http://localhost:8080/api/instructors/deleteInstructor/${id}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        Swal.fire({
+          icon: 'success',
+          title: '¡Eliminado!',
+          text: 'El instructor ha sido eliminado correctamente.',
+          customClass: {
+            popup: 'swal-custom-popup',
+            title: 'swal-custom-title',
+            content: 'swal-custom-content',
+            confirmButton: 'swal-custom-confirm-button'
+          }
+        });
+        cargarUsuarios();
+      } else {
+        throw new Error('No se pudo eliminar el instructor');
+      }
+    } catch (error) {
+      console.error('Error al eliminar instructor:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo eliminar el instructor. Intenta de nuevo.',
+        customClass: {
+          popup: 'swal-custom-popup',
+          title: 'swal-custom-title',
+          content: 'swal-custom-content',
+          confirmButton: 'swal-custom-confirm-button'
+        }
+      });
+    }
+  }
+}

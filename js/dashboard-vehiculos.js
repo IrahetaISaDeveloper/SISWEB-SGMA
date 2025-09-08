@@ -61,9 +61,11 @@ function renderVehiclesTable(vehicles) {
 // Mostrar vehículos con estado = 1 en la tarjeta-sidebar
 function renderSidebarPendingVehicles(vehicles) {
     const lista = document.querySelector('.tarjeta-sidebar .lista-registros');
+    const badge = document.querySelector('.tarjeta-sidebar .badge-contador');
     if (!lista) return;
-    lista.innerHTML = ''; // Limpia la lista
     const pendientes = vehicles.filter(v => v.idStatus === 1);
+    if (badge) badge.textContent = pendientes.length;
+    lista.innerHTML = ''; // Limpia la lista
     if (pendientes.length === 0) {
         lista.innerHTML = '<div style="text-align:center;color:#888;">No hay vehículos pendientes.</div>';
         return;
@@ -133,11 +135,20 @@ document.getElementById('buscarRegistro').addEventListener('input', function(e) 
     })
     .then(res => res.json())
     .then(data => {
-        renderVehiclesTable(Array.isArray(data) ? data : [data]);
+        // Si la API retorna un array, úsalo directamente; si retorna un objeto, conviértelo en array
+        let vehicles = [];
+        if (Array.isArray(data)) {
+            vehicles = data;
+        } else if (data && data.data && Array.isArray(data.data.content)) {
+            vehicles = data.data.content;
+        } else if (data) {
+            vehicles = [data];
+        }
+        renderVehiclesTable(vehicles);
     })
     .catch(err => {
         console.error('Error en búsqueda por placa:', err);
-        renderVehiclesTable([]); // Muestra mensaje de error en la tabla
+        renderVehiclesTable([]);
     });
 });
 

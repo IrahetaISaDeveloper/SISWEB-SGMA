@@ -69,12 +69,16 @@
 
   <main class="contenedor-principal">
     
-    <h1>Administración de Usuarios</h1>
+    <h1>Administración de Docentes</h1>
 
     <form id="formulario-usuario" class="formulario-usuario">
       <div class="grupo-formulario">
-        <label for="nombreCompleto">Nombre Completo:</label>
+        <label for="nombreCompleto">Nombres:</label>
         <input type="text" id="nombreCompleto" required />
+      </div>
+      <div class="grupo-formulario">
+        <label for="apellidos">Apellidos:</label>
+        <input type="text" id="apellidos" required />
       </div>
       <div class="grupo-formulario">
         <label for="correo">Email:</label>
@@ -87,6 +91,11 @@
       <div class="grupo-formulario seleccion-contenedor">
         <label for="idRol">Rol:</label>
         <select id="idRol" required>
+        </select>
+      </div>
+      <div class="grupo-formulario seleccion-contenedor">
+        <label for="idLevel">Año academico:</label>
+        <select id="idLevel" required>
         </select>
       </div>
       <div class="grupo-formulario">
@@ -130,6 +139,7 @@
             <th>Nombre Completo</th>
             <th>Email</th>
             <th>Rol</th>
+            <th>Año académico</th>
             <th>Acciones</th>
           </tr>
         </thead>
