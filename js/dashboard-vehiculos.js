@@ -5,6 +5,8 @@ function getAuthToken() {
 
 // Renderiza la tabla de vehículos
 function renderVehiclesTable(vehicles) {
+    // Guardar la lista globalmente
+    window.__listaVehiculos = vehicles;
     const tbody = document.querySelector('.tabla-moderna tbody');
     if (!tbody) {
         console.error('No se encontró el tbody de la tabla de vehículos. Verifica que exista .tabla-moderna y su <tbody>.');
@@ -70,6 +72,7 @@ function renderSidebarPendingVehicles(vehicles) {
     pendientes.forEach(vehicle => {
         const div = document.createElement('div');
         div.className = 'item-registro';
+        div.__vehiculoData = vehicle; // Asocia el objeto vehículo al elemento
         div.innerHTML = `
             <div class="icono-vehiculo">
                 <i class="fas fa-car"></i>
@@ -104,6 +107,7 @@ function fetchAllVehicles() {
         if (data && data.data && Array.isArray(data.data.content)) {
             vehicles = data.data.content;
         }
+        window.__listaVehiculos = vehicles; // Actualiza la lista global
         renderVehiclesTable(vehicles);
         renderSidebarPendingVehicles(vehicles);
     })
@@ -138,6 +142,7 @@ document.getElementById('buscarRegistro').addEventListener('input', function(e) 
         } else if (data) {
             vehicles = [data];
         }
+        window.__listaVehiculos = vehicles; // Actualiza la lista global
         renderVehiclesTable(vehicles);
     })
     .catch(err => {
@@ -146,8 +151,77 @@ document.getElementById('buscarRegistro').addEventListener('input', function(e) 
     });
 });
 
+// Modificar showVehicleModal para llenar el modal
 window.showVehicleModal = function(vehicleId) {
-    document.getElementById('modalVehiculo').style.display = 'block';
+    let vehiculo = null;
+    if (window.__listaVehiculos) {
+        vehiculo = window.__listaVehiculos.find(v => v.vehicleId === vehicleId);
+    }
+    if (vehiculo) {
+        llenarModalVehiculo(vehiculo);
+    }
+    const modalVehiculo = document.getElementById('modalVehiculo');
+    if (modalVehiculo) {
+        modalVehiculo.style.display = 'flex';
+    }
+}
+
+// Función para llenar el modal con datos del vehículo
+function llenarModalVehiculo(vehiculo) {
+    window.vehiculoSeleccionado = vehiculo;
+    const tabVehiculo = document.getElementById('tab-vehiculo');
+    if (tabVehiculo) {
+        tabVehiculo.innerHTML = `
+            <ul style="list-style:none;padding:0;">
+                <li><b>Placa:</b> ${vehiculo.plateNumber || '-'}</li>
+                <li><b>Marca:</b> ${vehiculo.brand || '-'}</li>
+                <li><b>Modelo:</b> ${vehiculo.model || '-'}</li>
+                <li><b>Tipo:</b> ${vehiculo.typeName || '-'}</li>
+                <li><b>Estado:</b> ${vehiculo.idStatus || '-'}</li>
+                <li><b>Estudiante:</b> ${(vehiculo.studentName || '-') + ' ' + (vehiculo.studentLastName || '')}</li>
+                <li><b>Propietario:</b> ${vehiculo.ownerName || '-'}</li>
+                <li><b>Teléfono:</b> ${vehiculo.ownerPhone || '-'}</li>
+                <li><b>N° Tarjeta Circulación:</b> ${vehiculo.circulationCardNumber || '-'}</li>
+                <li><b>Color:</b> ${vehiculo.color || '-'}</li>
+                <li><b>Imagen:</b> <img src="${vehiculo.vehicleImage || 'imgs/default-car.png'}" style="width:60px;height:60px;border-radius:6px;border:1px solid #ccc;"></li>
+            </ul>
+        `;
+    }
+}
+
+// Listener global para abrir el modal al hacer click en un pendiente
+document.body.addEventListener('click', function(e) {
+    const itemRegistro = e.target.closest('.item-registro');
+    const modalVehiculo = document.getElementById('modalVehiculo');
+    if (itemRegistro && itemRegistro.__vehiculoData) {
+        llenarModalVehiculo(itemRegistro.__vehiculoData);
+        if (modalVehiculo) modalVehiculo.style.display = 'flex';
+    }
+    // ...existing code for .btn-opciones...
+}, true);
+
+// Aprobar vehículo desde el modal
+const btnAprobar = document.querySelector('.btn-modal.primario');
+if (btnAprobar) {
+    btnAprobar.onclick = function() {
+        if (!window.vehiculoSeleccionado) return;
+        const token = getAuthToken();
+        const modalVehiculo = document.getElementById('modalVehiculo');
+        fetch(`http://localhost:8080/api/vehicles/updateStatus/${window.vehiculoSeleccionado.vehicleId}?newStatus=2`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            fetchAllVehicles();
+            if (modalVehiculo) modalVehiculo.style.display = 'none';
+        })
+        .catch(err => {
+            alert('Error al aprobar el vehículo');
+        });
+    }
 }
 
 document.querySelector('.btn-cerrar-modal').addEventListener('click', function() {
