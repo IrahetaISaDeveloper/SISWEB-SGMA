@@ -11,7 +11,7 @@
     <link rel="manifest" href="imgs/favicon/site.webmanifest" />
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="css/primer-año.css">
+    <link rel="stylesheet" href="css/dashboard-vehiculos.css">
 </head>
 
 <body>
@@ -28,9 +28,9 @@
                     </a>
                 </li>
                 <li>
-                    <a href="primer-año.html" class="enlace-sidebar activo" title="Primer Año">
-                        <i class="fas fa-graduation-cap"></i>
-                        <span class="tooltip">Primer Año</span>
+                    <a href="dashboard-vehiculos.html" class="enlace-sidebar activo" title="Dashboard de Vehículos">
+                        <i class="fas fa-car"></i>
+                        <span class="tooltip">Dashboard de Vehículos</span>
                     </a>
                 </li>
                 <li>
@@ -179,98 +179,21 @@
                         <table class="tabla-moderna">
                             <thead>
                                 <tr>
-                                    <th>
-                                        <input type="checkbox" class="checkbox-all">
-                                    </th>
+                                    <th><input type="checkbox" class="checkbox-all"></th>
                                     <th>Placa</th>
-                                    <th>Vehículo</th>
+                                    <th>Marca</th>
+                                    <th>Modelo</th>
+                                    <th>Tipo</th>
                                     <th>Estado</th>
                                     <th>Estudiante</th>
-                                    <th>Fecha</th>
+                                    <th>Propietario</th>
+                                    <th>Tel. Propietario</th>
+                                    <th>Imagen</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>
-                                        <input type="checkbox" class="checkbox-row">
-                                    </td>
-                                    <td>
-                                        <span class="placa-badge">P894-562</span>
-                                    </td>
-                                    <td>
-                                        <div class="vehiculo-info">
-                                            <span class="marca">Toyota Corolla</span>
-                                            <span class="año">2025</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="estado-badge pendiente">Pendiente</span>
-                                    </td>
-                                    <td>
-                                        <div class="estudiante-info">
-                                            <span class="nombre">César Montoya</span>
-                                            <span class="carnet">20240141</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="fecha">08/04/2025</span>
-                                        <span class="hora">7:00 AM</span>
-                                    </td>
-                                    <td>
-                                        <div class="acciones-tabla">
-                                            <button class="btn-accion ver" title="Ver detalles">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="btn-accion editar" title="Editar">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="btn-accion aprobar" title="Aprobar">
-                                                <i class="fas fa-check"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <input type="checkbox" class="checkbox-row">
-                                    </td>
-                                    <td>
-                                        <span class="placa-badge">P123-456</span>
-                                    </td>
-                                    <td>
-                                        <div class="vehiculo-info">
-                                            <span class="marca">Honda Civic</span>
-                                            <span class="año">2024</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="estado-badge proceso">En proceso</span>
-                                    </td>
-                                    <td>
-                                        <div class="estudiante-info">
-                                            <span class="nombre">Ana García</span>
-                                            <span class="carnet">20240098</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="fecha">08/04/2025</span>
-                                        <span class="hora">8:30 AM</span>
-                                    </td>
-                                    <td>
-                                        <div class="acciones-tabla">
-                                            <button class="btn-accion ver" title="Ver detalles">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="btn-accion editar" title="Editar">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="btn-accion completar" title="Completar">
-                                                <i class="fas fa-check-double"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
+                                <!-- Los datos se llenan dinámicamente con JS -->
                             </tbody>
                         </table>
                     </div>
@@ -332,7 +255,7 @@
         </div>
     </div>
 
-    <script src="js/primer-año.js"></script>
+    <script src="js/dashboard-vehiculos.js"></script>
 </body>
 
 </html>

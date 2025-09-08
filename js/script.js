@@ -23,7 +23,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const usernameInput = document.getElementById('username-input');
 
             if (!usernameInput || !passwordInput) {
-                console.error("Error: No se pudieron encontrar los campos de entrada de usuario o contraseña.");
                 Swal.fire({
                     icon: 'error',
                     title: 'Error de Interfaz',
@@ -35,78 +34,62 @@ document.addEventListener('DOMContentLoaded', function() {
             const email = usernameInput.value.trim();
             const password = passwordInput.value.trim();
 
-            if (email && password) {
-                try {
-                    const usersResponse = await fetch('https://685b5bb389952852c2d94520.mockapi.io/tbUsers');
-                    if (!usersResponse.ok) {
-                        throw new Error(`HTTP error! status: ${usersResponse.status}`);
-                    }
-                    const users = await usersResponse.json();
-
-                    const foundUser = users.find(user => user.email === email && user.password === password);
-
-                    if (foundUser) {
-                        localStorage.setItem('loggedInUserName', foundUser.fullName);
-                        if (foundUser.fotoPerfil) {
-                            localStorage.setItem('loggedInUserPhoto', foundUser.fotoPerfil);
-                        } else {
-                            localStorage.removeItem('loggedInUserPhoto');
-                        }
-
-                        const rolesResponse = await fetch('https://685b5bb389952852c2d94520.mockapi.io/tbRoles');
-                        if (!rolesResponse.ok) {
-                            throw new Error(`HTTP error! status: ${rolesResponse.status}`);
-                        }
-                        const roles = await rolesResponse.json();
-
-                        const userRole = roles.find(role => role.roleId === foundUser.tbRoleId);
-
-                        if (userRole) {
-                            switch(userRole.roleName) {
-                                case 'Student':
-                                    // Establece la bandera de éxito de inicio de sesión para el toast
-                                    localStorage.setItem('loggedInSuccessfully', 'true'); //
-                                    window.location.href = 'estudiante.html'; //
-                                    break;
-                                case 'Instructor':
-                                case 'Coordinator':
-                                    window.location.href = 'coordi-index.html'; //
-                                    break;
-                                default:
-                                    Swal.fire({
-                                        icon: 'warning',
-                                        title: 'Rol no reconocido',
-                                        text: 'Rol de usuario no reconocido. Contacta al administrador.',
-                                    });
-                            }
-                        } else {
-                            Swal.fire({
-                                icon: 'warning',
-                                title: 'Rol no encontrado',
-                                text: 'No se pudo determinar el rol del usuario.',
-                            });
-                        }
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Credenciales Incorrectas',
-                            text: 'Por favor, verifica tu usuario y contraseña.',
-                        });
-                    }
-
-                } catch (error) {
-                    console.error("Error al conectar con la API:", error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error de Conexión',
-                        text: 'Hubo un problema al intentar iniciar sesión. Por favor, inténtalo de nuevo más tarde.',
-                    });
-                }
-            } else {
+            // Validación de campos vacíos
+            if (!email || !password) {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Campos Vacíos',
-                    text: 'Por favor, ingresa tus credenciales completas (usuario y contraseña).',
+                    text: 'Por favor, ingresa tus credenciales completas (correo y contraseña).',
+                });
+                return;
+            }
+
+            // Validación de correo institucional
+            if (!email.endsWith('@ricaldone.edu.sv')) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Correo inválido',
+                    text: 'Debes ingresar tu correo institucional (@ricaldone.edu.sv).',
+                });
+                return;
+            }
+
+            try {
+                // Cambia la URL a la de tu backend si es necesario
+                const response = await fetch('http://localhost:8080/api/instructorAuth/instructorLogin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include', // Importante para que la cookie authToken se guarde
+                    body: JSON.stringify({ email, password })
+                });
+
+                // El backend debe enviar la cookie authToken si las credenciales son correctas
+                if (response.ok) {
+                    // Puedes mostrar mensaje de éxito o redirigir
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Inicio de sesión exitoso',
+                        text: 'Bienvenido al sistema.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.href = 'coordi-index.html';
+                    });
+                } else {
+                    const errorText = await response.text();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error de inicio de sesión',
+                        text: errorText.includes('Credenciales') ? 'Credenciales incorrectas.' : errorText,
+                    });
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de Conexión',
+                    text: 'No se pudo conectar con el servidor. Intenta más tarde.',
                 });
             }
         });
@@ -120,4 +103,26 @@ document.addEventListener('DOMContentLoaded', function() {
             window.location.href = 'auth-seguimiento.html';
         });
     }
+
+    // Ejemplo: consulta autenticada usando la cookie creada por el backend
+    async function obtenerDatosInstructor() {
+        try {
+            const response = await fetch('http://localhost:8080/api/instructorAuth/meInstructor', {
+                method: 'GET',
+                credentials: 'include', // La cookie authToken se envía automáticamente
+            });
+            const data = await response.json();
+            if (data.authenticated) {
+                // Procesa los datos del instructor
+                console.log('Datos del instructor:', data.instructor);
+            } else {
+                console.log('No autenticado');
+            }
+        } catch (error) {
+            console.error('Error obteniendo datos del instructor:', error);
+        }
+    }
+
+    // Llama a la función para obtener los datos del instructor después de iniciar sesión
+    // obtenerDatosInstructor();
 });
