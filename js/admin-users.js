@@ -169,6 +169,7 @@ function cargarTabla(instructores) {
                 <div style="display:flex;gap:8px;">
                   <button onclick="cargarParaEditarUsuario('${instructor.instructorId}')">Editar</button>
                   <button onclick="borrarUsuario('${instructor.instructorId}')">Eliminar</button>
+                  <button onclick="resetInstructorPassword('${instructor.instructorId}')">Restablecer Contraseña</button>
                 </div>
             </td>
         </tr>
@@ -452,6 +453,70 @@ async function borrarUsuario(id) {
         icon: 'error',
         title: 'Error',
         text: 'No se pudo eliminar el instructor. Intenta de nuevo.',
+        customClass: {
+          popup: 'swal-custom-popup',
+          title: 'swal-custom-title',
+          content: 'swal-custom-content',
+          confirmButton: 'swal-custom-confirm-button'
+        }
+      });
+    }
+  }
+}
+
+async function resetInstructorPassword(id) {
+  const result = await Swal.fire({
+    title: '¿Restablecer contraseña?',
+    text: 'Esta acción restablecerá la contraseña del instructor seleccionado.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, restablecer',
+    cancelButtonText: 'Cancelar',
+    customClass: {
+      popup: 'swal-custom-popup',
+      title: 'swal-custom-title',
+      content: 'swal-custom-content',
+      confirmButton: 'swal-custom-confirm-button',
+      cancelButton: 'swal-custom-cancel-button'
+    }
+  });
+
+  if (result.isConfirmed) {
+    try {
+      const res = await fetch(`http://localhost:8080/api/instructors/update/${id}/password`, {
+        method: 'PUT'
+      });
+      const data = await res.json();
+      if (data.Success) {
+        Swal.fire({
+          icon: 'success',
+          title: '¡Contraseña restablecida!',
+          text: data.Message || 'La contraseña fue restablecida correctamente.',
+          customClass: {
+            popup: 'swal-custom-popup',
+            title: 'swal-custom-title',
+            content: 'swal-custom-content',
+            confirmButton: 'swal-custom-confirm-button'
+          }
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: data.Message || 'No se pudo restablecer la contraseña.',
+          customClass: {
+            popup: 'swal-custom-popup',
+            title: 'swal-custom-title',
+            content: 'swal-custom-content',
+            confirmButton: 'swal-custom-confirm-button'
+          }
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo restablecer la contraseña. Intenta de nuevo.',
         customClass: {
           popup: 'swal-custom-popup',
           title: 'swal-custom-title',

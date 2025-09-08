@@ -147,6 +147,44 @@
         </tbody>
       </table>
     </div>
+
+    <h1>Administración de Módulos</h1>
+
+    <form id="formulario-modulo" class="formulario-modulo">
+      <div class="grupo-formulario">
+        <label for="nombreModulo">Nombre del módulo:</label>
+        <input type="text" id="nombreModulo" required />
+      </div>
+      <div class="grupo-formulario">
+        <label for="descripcionModulo">Descripción:</label>
+        <input type="text" id="descripcionModulo" required />
+      </div>
+      <div class="grupo-formulario seleccion-contenedor">
+        <label for="comboLevel">Año académico:</label>
+        <select id="comboLevel" required>
+          <!-- Se llena dinámicamente -->
+        </select>
+      </div>
+      <input type="hidden" id="idModulo" />
+      <button type="submit" id="btn-enviar">Agregar Módulo</button>
+      <button type="button" id="btn-cancelar" hidden>Cancelar</button>
+    </form>
+
+    <div class="tabla-responsiva">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre del Módulo</th>
+            <th>Descripción</th>
+            <th>Año Académico</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="cuerpo-tabla-modulos">
+        </tbody>
+      </table>
+    </div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

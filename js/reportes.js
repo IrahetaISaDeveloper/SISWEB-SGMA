@@ -1,15 +1,70 @@
-document.addEventListener('DOMContentLoaded', function () {
-    var porcentajesAlumnos = [76, 67, 85];
-    var conteoRealAlumnos = [120, 110, 140];
+document.addEventListener('DOMContentLoaded', async function () {
+    let estudiantes = [];
+    let instructores = [];
+    let vehiculos = [];
 
+    // Fetch estudiantes
+    try {
+        const resEst = await fetch('http://localhost:8080/api/students/getDataStudents');
+        const dataEst = await resEst.json();
+        if (dataEst && dataEst.data && Array.isArray(dataEst.data.content)) {
+            estudiantes = dataEst.data.content;
+        } else if (dataEst && Array.isArray(dataEst.data)) {
+            estudiantes = dataEst.data;
+        }
+    } catch {}
+
+    // Fetch instructores
+    try {
+        const resInst = await fetch('http://localhost:8080/api/instructors/getDataInstructors');
+        const dataInst = await resInst.json();
+        if (dataInst && dataInst.data && Array.isArray(dataInst.data.content)) {
+            instructores = dataInst.data.content;
+        } else if (dataInst && Array.isArray(dataInst.data)) {
+            instructores = dataInst.data;
+        }
+    } catch {}
+
+    // Fetch vehículos
+    try {
+        const resVeh = await fetch('http://localhost:8080/api/vehicles/getDataVehicles');
+        const dataVeh = await resVeh.json();
+        if (dataVeh && dataVeh.data && Array.isArray(dataVeh.data.content)) {
+            vehiculos = dataVeh.data.content;
+        } else if (dataVeh && Array.isArray(dataVeh.data)) {
+            vehiculos = dataVeh.data;
+        }
+    } catch {}
+
+    // Procesar datos para gráficos
+    let alumnosPorAno = [0, 0, 0];
+    estudiantes.forEach(est => {
+        if (est.gradeId === 1) alumnosPorAno[0]++;
+        else if (est.gradeId === 2) alumnosPorAno[1]++;
+        else if (est.gradeId === 3) alumnosPorAno[2]++;
+    });
+
+    let vehiculosPorAno = [0, 0, 0];
+    vehiculos.forEach(veh => {
+        const est = estudiantes.find(e => e.studentId === veh.studentId);
+        if (est) {
+            if (est.gradeId === 1) vehiculosPorAno[0]++;
+            else if (est.gradeId === 2) vehiculosPorAno[1]++;
+            else if (est.gradeId === 3) vehiculosPorAno[2]++;
+        }
+    });
+
+    // Si no hay datos, muestra 0 para evitar errores en ApexCharts
+    if (!alumnosPorAno.some(v => v > 0)) alumnosPorAno = [0, 0, 0];
+    if (!vehiculosPorAno.some(v => v > 0)) vehiculosPorAno = [0, 0, 0];
+
+    // Gráfico radial de alumnos por año
     var opcionesAlumnos = {
-        series: porcentajesAlumnos,
+        series: alumnosPorAno,
         chart: {
             height: 250,
             type: 'radialBar',
-            toolbar: {
-                show: false
-            }
+            toolbar: { show: false }
         },
         plotOptions: {
             radialBar: {
@@ -20,10 +75,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     margin: 5,
                     size: '45%',
                     background: '#fff',
-                    image: undefined,
-                    imageOffsetX: 0,
-                    imageOffsetY: 0,
-                    position: 'front',
                     dropShadow: {
                         enabled: true,
                         top: 3,
@@ -54,11 +105,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     },
                     value: {
                         formatter: function(valor, opciones) {
-                            if (conteoRealAlumnos[opciones.seriesIndex] !== undefined) {
-                                return conteoRealAlumnos[opciones.seriesIndex] + ' alumnos';
-                            } else {
-                                return 'Datos N/A';
-                            }
+                            return valor + ' alumnos';
                         },
                         offsetY: 8,
                         color: '#111',
@@ -81,120 +128,50 @@ document.addEventListener('DOMContentLoaded', function () {
                 stops: [0, 100]
             }
         },
-        stroke: {
-            lineCap: 'round'
-        },
+        stroke: { lineCap: 'round' },
         labels: ['1er Año', '2do Año', '3er Año'],
     };
 
     var graficoAlumnos = new ApexCharts(document.querySelector("#grafico-alumnos"), opcionesAlumnos);
     graficoAlumnos.render();
-});
 
-document.addEventListener('DOMContentLoaded', function () {
-    var datosGrafico = {
-        finalizados: [
-            { x: new Date('2024-06-01').getTime(), y: 10 },
-            { x: new Date('2024-06-02').getTime(), y: 12 },
-            { x: new Date('2024-06-03').getTime(), y: 15 },
-            { x: new Date('2024-06-04').getTime(), y: 13 },
-            { x: new Date('2024-06-05').getTime(), y: 18 },
-            { x: new Date('2024-06-06').getTime(), y: 20 },
-            { x: new Date('2024-06-07').getTime(), y: 22 },
-            { x: new Date('2024-06-08').getTime(), y: 25 },
-        ],
-        enProceso: [
-            { x: new Date('2024-06-01').getTime(), y: 5 },
-            { x: new Date('2024-06-02').getTime(), y: 8 },
-            { x: new Date('2024-06-03').getTime(), y: 7 },
-            { x: new Date('2024-06-04').getTime(), y: 9 },
-            { x: new Date('2024-06-05').getTime(), y: 11 },
-            { x: new Date('2024-06-06').getTime(), y: 10 },
-            { x: new Date('2024-06-07').getTime(), y: 13 },
-            { x: new Date('2024-06-08').getTime(), y: 12 },
-        ],
-        rechazados: [
-            { x: new Date('2024-06-01').getTime(), y: 2 },
-            { x: new Date('2024-06-02').getTime(), y: 3 },
-            { x: new Date('2024-06-03').getTime(), y: 1 },
-            { x: new Date('2024-06-04').getTime(), y: 2 },
-            { x: new Date('2024-06-05').getTime(), y: 4 },
-            { x: new Date('2024-06-06').getTime(), y: 3 },
-            { x: new Date('2024-06-07').getTime(), y: 2 },
-            { x: new Date('2024-06-08').getTime(), y: 3 },
-        ]
-    };
-
+    // Gráfico de vehículos por año (área)
     var opcionesAutos = {
         series: [{
-            name: 'Finalizados',
-            data: datosGrafico.finalizados
-        }, {
-            name: 'En Proceso',
-            data: datosGrafico.enProceso
-        }, {
-            name: 'Rechazados',
-            data: datosGrafico.rechazados
+            name: 'Vehículos por año',
+            data: [
+                { x: '1er Año', y: vehiculosPorAno[0] },
+                { x: '2do Año', y: vehiculosPorAno[1] },
+                { x: '3er Año', y: vehiculosPorAno[2] }
+            ]
         }],
         chart: {
             height: 350,
             type: 'area',
-            zoom: {
-                enabled: false
-            },
-            toolbar: {
-                show: false
-            }
+            zoom: { enabled: false },
+            toolbar: { show: false }
         },
-        dataLabels: {
-            enabled: false
-        },
-        stroke: {
-            curve: 'smooth',
-            width: 3
-        },
+        dataLabels: { enabled: false },
+        stroke: { curve: 'smooth', width: 3 },
         xaxis: {
-            type: 'datetime',
-            labels: {
-                formatter: function(valor) {
-                    const fecha = new Date(valor);
-                    return fecha.toLocaleString('es-ES', { month: 'short', day: 'numeric' });
-                }
-            },
-            tooltip: {
-                enabled: false
-            }
+            type: 'category',
+            labels: { style: { colors: ['#555'], fontSize: '14px' } }
         },
         yaxis: {
             title: {
                 text: 'Cantidad de Autos',
-                style: {
-                    color: '#555',
-                    fontSize: '14px',
-                    fontWeight: 600,
-                }
+                style: { color: '#555', fontSize: '14px', fontWeight: 600 }
             },
             labels: {
-                formatter: function (valor) {
-                    return Math.round(valor);
-                }
+                formatter: function (valor) { return Math.round(valor); }
             }
         },
         tooltip: {
-            x: {
-                format: 'dd MMM yyyy'
-            },
-            y: {
-                formatter: function (valor) {
-                    return valor + " autos";
-                }
-            }
+            x: { show: true },
+            y: { formatter: function (valor) { return valor + " autos"; } }
         },
-        colors: ['#00E396', '#FEB019', '#FF4560'],
-        grid: {
-            borderColor: '#e0e0e0',
-            strokeDashArray: 4,
-        },
+        colors: ['#00E396'],
+        grid: { borderColor: '#e0e0e0', strokeDashArray: 4 },
         legend: {
             position: 'bottom',
             horizontalAlign: 'right',
@@ -204,18 +181,9 @@ document.addEventListener('DOMContentLoaded', function () {
             fontSize: '14px',
             fontFamily: 'Roboto, Arial',
             fontWeight: 500,
-            labels: {
-                colors: '#333',
-            },
-            markers: {
-                width: 12,
-                height: 12,
-                radius: 4,
-            },
-            itemMargin: {
-                horizontal: 10,
-                vertical: 0
-            },
+            labels: { colors: '#333' },
+            markers: { width: 12, height: 12, radius: 4 },
+            itemMargin: { horizontal: 10, vertical: 0 }
         },
     };
 

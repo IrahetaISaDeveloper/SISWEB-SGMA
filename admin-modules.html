@@ -76,11 +76,12 @@
                 <label for="nombreModulo">Nombre del Módulo:</label>
                 <input type="text" id="nombreModulo" required />
             </div>
-            <div class="grupo-formulario">
-                <label for="descripcionModulo">Descripción:</label>
-                <textarea id="descripcionModulo" rows="3"></textarea>
-            </div>
-
+            <div class="grupo-formulario seleccion-contenedor">
+        <label for="comboLevel">Año académico:</label>
+        <select id="comboLevel" required>
+            <!-- Se llena dinámicamente desde JS -->
+        </select>
+    </div>
             <button type="submit" id="btn-enviar" class="botones">Agregar Módulo</button>
             <button type="button" id="btn-cancelar" class="botones secundario" hidden>Cancelar</button>
         </form>
@@ -91,7 +92,7 @@
         <div class="filtros-modulos">
             <input type="text" id="buscador-modulos" placeholder="Buscar módulo..." />
             <select id="filtro-ano-modulo">
-                <option value="">Todos los años</option>
+                <option value="">Todos</option>
                 <option value="1">Primer Año</option>
                 <option value="2">Segundo Año</option>
                 <option value="3">Tercer Año</option>
@@ -111,7 +112,7 @@
                     <tr>
                         <th>ID</th>
                         <th>Nombre del Módulo</th>
-                        <th>Descripción</th>
+                        <th>Año Académico</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>

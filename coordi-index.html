@@ -135,13 +135,14 @@
             <div class="header-tarjeta">
                 <h2>Módulos y Progreso</h2>
                 <div class="filtros-modulos">
-                    <button class="boton-filtro activo" data-year="primer">Primer Año</button>
-                    <button class="boton-filtro" data-year="segundo">Segundo Año</button>
-                    <button class="boton-filtro" data-year="tercero">Tercer Año</button>
+                    <button class="boton-filtro activo" data-year="todos" id="filtro-todos">Todos</button>
+                    <button class="boton-filtro" data-year="primer" id="filtro-primer">Primer Año</button>
+                    <button class="boton-filtro" data-year="segundo" id="filtro-segundo">Segundo Año</button>
+                    <button class="boton-filtro" data-year="tercero" id="filtro-tercero">Tercer Año</button>
                 </div>
             </div>
             <div class="contenido-tarjeta">
-                <div class="lista-modulos">
+                <div class="lista-modulos" id="lista-modulos">
                     <!-- Los módulos se llenan dinámicamente con JS -->
                 </div>
             </div>

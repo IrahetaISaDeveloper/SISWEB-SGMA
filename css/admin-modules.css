@@ -347,6 +347,27 @@ h1 {
     background-color: var(--color-fondo-app);
     border-radius: var(--radio-borde-tarjeta);
     border: 2px solid var(--color-borde-oscuro);
+    box-shadow: 0 2px 12px rgba(66, 165, 245, 0.08);
+    border: 2px solid #e0e0e0;
+    background: linear-gradient(120deg, #f5f5f5 80%, #e3f2fd 100%);
+}
+
+.formulario-modulo label {
+    color: #1e88e5;
+}
+
+.formulario-modulo input[type="text"],
+.formulario-modulo textarea {
+    background-color: #fff;
+    border: 2px solid #bdbdbd;
+    color: #222;
+}
+
+.formulario-modulo input[type="text"]:focus,
+.formulario-modulo textarea:focus {
+    border-color: #42A5F5;
+    background-color: #f0f8ff;
+    outline: none;
 }
 
 .grupo-formulario {
@@ -539,4 +560,167 @@ table button:last-of-type:hover {
   padding: 10px 10px;
   font-size: 1em;
 
+}
+
+/* Mejorar el diseño del combobox de año académico en el formulario */
+#comboLevel {
+    width: 100%;
+    padding: 12px 10px;
+    border-radius: var(--radio-borde-entrada);
+    border: 2px solid #444;
+    background-color: var(--color-fondo-app);
+    color: var(--color-texto-fuerte);
+    font-size: 1.08em;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    transition: border-color 0.2s;
+}
+
+#comboLevel:focus {
+    border-color: var(--color-boton-primario);
+    outline: none;
+}
+
+/* Icono de flecha para el select */
+#comboLevel {
+    background-image: url("data:image/svg+xml;charset=UTF-8,<svg width='16' height='16' fill='gray' xmlns='http://www.w3.org/2000/svg'><path d='M4 6l4 4 4-4'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 18px 18px;
+}
+
+/* Mejorar el diseño de los selects de filtros */
+#filtro-ano-modulo,
+#filtro-estado-modulo {
+    border-radius: var(--radio-borde-entrada);
+    border: 2px solid #444;
+    background-color: var(--color-fondo-app);
+    color: var(--color-texto-fuerte);
+    font-size: 1em;
+    margin-bottom: 0;
+    transition: border-color 0.2s;
+}
+
+#filtro-ano-modulo:focus,
+#filtro-estado-modulo:focus {
+    border-color: var(--color-boton-primario);
+    outline: none;
+}
+
+/* Mejorar el diseño del formulario de módulos */
+.formulario-modulo {
+    box-shadow: 0 2px 12px rgba(66, 165, 245, 0.08);
+    border: 2px solid #e0e0e0;
+    background: linear-gradient(120deg, #f5f5f5 80%, #e3f2fd 100%);
+}
+
+.formulario-modulo label {
+    color: #1e88e5;
+}
+
+.formulario-modulo input[type="text"],
+.formulario-modulo textarea {
+    background-color: #fff;
+    border: 2px solid #bdbdbd;
+    color: #222;
+}
+
+.formulario-modulo input[type="text"]:focus,
+.formulario-modulo textarea:focus {
+    border-color: #42A5F5;
+    background-color: #f0f8ff;
+    outline: none;
+}
+
+/* Mejorar el diseño de la tabla de módulos */
+.tabla-responsiva table {
+    background: linear-gradient(120deg, #f5f5f5 80%, #e3f2fd 100%);
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(66, 165, 245, 0.08);
+}
+
+.tabla-responsiva th {
+    background-color: #42A5F5;
+    color: #fff;
+    font-weight: 700;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.tabla-responsiva td {
+    background-color: #fff;
+    color: #222;
+}
+
+.tabla-responsiva tr:nth-child(even) td {
+    background-color: #f0f8ff;
+}
+
+/* Botones de acciones en la tabla */
+.tabla-responsiva button {
+    margin-right: 8px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 1em;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.tabla-responsiva button:first-of-type {
+    background-color: #42A5F5;
+    color: #fff;
+}
+
+.tabla-responsiva button:first-of-type:hover {
+    background-color: #1e88e5;
+}
+
+.tabla-responsiva button:last-of-type {
+    background-color: #e74c3c;
+    color: #fff;
+}
+
+.tabla-responsiva button:last-of-type:hover {
+    background-color: #c0392b;
+}
+
+/* Colores de fondo para los módulos según el año */
+.elemento-modulo[data-year="1"] {
+    background: linear-gradient(90deg, #e3f2fd 80%, #bbdefb 100%);
+    border-left: 6px solid #42A5F5;
+}
+.elemento-modulo[data-year="2"] {
+    background: linear-gradient(90deg, #fffde7 80%, #ffe082 100%);
+    border-left: 6px solid #FFD600;
+}
+.elemento-modulo[data-year="3"] {
+    background: linear-gradient(90deg, #f3e5f5 80%, #ce93d8 100%);
+    border-left: 6px solid #8E24AA;
+}
+
+.elemento-modulo {
+    padding: 18px 22px;
+    margin-bottom: 14px;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(66, 165, 245, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 1.08em;
+    transition: box-shadow 0.2s;
+}
+
+.elemento-modulo .titulo-modulo {
+    font-weight: bold;
+    font-size: 1.15em;
+    color: #222;
+}
+
+.elemento-modulo .nivel-modulo {
+    font-size: 0.98em;
+    color: #666;
 }

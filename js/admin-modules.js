@@ -1,45 +1,130 @@
+const MODULES_API_URL = 'http://localhost:8080/api/modules';
+const LEVELS_API_URL = 'http://localhost:8080/api/levels/getDataLevels';
+
 const formulario = document.getElementById('formulario-modulo');
 const nombreModuloEl = document.getElementById('nombreModulo');
 const descripcionModuloEl = document.getElementById('descripcionModulo');
 const idModuloEl = document.getElementById('idModulo');
+const comboLevelEl = document.getElementById('comboLevel');
 const botonCancelar = document.getElementById('btn-cancelar');
 const botonEnviar = document.getElementById('btn-enviar');
 const cuerpoTabla = document.getElementById('cuerpo-tabla-modulos');
-const barraNavegacionDerecha = document.querySelector('.barra-navegacion-derecha');
+const buscadorModulosEl = document.getElementById('buscador-modulos');
+const filtroAnoModuloEl = document.getElementById('filtro-ano-modulo');
 
 let modulos = [];
-let idModuloActual = 1;
+let levels = [];
+let modulosFiltrados = [];
 
-function CargarModulos() {
-    CargarTabla(modulos);
+async function cargarLevels() {
+    try {
+        const res = await fetch(LEVELS_API_URL);
+        const data = await res.json();
+        levels = Array.isArray(data) ? data : (data.data || []);
+        comboLevelEl.innerHTML = '';
+        levels.forEach(level => {
+            const opcion = document.createElement('option');
+            opcion.value = level.id;
+            opcion.textContent = level.levelName;
+            comboLevelEl.appendChild(opcion);
+        });
+    } catch (error) {
+        // Puedes mostrar un mensaje si lo deseas
+    }
 }
 
-function CargarTabla(modulosACargar) {
+async function cargarModulos() {
+    try {
+        const res = await fetch(`${MODULES_API_URL}/getAllModules`);
+        const data = await res.json();
+        // Extrae el array correctamente desde data.data.content
+        if (data && data.data && Array.isArray(data.data.content)) {
+            modulos = data.data.content;
+        } else {
+            modulos = [];
+        }
+        cargarTabla(modulos);
+    } catch (error) {
+        cuerpoTabla.innerHTML = `<tr><td colspan="4" style="text-align: center;">No se pudieron cargar los módulos.</td></tr>`;
+    }
+}
+
+function cargarTabla(modulosACargar) {
     cuerpoTabla.innerHTML = '';
-    if (modulosACargar.length === 0) {
+    if (!modulosACargar || modulosACargar.length === 0) {
         cuerpoTabla.innerHTML = `<tr><td colspan="4" style="text-align: center;">No hay módulos registrados.</td></tr>`;
         return;
     }
     modulosACargar.forEach(modulo => {
         cuerpoTabla.innerHTML += `
         <tr>
-            <td>${modulo.id}</td>
-            <td>${modulo.name}</td>
-            <td>${modulo.description}</td>
+            <td>${modulo.moduleId}</td>
+            <td>${modulo.moduleName}</td>
+            <td>${modulo.levelName}</td>
             <td>
-                <button onclick="CargarParaEditarModulo('${modulo.id}')">Editar</button>
-                <button onclick="BorrarModulo('${modulo.id}')">Eliminar</button>
+                <button onclick="cargarParaEditarModulo('${modulo.moduleId}')">Editar</button>
+                <button onclick="borrarModulo('${modulo.moduleId}')">Eliminar</button>
             </td>
         </tr>
         `;
     });
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-    CargarModulos();
+function cargarParaEditarModulo(id) {
+    const moduloAEditar = modulos.find(modulo => String(modulo.moduleId) === String(id));
+    if (moduloAEditar) {
+        nombreModuloEl.value = moduloAEditar.moduleName;
+        idModuloEl.value = moduloAEditar.moduleId;
+        comboLevelEl.value = moduloAEditar.levelId;
+
+        botonEnviar.textContent = 'Actualizar Módulo';
+        botonCancelar.hidden = false;
+    } else {
+        Swal.fire({
+            title: 'Error',
+            text: 'Módulo no encontrado para editar.',
+            icon: 'error',
+            customClass: {
+                popup: 'swal-custom-popup',
+                title: 'swal-custom-title',
+                htmlContainer: 'swal-custom-content',
+                confirmButton: 'swal-custom-confirm-button'
+            }
+        });
+    }
+}
+
+function aplicarFiltrosYBuscador() {
+    let lista = modulos.slice();
+
+    // Filtro principal "Todos"
+    const levelId = filtroAnoModuloEl.value;
+    if (levelId && levelId !== '') {
+        lista = lista.filter(m => String(m.levelId) === levelId);
+    }
+    // Si levelId es vacío, muestra todos los módulos
+
+    // Filtro por texto buscador
+    const texto = buscadorModulosEl.value.trim().toLowerCase();
+    if (texto) {
+        lista = lista.filter(m =>
+            (m.moduleName && m.moduleName.toLowerCase().includes(texto)) ||
+            (m.levelName && m.levelName.toLowerCase().includes(texto))
+        );
+    }
+
+    cargarTabla(lista);
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
+    await cargarLevels();
+    await cargarModulos();
+
+    buscadorModulosEl.addEventListener('input', aplicarFiltrosYBuscador);
+    filtroAnoModuloEl.addEventListener('change', aplicarFiltrosYBuscador);
 });
 
-async function BorrarModulo(id) {
+async function borrarModulo(id) {
     const resultado = await Swal.fire({
         title: '¿Estás seguro?',
         text: "¡No podrás revertir esto!",
@@ -59,56 +144,33 @@ async function BorrarModulo(id) {
     });
 
     if (resultado.isConfirmed) {
-        modulos = modulos.filter(modulo => modulo.id !== id);
-        CargarModulos();
-        Swal.fire({
-            title: '¡Eliminado!',
-            text: 'El módulo ha sido eliminado.',
-            icon: 'success',
-            customClass: {
-                popup: 'swal-custom-popup',
-                title: 'swal-custom-title',
-                htmlContainer: 'swal-custom-content',
-                confirmButton: 'swal-custom-confirm-button'
-            }
-        });
-    } else {
-        Swal.fire({
-            title: 'Cancelado',
-            text: 'La acción ha sido cancelada.',
-            icon: 'error',
-            customClass: {
-                popup: 'swal-custom-popup',
-                title: 'swal-custom-title',
-                htmlContainer: 'swal-custom-content',
-                confirmButton: 'swal-custom-confirm-button'
-            }
-        });
-    }
-}
-
-function CargarParaEditarModulo(id) {
-    const moduloAEditar = modulos.find(modulo => modulo.id === id);
-
-    if (moduloAEditar) {
-        nombreModuloEl.value = moduloAEditar.name;
-        descripcionModuloEl.value = moduloAEditar.description;
-        idModuloEl.value = moduloAEditar.id;
-
-        botonEnviar.textContent = 'Actualizar Módulo';
-        botonCancelar.hidden = false;
-    } else {
-        Swal.fire({
-            title: 'Error',
-            text: 'Módulo no encontrado para editar.',
-            icon: 'error',
-            customClass: {
-                popup: 'swal-custom-popup',
-                title: 'swal-custom-title',
-                htmlContainer: 'swal-custom-content',
-                confirmButton: 'swal-custom-confirm-button'
-            }
-        });
+        try {
+            await fetch(`${MODULES_API_URL}/deleteModule/${id}`, { method: 'DELETE' });
+            await cargarModulos();
+            Swal.fire({
+                title: '¡Eliminado!',
+                text: 'El módulo ha sido eliminado.',
+                icon: 'success',
+                customClass: {
+                    popup: 'swal-custom-popup',
+                    title: 'swal-custom-title',
+                    htmlContainer: 'swal-custom-content',
+                    confirmButton: 'swal-custom-confirm-button'
+                }
+            });
+        } catch {
+            Swal.fire({
+                title: 'Error',
+                text: 'No se pudo eliminar el módulo.',
+                icon: 'error',
+                customClass: {
+                    popup: 'swal-custom-popup',
+                    title: 'swal-custom-title',
+                    htmlContainer: 'swal-custom-content',
+                    confirmButton: 'swal-custom-confirm-button'
+                }
+            });
+        }
     }
 }
 
@@ -123,8 +185,8 @@ formulario.addEventListener('submit', async e => {
     e.preventDefault();
 
     const nombre = nombreModuloEl.value.trim();
-    const descripcion = descripcionModuloEl.value.trim();
     const id = idModuloEl.value;
+    const levelId = comboLevelEl.value;
 
     if (!nombre) {
         Swal.fire({
@@ -140,12 +202,10 @@ formulario.addEventListener('submit', async e => {
         });
         return;
     }
-
-    // Basic validation: Check if module name already exists (case-insensitive) for new modules
-    if (!id && modulos.some(modulo => modulo.name.toLowerCase() === nombre.toLowerCase())) {
+    if (!levelId) {
         Swal.fire({
             title: 'Error',
-            text: 'Ya existe un módulo con este nombre. Por favor, elija otro.',
+            text: 'Debes seleccionar un año académico.',
             icon: 'error',
             customClass: {
                 popup: 'swal-custom-popup',
@@ -158,31 +218,17 @@ formulario.addEventListener('submit', async e => {
     }
 
     if (id) {
-        // Update existing module
-        const indiceModulo = modulos.findIndex(modulo => modulo.id === id);
-        if (indiceModulo > -1) {
-            // Check for duplicate name if name is changed for existing module
-            if (modulos[indiceModulo].name.toLowerCase() !== nombre.toLowerCase() && 
-                modulos.some((modulo, index) => index !== indiceModulo && modulo.name.toLowerCase() === nombre.toLowerCase())) {
-                Swal.fire({
-                    title: 'Error',
-                    text: 'Ya existe otro módulo con este nombre. Por favor, elija otro.',
-                    icon: 'error',
-                    customClass: {
-                        popup: 'swal-custom-popup',
-                        title: 'swal-custom-title',
-                        htmlContainer: 'swal-custom-content',
-                        confirmButton: 'swal-custom-confirm-button'
-                    }
-                });
-                return;
-            }
-
-            modulos[indiceModulo] = {
-                id: id,
-                name: nombre,
-                description: descripcion
-            };
+        // Actualizar módulo
+        try {
+            await fetch(`${MODULES_API_URL}/updateModule/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    moduleId: id,
+                    moduleName: nombre,
+                    levelId: Number(levelId)
+                })
+            });
             await Swal.fire({
                 title: 'Éxito',
                 text: 'Módulo actualizado correctamente.',
@@ -194,10 +240,10 @@ formulario.addEventListener('submit', async e => {
                     confirmButton: 'swal-custom-confirm-button'
                 }
             });
-        } else {
+        } catch {
             await Swal.fire({
                 title: 'Error',
-                text: 'No se pudo encontrar el módulo para actualizar.',
+                text: 'No se pudo actualizar el módulo.',
                 icon: 'error',
                 customClass: {
                     popup: 'swal-custom-popup',
@@ -208,33 +254,46 @@ formulario.addEventListener('submit', async e => {
             });
         }
     } else {
-        // Add new module
-        const nuevoModulo = {
-            id: 'mod-' + idModuloActual++,
-            name: nombre,
-            description: descripcion
-        };
-        modulos.push(nuevoModulo);
-        await Swal.fire({
-            title: 'Éxito',
-            text: 'Módulo agregado correctamente.',
-            icon: 'success',
-            customClass: {
-                popup: 'swal-custom-popup',
-                title: 'swal-custom-title',
-                htmlContainer: 'swal-custom-content',
-                confirmButton: 'swal-custom-confirm-button'
-            }
-        });
+        // Crear módulo
+        try {
+            await fetch(`${MODULES_API_URL}/addNewModule`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    moduleName: nombre,
+                    levelId: Number(levelId)
+                })
+            });
+            await Swal.fire({
+                title: 'Éxito',
+                text: 'Módulo agregado correctamente.',
+                icon: 'success',
+                customClass: {
+                    popup: 'swal-custom-popup',
+                    title: 'swal-custom-title',
+                    htmlContainer: 'swal-custom-content',
+                    confirmButton: 'swal-custom-confirm-button'
+                }
+            });
+        } catch {
+            await Swal.fire({
+                title: 'Error',
+                text: 'No se pudo agregar el módulo.',
+                icon: 'error',
+                customClass: {
+                    popup: 'swal-custom-popup',
+                    title: 'swal-custom-title',
+                    htmlContainer: 'swal-custom-content',
+                    confirmButton: 'swal-custom-confirm-button'
+                }
+            });
+        }
     }
 
     formulario.reset();
+    idModuloEl.value = '';
     botonCancelar.hidden = true;
     botonEnviar.textContent = 'Agregar Módulo';
-    CargarModulos();
-});
-
-barraNavegacionDerecha.addEventListener('click', () => {
-    // Navigate to the profile section or perform a profile-related action
-    window.location.href = 'perfil.html'; // Placeholder for profile page
-});
+    await cargarModulos();
+}
+);

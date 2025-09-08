@@ -90,7 +90,16 @@ document.addEventListener('DOMContentLoaded', function () {
         const lista = document.querySelector('.lista-modulos');
         if (!lista) return;
         lista.innerHTML = '';
-        const modulosFiltrados = allModules.filter(m => m.levelId === levelId);
+        let modulosFiltrados;
+        if (levelId === 'todos') {
+            modulosFiltrados = allModules;
+        } else {
+            let numId = 1;
+            if (levelId === 'primer') numId = 1;
+            else if (levelId === 'segundo') numId = 2;
+            else if (levelId === 'tercero') numId = 3;
+            modulosFiltrados = allModules.filter(m => m.levelId === numId);
+        }
         if (modulosFiltrados.length === 0) {
             lista.innerHTML = '<div style="color:#888;text-align:center;">No hay módulos para este año.</div>';
             return;
@@ -105,38 +114,37 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Consulta los módulos y renderiza el año por defecto
-    fetch('http://localhost:8080/api/modules/getAllModules', {
-        method: 'GET'
-    })
-    .then(res => res.json())
-    .then(data => {
-        // Ajusta según la estructura real del JSON
-        if (Array.isArray(data)) {
-            allModules = data;
-        } else if (data && Array.isArray(data.data)) {
-            allModules = data.data;
-        }
-        // Mostrar por defecto los de primer año (levelId = 1)
-        renderModulosPorAno(1);
-        // Filtros de año
-        document.querySelectorAll('.boton-filtro[data-year]').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                document.querySelectorAll('.boton-filtro[data-year]').forEach(function (b) {
-                    b.classList.remove('activo');
+    // Cargar módulos desde el endpoint y mostrar por año
+    async function cargarModulosYMostrar() {
+        try {
+            const res = await fetch('http://localhost:8080/api/modules/getAllModules');
+            const data = await res.json();
+            // Si la respuesta es { data: { content: [...] } }
+            if (data && data.data && Array.isArray(data.data.content)) {
+                allModules = data.data.content;
+            } else if (Array.isArray(data)) {
+                allModules = data;
+            } else {
+                allModules = [];
+            }
+            // Por defecto muestra todos
+            renderModulosPorAno('todos');
+            // Filtros por año
+            document.querySelectorAll('.boton-filtro[data-year]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    document.querySelectorAll('.boton-filtro[data-year]').forEach(function (b) {
+                        b.classList.remove('activo');
+                    });
+                    btn.classList.add('activo');
+                    renderModulosPorAno(btn.getAttribute('data-year'));
                 });
-                btn.classList.add('activo');
-                // levelId: 1=primer, 2=segundo, 3=tercero
-                let levelId = 1;
-                if (btn.getAttribute('data-year') === 'segundo') levelId = 2;
-                if (btn.getAttribute('data-year') === 'tercero') levelId = 3;
-                renderModulosPorAno(levelId);
             });
-        });
-    })
-    .catch(() => {
-        const lista = document.querySelector('.lista-modulos');
-        if (lista) lista.innerHTML = '<div style="color:#888;text-align:center;">No se pudieron cargar los módulos.</div>';
-    });
+        } catch (error) {
+            const lista = document.querySelector('.lista-modulos');
+            if (lista) lista.innerHTML = '<div style="color:#888;text-align:center;">No se pudieron cargar los módulos.</div>';
+        }
+    }
+
+    cargarModulosYMostrar();
 
 });
