@@ -6,9 +6,9 @@ function getCookie(name) {
     return null;
 }
 
-// Función para cargar los datos del perfil
+// Carga los datos del perfil
 async function cargarPerfil() {
-    const token = getCookie('token'); // Ajusta el nombre de la cookie si es diferente
+    const token = getCookie('token');
     if (!token) {
         Swal.fire('Error', 'No autenticado. Por favor inicia sesión.', 'error');
         return;
@@ -31,21 +31,14 @@ async function cargarPerfil() {
         }
 
         const instructor = data.instructor;
-        // Actualiza los campos del perfil
         document.getElementById('nombreUsuario').textContent = instructor.names.toUpperCase();
         document.getElementById('rolUsuario').textContent = instructor.role;
         document.getElementById('emailUsuario').textContent = instructor.email;
         document.getElementById('nombreCompletoUsuario').textContent = `${instructor.names} ${instructor.lastNames}`;
-        // Si tienes teléfono, año impartido y módulo asignado en el objeto instructor, actualízalos aquí
-        // document.getElementById('telefonoUsuario').textContent = instructor.phone || '';
-        // document.getElementById('anioImpartidoUsuario').textContent = instructor.level || '';
-        // document.getElementById('moduloAsignadoUsuario').textContent = instructor.module || '';
         document.getElementById('anioImpartidoUsuario').textContent = instructor.level || '';
-        // ...actualiza otros campos si existen en el objeto instructor...
     } catch (error) {
         Swal.fire('Error', 'No se pudo cargar el perfil.', 'error');
     }
 }
 
-// Ejecuta la carga del perfil al cargar la página
 document.addEventListener('DOMContentLoaded', cargarPerfil);

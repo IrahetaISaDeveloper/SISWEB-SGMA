@@ -7,8 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const placa = entradaPlaca.value.trim();
 
             if (placa) {
-                // Basic validation: Check for minimum length (you can adjust this)
-                if (placa.length < 3) { // Example: minimum 3 characters
+                if (placa.length < 3) {
                     Swal.fire({
                         title: 'Entrada Inválida',
                         text: 'Por favor, ingresa al menos 3 caracteres para la placa, tarjeta de circulación o DUI.',
@@ -20,11 +19,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             confirmButton: 'swal-custom-confirm-button'
                         }
                     });
-                    return; // Stop execution if validation fails
+                    return;
                 }
-
-
-            
                 window.location.href = `seguimiento.html?placa=${encodeURIComponent(placa)}`;
             } else {
                 Swal.fire({

@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const cuadriculaTareasReparacion = document.getElementById("cuadriculaTareasReparacion");
   const listaActualizaciones = document.getElementById("listaActualizaciones");
 
+  // Llena los datos del vehículo en la vista
   const popularDatosVehiculo = (datos) => {
     numeroRegistroSpan.textContent = datos.numeroRegistro || "N/A";
     infoModeloSpan.textContent = datos.modelo || "Vehículo Desconocido";
@@ -61,6 +62,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   };
 
+  // Obtiene los datos del vehículo por placa
   const obtenerDatosVehiculoPorPlaca = (placa) => {
     switch (placa.toUpperCase()) {
       case "ABC-123":
@@ -166,10 +168,10 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-    const usuarioInfoDiv = document.querySelector(".info-usuario");
-    if (usuarioInfoDiv) {
-        usuarioInfoDiv.addEventListener("click", function() {
-            window.location.href = "perfil.html";
-        });
-    }
+  const usuarioInfoDiv = document.querySelector(".info-usuario");
+  if (usuarioInfoDiv) {
+    usuarioInfoDiv.addEventListener("click", function() {
+      window.location.href = "perfil.html";
+    });
+  }
 });

@@ -1,10 +1,9 @@
-// Helper para obtener token de autenticación de las cookies
 function getAuthToken() {
     const match = document.cookie.match(/(^|;) *token=([^;]*)/);
     return match ? match[2] : null;
 }
 
-// Renderizar la tabla de vehículos
+// Renderiza la tabla de vehículos
 function renderVehiclesTable(vehicles) {
     const tbody = document.querySelector('.tabla-moderna tbody');
     if (!tbody) {
@@ -17,9 +16,7 @@ function renderVehiclesTable(vehicles) {
         return;
     }
     vehicles.forEach(vehicle => {
-        // Concatenar nombre y apellido del estudiante
         const estudiante = (vehicle.studentName || '-') + ' ' + (vehicle.studentLastName || '');
-        // Verificar imagen válida
         let imgSrc = vehicle.vehicleImage;
         if (!imgSrc || imgSrc === 'null' || imgSrc === null) {
             imgSrc = 'imgs/default-car.png';
@@ -58,14 +55,14 @@ function renderVehiclesTable(vehicles) {
     });
 }
 
-// Mostrar vehículos con estado = 1 en la tarjeta-sidebar
+// Renderiza vehículos pendientes en la tarjeta-sidebar
 function renderSidebarPendingVehicles(vehicles) {
     const lista = document.querySelector('.tarjeta-sidebar .lista-registros');
     const badge = document.querySelector('.tarjeta-sidebar .badge-contador');
     if (!lista) return;
     const pendientes = vehicles.filter(v => v.idStatus === 1);
     if (badge) badge.textContent = pendientes.length;
-    lista.innerHTML = ''; // Limpia la lista
+    lista.innerHTML = '';
     if (pendientes.length === 0) {
         lista.innerHTML = '<div style="text-align:center;color:#888;">No hay vehículos pendientes.</div>';
         return;
@@ -92,10 +89,9 @@ function renderSidebarPendingVehicles(vehicles) {
     });
 }
 
-// Obtener todos los vehículos
+// Obtiene todos los vehículos
 function fetchAllVehicles() {
     const token = getAuthToken();
-    // Solicita hasta 50 vehículos (ajusta el size según lo permitido por la API)
     fetch('http://localhost:8080/api/vehicles/getDataVehicles?page=0&size=50', {
         method: 'GET',
         headers: {
@@ -104,18 +100,17 @@ function fetchAllVehicles() {
     })
     .then(res => res.json())
     .then(data => {
-        console.log('Datos recibidos:', data); // Depuración
         let vehicles = [];
         if (data && data.data && Array.isArray(data.data.content)) {
             vehicles = data.data.content;
         }
         renderVehiclesTable(vehicles);
-        renderSidebarPendingVehicles(vehicles); // <-- Mostrar en tarjeta-sidebar
+        renderSidebarPendingVehicles(vehicles);
     })
     .catch(err => {
         console.error('Error al obtener vehículos:', err);
         renderVehiclesTable([]);
-        renderSidebarPendingVehicles([]); // Limpia la tarjeta-sidebar
+        renderSidebarPendingVehicles([]);
     });
 }
 
@@ -135,7 +130,6 @@ document.getElementById('buscarRegistro').addEventListener('input', function(e) 
     })
     .then(res => res.json())
     .then(data => {
-        // Si la API retorna un array, úsalo directamente; si retorna un objeto, conviértelo en array
         let vehicles = [];
         if (Array.isArray(data)) {
             vehicles = data;
@@ -152,17 +146,12 @@ document.getElementById('buscarRegistro').addEventListener('input', function(e) 
     });
 });
 
-// Mostrar modal de detalles (implementación básica)
 window.showVehicleModal = function(vehicleId) {
-    // Aquí puedes hacer fetch por ID si quieres mostrar más detalles
-    // ...implementación opcional...
     document.getElementById('modalVehiculo').style.display = 'block';
 }
 
-// Cerrar modal
 document.querySelector('.btn-cerrar-modal').addEventListener('click', function() {
     document.getElementById('modalVehiculo').style.display = 'none';
 });
 
-// Inicializar
 document.addEventListener('DOMContentLoaded', fetchAllVehicles);

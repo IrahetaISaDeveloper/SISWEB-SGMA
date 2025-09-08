@@ -28,16 +28,13 @@ async function cargarLevels() {
             opcion.textContent = level.levelName;
             comboLevelEl.appendChild(opcion);
         });
-    } catch (error) {
-        // Puedes mostrar un mensaje si lo deseas
-    }
+    } catch (error) {}
 }
 
 async function cargarModulos() {
     try {
         const res = await fetch(`${MODULES_API_URL}/getAllModules`);
         const data = await res.json();
-        // Extrae el array correctamente desde data.data.content
         if (data && data.data && Array.isArray(data.data.content)) {
             modulos = data.data.content;
         } else {
@@ -97,14 +94,11 @@ function cargarParaEditarModulo(id) {
 function aplicarFiltrosYBuscador() {
     let lista = modulos.slice();
 
-    // Filtro principal "Todos"
     const levelId = filtroAnoModuloEl.value;
     if (levelId && levelId !== '') {
         lista = lista.filter(m => String(m.levelId) === levelId);
     }
-    // Si levelId es vacío, muestra todos los módulos
 
-    // Filtro por texto buscador
     const texto = buscadorModulosEl.value.trim().toLowerCase();
     if (texto) {
         lista = lista.filter(m =>
@@ -218,7 +212,6 @@ formulario.addEventListener('submit', async e => {
     }
 
     if (id) {
-        // Actualizar módulo
         try {
             await fetch(`${MODULES_API_URL}/updateModule/${id}`, {
                 method: 'PUT',
@@ -254,7 +247,6 @@ formulario.addEventListener('submit', async e => {
             });
         }
     } else {
-        // Crear módulo
         try {
             await fetch(`${MODULES_API_URL}/addNewModule`, {
                 method: 'POST',
