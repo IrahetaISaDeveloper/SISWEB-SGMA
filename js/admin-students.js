@@ -274,44 +274,73 @@ form.addEventListener('submit', async e => {
 
   try {
     if (isEditing) {
-      await fetch(`${UPDATE_STUDENT_API_URL}${userIdEl.value}`, {
+      const res = await fetch(`${UPDATE_STUDENT_API_URL}${userIdEl.value}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(cargaUtil)
       });
-      Swal.fire({
-          title: '¡Actualizado!',
-          text: 'Estudiante actualizado correctamente.',
-          icon: 'success',
-          customClass: {
-              popup: 'swal-custom-popup',
-              title: 'swal-custom-title',
-              content: 'swal-custom-content',
-              confirmButton: 'swal-custom-confirm-button'
-          },
-          buttonsStyling: false
-      });
+      if (res.ok) {
+        Swal.fire({
+            title: '¡Actualizado!',
+            text: 'Estudiante actualizado correctamente.',
+            icon: 'success',
+            customClass: {
+                popup: 'swal-custom-popup',
+                title: 'swal-custom-title',
+                content: 'swal-custom-content',
+                confirmButton: 'swal-custom-confirm-button'
+            },
+            buttonsStyling: false
+        });
+      } else {
+        Swal.fire({
+            title: 'Error',
+            text: 'No se pudo actualizar el estudiante.',
+            icon: 'error',
+            customClass: {
+                popup: 'swal-custom-popup',
+                title: 'swal-custom-title',
+                content: 'swal-custom-content',
+                confirmButton: 'swal-custom-confirm-button'
+            },
+            buttonsStyling: false
+        });
+      }
     } else {
-      await fetch(ADD_STUDENT_API_URL, {
+      const res = await fetch(ADD_STUDENT_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(cargaUtil)
       });
-      Swal.fire({
-          title: '¡Agregado!',
-          text: 'Estudiante agregado correctamente.',
-          icon: 'success',
-          customClass: {
-              popup: 'swal-custom-popup',
-              title: 'swal-custom-title',
-              content: 'swal-custom-content',
-              confirmButton: 'swal-custom-confirm-button'
-          },
-          buttonsStyling: false
-      });
+      if (res.ok) {
+        Swal.fire({
+            title: '¡Agregado!',
+            text: 'Estudiante agregado correctamente.',
+            icon: 'success',
+            customClass: {
+                popup: 'swal-custom-popup',
+                title: 'swal-custom-title',
+                content: 'swal-custom-content',
+                confirmButton: 'swal-custom-confirm-button'
+            },
+            buttonsStyling: false
+        });
+      } else {
+        Swal.fire({
+            title: 'Error',
+            text: 'No se pudo guardar el estudiante.',
+            icon: 'error',
+            customClass: {
+                popup: 'swal-custom-popup',
+                title: 'swal-custom-title',
+                content: 'swal-custom-content',
+                confirmButton: 'swal-custom-confirm-button'
+            },
+            buttonsStyling: false
+        });
+      }
     }
   } catch (error) {
-    console.error('Error al guardar estudiante:', error);
     Swal.fire({
         title: 'Error',
         text: 'No se pudo guardar el estudiante. Intenta de nuevo.',

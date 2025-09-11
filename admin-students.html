@@ -5,21 +5,69 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Administración de Estudiantes</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="imgs/favicon/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="imgs/favicon/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="imgs/favicon/favicon-16x16.png" />
+  <link rel="manifest" href="imgs/favicon/site.webmanifest" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/admin-students.css" />
 </head>
 
 <body>
-  <header class="app-header">
-    <a href="admin.html" class="back-button">
-      <i class="fas fa-arrow-left"></i>
-    </a>
-    <h1>Administración de Estudiantes</h1>
-    <div style="width: 80px;"></div>
-  </header>
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <img src="imgs/logo.png" alt="Logo ITR">
+    </div>
+    <nav class="navegacion-sidebar">
+      <ul>
+        <li>
+          <a href="coordi-index.html" class="enlace-sidebar" title="Inicio">
+            <i class="fas fa-home"></i>
+            <span class="tooltip">Inicio</span>
+          </a>
+        </li>
+        <li>
+          <a href="dashboard-vehiculos.html" class="enlace-sidebar" title="Vehículos">
+            <i class="fas fa-car"></i>
+            <span class="tooltip">Vehículos</span>
+          </a>
+        </li>
+        <li>
+          <a href="reportes.html" class="enlace-sidebar" title="Reportes">
+            <i class="fas fa-chart-bar"></i>
+            <span class="tooltip">Reportes</span>
+          </a>
+        </li>
+        <li class="dropdown-sidebar">
+          <a href="#" class="enlace-sidebar dropdown-toggle" title="Administración">
+            <i class="fas fa-cog"></i>
+            <span class="tooltip">Administración</span>
+          </a>
+          <div class="dropdown-content-sidebar">
+            <a href="admin-users.html"><i class="fas fa-users"></i> Gestionar Usuarios</a>
+            <a href="admin-modules.html"><i class="fas fa-puzzle-piece"></i> Gestionar Módulos</a>
+            <a href="admin-students.html"><i class="fas fa-graduation-cap"></i> Gestionar Estudiantes</a>
+          </div>
+        </li>
+        <li>
+          <a href="perfil-coord.html" class="enlace-sidebar" title="Mi perfil">
+            <i class="fas fa-user"></i>
+            <span class="tooltip">Mi Perfil</span>
+          </a>
+        </li>
+        <li>
+          <a href="index.html" class="enlace-sidebar" title="Cerrar Sesión">
+            <i class="fas fa-sign-out-alt"></i>
+            <span class="tooltip">Cerrar Sesión</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </aside>
 
   <main class="contenedor-principal">
+    <h1>Administración de Estudiantes</h1>
     <form id="user-form" class="formulario-usuario">
       <div class="grupo-formulario">
         <label for="fullName">Nombre:</label>
@@ -41,19 +89,17 @@
         <label for="studentCard">Carnet:</label>
         <input type="text" id="studentCard" required />
       </div>
-      <div class="grupo-formulario select-wrapper">
+      <div class="grupo-formulario seleccion-contenedor">
         <label for="idGrade">Grupo:</label>
         <select id="idGrade" required>
         </select>
       </div>
       <input type="hidden" id="userId" />
       <button type="submit" id="btn-submit" class="botones">Agregar Usuario</button>
-      <button type="button" id="btn-cancel" class="botones secondary" hidden>Cancelar</button>
+      <button type="button" id="btn-cancel" class="botones secundario" hidden>Cancelar</button>
     </form>
-
-    <hr class="section-separator" />
-
-    <div class="table-responsive">
+    <hr class="separador-seccion" />
+    <div class="tabla-responsiva">
       <table>
         <thead>
           <tr>
@@ -70,7 +116,6 @@
       </table>
     </div>
   </main>
-
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="js/admin-students.js"></script>
 </body>

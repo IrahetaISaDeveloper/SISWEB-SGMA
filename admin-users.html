@@ -6,9 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Administración de Usuarios</title>
   <link rel="apple-touch-icon" sizes="180x180" href="imgs/favicon/apple-touch-icon.png" />
-    <link rel="icon" type="image/png" sizes="32x32" href="imgs/favicon/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="imgs/favicon/favicon-16x16.png" />
-    <link rel="manifest" href="imgs/favicon/site.webmanifest" />
+  <link rel="icon" type="image/png" sizes="32x32" href="imgs/favicon/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="imgs/favicon/favicon-16x16.png" />
+  <link rel="manifest" href="imgs/favicon/site.webmanifest" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
@@ -16,7 +16,6 @@
 </head>
 
 <body>
-
   <aside class="sidebar">
     <div class="sidebar-logo">
       <img src="imgs/logo.png" alt="Logo ITR">
@@ -47,7 +46,7 @@
             <span class="tooltip">Administración</span>
           </a>
           <div class="dropdown-content-sidebar">
-            <a href="admin-users.html"><i class="fas fa-users "></i> Gestionar Usuarios</a>
+            <a href="admin-users.html"><i class="fas fa-users"></i> Gestionar Usuarios</a>
             <a href="admin-modules.html"><i class="fas fa-puzzle-piece"></i> Gestionar Módulos</a>
             <a href="admin-students.html"><i class="fas fa-graduation-cap"></i> Gestionar Estudiantes</a>
           </div>
@@ -69,9 +68,7 @@
   </aside>
 
   <main class="contenedor-principal">
-    
     <h1>Administración de Docentes</h1>
-
     <form id="formulario-usuario" class="formulario-usuario">
       <div class="grupo-formulario">
         <label for="nombreCompleto">Nombres:</label>
@@ -106,17 +103,12 @@
       <div class="contenedor-previsualizacion-foto">
         <img id="previsualizacion-foto-perfil" class="previsualizacion-foto" alt="Previsualización de Foto de Perfil" />
       </div>
-
       <input type="hidden" id="url-foto-perfil" />
       <input type="hidden" id="idUsuario" />
-
       <button type="submit" id="btn-enviar" class="botones">Agregar Usuario</button>
       <button type="button" id="btn-cancelar" class="botones secundario" hidden>Cancelar</button>
     </form>
-
     <hr class="separador-seccion" />
-
-    <!-- Filtros y buscador -->
     <div class="filtros-usuarios">
       <input type="text" id="buscador-usuarios" placeholder="Buscar estudiante/docente..." />
       <select id="filtro-ano">
@@ -131,7 +123,6 @@
         <option value="2">Grupo 2</option>
       </select>
     </div>
-
     <div class="tabla-responsiva">
       <table>
         <thead>
@@ -148,6 +139,7 @@
         </tbody>
       </table>
     </div>
+  </main>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="js/admin-users.js"></script>
 </body>
