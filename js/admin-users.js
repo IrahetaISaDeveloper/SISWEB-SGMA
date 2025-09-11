@@ -4,7 +4,6 @@ const LEVELS_API_URL = 'http://localhost:8080/api/levels/getDataLevels';
 const GRADES_API_URL = 'http://localhost:8080/api/grades/getAllGrades';
 const ADD_INSTRUCTOR_API_URL = 'http://localhost:8080/api/instructors/addNewInstructor';
 const UPDATE_INSTRUCTOR_API_URL = 'http://localhost:8080/api/instructors/updateInstructor/';
-const IMG_API_URL = 'https://api.imgbb.com/1/upload?key=eaf6049b5324954d994475cb0c0a6156';
 
 const formulario = document.getElementById('formulario-usuario');
 const nombreCompletoEl = document.getElementById('nombreCompleto');
@@ -169,7 +168,6 @@ function cargarTabla(instructores) {
                 <div style="display:flex;gap:8px;">
                   <button onclick="cargarParaEditarUsuario('${instructor.instructorId}')">Editar</button>
                   <button onclick="borrarUsuario('${instructor.instructorId}')">Eliminar</button>
-                  <button onclick="resetInstructorPassword('${instructor.instructorId}')">Restablecer Contraseña</button>
                 </div>
             </td>
         </tr>
@@ -215,15 +213,20 @@ btnCancelar.addEventListener('click', () => {
 });
 
 async function subirImagen(archivo) {
+  // Subida de imagen a Cloudinary usando el endpoint backend
   const fd = new FormData();
   fd.append('image', archivo);
+  fd.append('folder', 'instructors');
   try {
-    const res = await fetch(IMG_API_URL, { method: 'POST', body: fd });
+    const res = await fetch('http://localhost:8080/api/image/upload-to-folder', {
+      method: 'POST',
+      body: fd
+    });
     const obj = await res.json();
-    if (obj.data && obj.data.url) {
-      return obj.data.url;
+    if (obj.url) {
+      return obj.url;
     } else {
-      throw new Error('URL de imagen no encontrada en la respuesta de ImgBB.');
+      throw new Error('URL de imagen no encontrada en la respuesta de Cloudinary.');
     }
   } catch (error) {
     console.error('Error al subir imagen:', error);
@@ -253,41 +256,83 @@ formulario.addEventListener('submit', async e => {
   const roleId = idRolEl.value;
   const levelId = idLevelEl.value;
 
-  if (!firstName || firstName.length < 3) {
-    Swal.fire({ icon: 'error', title: 'Error', text: 'El nombre es obligatorio y debe tener al menos 3 caracteres.' });
-    return;
-  }
-  if (!lastName || lastName.length < 2) {
-    Swal.fire({ icon: 'error', title: 'Error', text: 'El apellido es obligatorio y debe tener al menos 2 caracteres.' });
-    return;
-  }
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    Swal.fire({ icon: 'error', title: 'Error', text: 'Introduce un correo electrónico válido.' });
-    return;
-  }
-  if (!isEditing && (!password || password.length < 6)) {
-    Swal.fire({ icon: 'error', title: 'Error', text: 'La contraseña debe tener al menos 6 caracteres.' });
-    return;
-  }
-  if (!roleId) {
-    Swal.fire({ icon: 'error', title: 'Error', text: 'Selecciona un rol válido.' });
-    return;
-  }
-  if (!levelId) {
-    Swal.fire({ icon: 'error', title: 'Error', text: 'Selecciona un año académico válido.' });
-    return;
+  // Validaciones frontend según DTO
+  let errores = [];
+
+  // firstName
+  if (!firstName) {
+    errores.push('El nombre es obligatorio.');
+  } else {
+    if (firstName.length < 5) errores.push('El nombre debe tener al menos 5 caracteres.');
+    if (firstName.length > 50) errores.push('El nombre no puede exceder los 50 caracteres.');
   }
 
+  // lastName
+  if (!lastName) {
+    errores.push('El apellido es obligatorio.');
+  } else {
+    if (lastName.length < 5) errores.push('El apellido debe tener al menos 5 caracteres.');
+    if (lastName.length > 50) errores.push('El apellido no puede exceder los 50 caracteres.');
+  }
+
+  // email
+  if (!email) {
+    errores.push('El correo institucional es obligatorio.');
+  } else {
+    const emailRegex = /^[A-Za-z_]+@ricaldone\.edu\.sv$/;
+    if (!emailRegex.test(email)) errores.push('Debe ser un correo institucional de instructor válido (ejemplo@ricaldone.edu.sv).');
+  }
+
+  // password (solo si no está editando)
+  if (!isEditing) {
+    if (!password) {
+      errores.push('La contraseña es obligatoria.');
+    } else {
+      if (password.length < 8) errores.push('La contraseña debe tener al menos 8 caracteres.');
+      if (password.length > 255) errores.push('La contraseña no puede exceder los 255 caracteres.');
+    }
+  }
+
+  // levelId
+  if (!levelId || isNaN(levelId) || Number(levelId) <= 0) {
+    errores.push('Selecciona un año académico válido.');
+  }
+
+  // roleId
+  if (!roleId || isNaN(roleId) || Number(roleId) <= 0) {
+    errores.push('Selecciona un rol válido.');
+  }
+
+  // instructorImage (se valida después de la subida)
   let instructorImage = urlFotoPerfilEl.value;
   if (fotoPerfilArchivoEl.files.length > 0) {
     const nuevaUrlFoto = await subirImagen(fotoPerfilArchivoEl.files[0]);
     if (nuevaUrlFoto) {
       instructorImage = nuevaUrlFoto;
     } else {
-      return;
+      errores.push('No se pudo subir la imagen del instructor.');
     }
   } else if (!instructorImage) {
     instructorImage = 'https://i.ibb.co/N6fL89pF/yo.jpg';
+  }
+  if (!instructorImage) {
+    errores.push('La imagen del instructor es obligatoria.');
+  }
+
+  // Si hay errores, muestra todos y no envía la solicitud
+  if (errores.length > 0) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Errores en el formulario',
+      html: '<ul style="text-align:left;">' + errores.map(e => `<li>${e}</li>`).join('') + '</ul>',
+      customClass: {
+        popup: 'swal-custom-popup',
+        title: 'swal-custom-title',
+        content: 'swal-custom-content',
+        confirmButton: 'swal-custom-confirm-button'
+      }
+    });
+    return;
   }
 
   // Estructura para el registro/actualización de instructores
@@ -453,70 +498,6 @@ async function borrarUsuario(id) {
         icon: 'error',
         title: 'Error',
         text: 'No se pudo eliminar el instructor. Intenta de nuevo.',
-        customClass: {
-          popup: 'swal-custom-popup',
-          title: 'swal-custom-title',
-          content: 'swal-custom-content',
-          confirmButton: 'swal-custom-confirm-button'
-        }
-      });
-    }
-  }
-}
-
-async function resetInstructorPassword(id) {
-  const result = await Swal.fire({
-    title: '¿Restablecer contraseña?',
-    text: 'Esta acción restablecerá la contraseña del instructor seleccionado.',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonText: 'Sí, restablecer',
-    cancelButtonText: 'Cancelar',
-    customClass: {
-      popup: 'swal-custom-popup',
-      title: 'swal-custom-title',
-      content: 'swal-custom-content',
-      confirmButton: 'swal-custom-confirm-button',
-      cancelButton: 'swal-custom-cancel-button'
-    }
-  });
-
-  if (result.isConfirmed) {
-    try {
-      const res = await fetch(`http://localhost:8080/api/instructors/update/${id}/password`, {
-        method: 'PUT'
-      });
-      const data = await res.json();
-      if (data.Success) {
-        Swal.fire({
-          icon: 'success',
-          title: '¡Contraseña restablecida!',
-          text: data.Message || 'La contraseña fue restablecida correctamente.',
-          customClass: {
-            popup: 'swal-custom-popup',
-            title: 'swal-custom-title',
-            content: 'swal-custom-content',
-            confirmButton: 'swal-custom-confirm-button'
-          }
-        });
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: data.Message || 'No se pudo restablecer la contraseña.',
-          customClass: {
-            popup: 'swal-custom-popup',
-            title: 'swal-custom-title',
-            content: 'swal-custom-content',
-            confirmButton: 'swal-custom-confirm-button'
-          }
-        });
-      }
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'No se pudo restablecer la contraseña. Intenta de nuevo.',
         customClass: {
           popup: 'swal-custom-popup',
           title: 'swal-custom-title',
