@@ -95,7 +95,7 @@ function renderSidebarPendingVehicles(vehicles) {
 // Obtiene todos los vehículos
 function fetchAllVehicles() {
     const token = getAuthToken();
-    fetch('http://localhost:8080/api/vehicles/getDataVehicles?page=0&size=50', {
+    fetch('https://sgma-66ec41075156.herokuapp.com/api/vehicles/getDataVehicles?page=0&size=50', {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${token}`
@@ -126,7 +126,7 @@ document.getElementById('buscarRegistro').addEventListener('input', function(e) 
         return;
     }
     const token = getAuthToken();
-    fetch(`http://localhost:8080/api/vehicles/plate/${plate}`, {
+    fetch(`https://sgma-66ec41075156.herokuapp.com/api/vehicles/plate/${plate}`, {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${token}`
@@ -207,7 +207,7 @@ if (btnAprobar) {
         if (!window.vehiculoSeleccionado) return;
         const token = getAuthToken();
         const modalVehiculo = document.getElementById('modalVehiculo');
-        fetch(`http://localhost:8080/api/vehicles/updateStatus/${window.vehiculoSeleccionado.vehicleId}?newStatus=2`, {
+        fetch(`https://sgma-66ec41075156.herokuapp.com/api/vehicles/updateStatus/${window.vehiculoSeleccionado.vehicleId}?newStatus=2`, {
             method: 'PATCH',
             headers: {
                 'Authorization': `Bearer ${token}`

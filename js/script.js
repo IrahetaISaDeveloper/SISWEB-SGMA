@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             try {
                 
-                const response = await fetch('http://localhost:8080/api/instructorAuth/instructorLogin', {
+                const response = await fetch('https://sgma-66ec41075156.herokuapp.com/api/instructorAuth/instructorLogin', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Ejemplo: consulta autenticada usando la cookie creada por el backend
     async function obtenerDatosInstructor() {
         try {
-            const response = await fetch('http://localhost:8080/api/instructorAuth/meInstructor', {
+            const response = await fetch('https://sgma-66ec41075156.herokuapp.com/api/instructorAuth/meInstructor', {
                 method: 'GET',
                 credentials: 'include', // La cookie authToken se envía automáticamente
             });

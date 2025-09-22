@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function () {
     mostrarModulosPorAno('primer');
 
     // Consulta y muestra datos reales de vehículos
-    fetch('http://localhost:8080/api/vehicles/getDataVehicles?page=0&size=50', {
+    fetch('https://sgma-66ec41075156.herokuapp.com/api/vehicles/getDataVehicles?page=0&size=50', {
         method: 'GET'
     })
     .then(res => res.json())
@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Consulta y muestra cantidad de alumnos
-    fetch('http://localhost:8080/api/students/getDataStudents', {
+    fetch('https://sgma-66ec41075156.herokuapp.com/api/students/getDataStudents', {
         method: 'GET'
     })
     .then(res => res.json())
@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Consulta y muestra cantidad de instructores
-    fetch('http://localhost:8080/api/instructors/getDataInstructors', {
+    fetch('https://sgma-66ec41075156.herokuapp.com/api/instructors/getDataInstructors', {
         method: 'GET'
     })
     .then(res => res.json())
@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Cargar módulos desde el endpoint y mostrar por año
     async function cargarModulosYMostrar() {
         try {
-            const res = await fetch('http://localhost:8080/api/modules/getAllModules');
+            const res = await fetch('https://sgma-66ec41075156.herokuapp.com/api/modules/getAllModules');
             const data = await res.json();
             // Si la respuesta es { data: { content: [...] } }
             if (data && data.data && Array.isArray(data.data.content)) {

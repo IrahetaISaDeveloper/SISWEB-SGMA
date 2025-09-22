@@ -1,9 +1,9 @@
-const ROLES_API_URL = 'http://localhost:8080/api/Roles/getAllRoles';
-const INSTRUCTORS_API_URL = 'http://localhost:8080/api/instructors/getDataInstructors';
-const LEVELS_API_URL = 'http://localhost:8080/api/levels/getDataLevels';
-const GRADES_API_URL = 'http://localhost:8080/api/grades/getAllGrades';
-const ADD_INSTRUCTOR_API_URL = 'http://localhost:8080/api/instructors/addNewInstructor';
-const UPDATE_INSTRUCTOR_API_URL = 'http://localhost:8080/api/instructors/updateInstructor/';
+const ROLES_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/Roles/getAllRoles';
+const INSTRUCTORS_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/instructors/getDataInstructors';
+const LEVELS_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/levels/getDataLevels';
+const GRADES_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/grades/getAllGrades';
+const ADD_INSTRUCTOR_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/instructors/addNewInstructor';
+const UPDATE_INSTRUCTOR_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/instructors/updateInstructor/';
 
 const formulario = document.getElementById('formulario-usuario');
 const nombreCompletoEl = document.getElementById('nombreCompleto');
@@ -218,7 +218,7 @@ async function subirImagen(archivo) {
   fd.append('image', archivo);
   fd.append('folder', 'instructors');
   try {
-    const res = await fetch('http://localhost:8080/api/image/upload-to-folder', {
+    const res = await fetch('https://sgma-66ec41075156.herokuapp.com/api/image/upload-to-folder', {
       method: 'POST',
       body: fd
     });
@@ -414,7 +414,7 @@ formulario.addEventListener('submit', async e => {
 
 async function cargarParaEditarUsuario(id) {
   try {
-    const res = await fetch(`http://localhost:8080/api/instructors/getInstructorById/${id}`);
+    const res = await fetch(`https://sgma-66ec41075156.herokuapp.com/api/instructors/getInstructorById/${id}`);
     const result = await res.json();
     const instructor = result.data || {};
 
@@ -473,7 +473,7 @@ async function borrarUsuario(id) {
 
   if (result.isConfirmed) {
     try {
-      const res = await fetch(`http://localhost:8080/api/instructors/deleteInstructor/${id}`, {
+      const res = await fetch(`https://sgma-66ec41075156.herokuapp.com/api/instructors/deleteInstructor/${id}`, {
         method: 'DELETE'
       });
       if (res.ok) {

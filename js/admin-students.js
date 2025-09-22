@@ -1,9 +1,9 @@
-const STUDENTS_API_URL = 'http://localhost:8080/api/students/getDataStudents';
-const ADD_STUDENT_API_URL = 'http://localhost:8080/api/students/addNewStudent';
-const UPDATE_STUDENT_API_URL = 'http://localhost:8080/api/students/updateStudent/';
-const DELETE_STUDENT_API_URL = 'http://localhost:8080/api/students/deleteStudent/';
-const LEVELS_API_URL = 'http://localhost:8080/api/levels/getDataLevels';
-const GRADES_API_URL = 'http://localhost:8080/api/grades/getAllGrades';
+const STUDENTS_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/students/getDataStudents';
+const ADD_STUDENT_API_URL = 'https://sgma-66ec41075156.herokuapp.comapi/students/addNewStudent';
+const UPDATE_STUDENT_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/students/updateStudent/';
+const DELETE_STUDENT_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/students/deleteStudent/';
+const LEVELS_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/levels/getDataLevels';
+const GRADES_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/grades/getAllGrades';
 
 const form = document.getElementById('user-form');
 const fullNameEl = document.getElementById('fullName');
@@ -365,7 +365,7 @@ form.addEventListener('submit', async e => {
 
 async function cargarParaEditarEstudiante(id) {
   try {
-    const res = await fetch(`http://localhost:8080/api/students/getStudentById/${id}`);
+    const res = await fetch(`https://sgma-66ec41075156.herokuapp.com/api/students/getStudentById/${id}`);
     const result = await res.json();
     const student = result.data || {};
     fullNameEl.value = student.firstName || '';
