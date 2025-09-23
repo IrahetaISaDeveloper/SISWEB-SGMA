@@ -1,5 +1,5 @@
 // controllers/coordi-indexController.js
-import { fetchVehicles, fetchStudents, fetchInstructors, fetchModules } from '../Services/coordi-indexService';
+import { fetchVehicles, fetchStudents, fetchInstructors, fetchModules } from '../Services/coordi-indexService.js';
 
 const mostrarModulosPorAno = (ano, allModules) => {
     const lista = document.querySelector('.lista-modulos');
