@@ -55,19 +55,21 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             try {
-                
+                // Elimina credentials: 'include' si el endpoint es público
                 const response = await fetch('https://sgma-66ec41075156.herokuapp.com/api/instructorAuth/instructorLogin', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    credentials: 'include', // Importante para que la cookie authToken se guarde
+                    // credentials: 'include', // Quitar si el endpoint es público
                     body: JSON.stringify({ email, password })
                 });
 
-                // El backend debe enviar la cookie authToken si las credenciales son correctas
+                // Log para depuración
+                const responseText = await response.text();
+                console.log('Login response:', response.status, responseText);
+
                 if (response.ok) {
-                    // Puedes mostrar mensaje de éxito o redirigir
                     Swal.fire({
                         icon: 'success',
                         title: 'Inicio de sesión exitoso',
@@ -78,11 +80,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         window.location.href = 'coordi-index.html';
                     });
                 } else {
-                    const errorText = await response.text();
                     Swal.fire({
                         icon: 'error',
                         title: 'Error de inicio de sesión',
-                        text: errorText.includes('Credenciales') ? 'Credenciales incorrectas.' : errorText,
+                        text: responseText.includes('Credenciales') ? 'Credenciales incorrectas.' : responseText,
                     });
                 }
             } catch (error) {
