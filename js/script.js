@@ -190,8 +190,16 @@ function ensureMenuLinks(shouldShow) {
     }
 }
 
-// Renderiza la información del usuario y ajusta el menú
+// Renderiza la información del usuario y ajusta el menú (solo si no estamos en login)
 async function renderUser() {
+    // No hacer peticiones si estamos en la página de login
+    const currentPath = window.location.pathname.toLowerCase();
+    const isLoginPage = currentPath.includes('index.html') || currentPath.endsWith('/') || currentPath.includes('login');
+    
+    if (isLoginPage) {
+        return; // No verificar sesión en página de login
+    }
+    
     const userBox = document.getElementById("userBox");
     
     try {
@@ -214,7 +222,7 @@ async function renderUser() {
             document.getElementById("btnLogout")?.addEventListener("click", async () => {
                 await logout();
                 ensureMenuLinks(false);
-                window.location.replace("login.html");
+                window.location.replace("index.html");
             });
         } else {
             auth.ok = false;
@@ -270,24 +278,34 @@ const role = {
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('Inicializando aplicación...');
     
-    // Inicializar controlador de login si estamos en la página de login
-    initLoginController();
+    const currentPath = window.location.pathname.toLowerCase();
+    const isLoginPage = currentPath.includes('index.html') || currentPath.endsWith('/') || currentPath.includes('login');
     
-    // Renderizar usuario en todas las páginas
+    // Inicializar controlador de login si estamos en la página de login
+    if (isLoginPage) {
+        initLoginController();
+        console.log('Página de login detectada, no se verificará sesión automáticamente');
+        return; // Salir temprano, no hacer más verificaciones
+    }
+    
+    // Solo renderizar usuario y verificar autenticación en páginas que NO son de login
     await renderUser();
     
     // Verificar autenticación en páginas protegidas
-    const protectedPages = ['dashboard', 'admin', 'panel'];
-    const currentPath = window.location.pathname.toLowerCase();
+    const protectedPages = ['coordi-index', 'dashboard', 'admin', 'panel'];
     
     if (protectedPages.some(page => currentPath.includes(page))) {
+        console.log('Página protegida detectada, verificando autenticación...');
         await requireAuth();
     }
 });
 
-// Refrescar sesión cuando se vuelve con el botón Atrás
+// Solo refrescar sesión en páginas que no son de login
 window.addEventListener("pageshow", async (event) => {
-    if (event.persisted) {
+    const currentPath = window.location.pathname.toLowerCase();
+    const isLoginPage = currentPath.includes('index.html') || currentPath.endsWith('/') || currentPath.includes('login');
+    
+    if (event.persisted && !isLoginPage) {
         await renderUser();
     }
 });
