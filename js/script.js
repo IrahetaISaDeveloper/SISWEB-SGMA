@@ -1,129 +1,304 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const loginButton = document.getElementById('login-btn');
-    const passwordInput = document.getElementById('password-input');
-    const togglePassword = document.getElementById('toggle-password');
+// =============================================================================
+// CONFIGURACIÓN DE LA API
+// =============================================================================
+const API_CONFIG = {
+    baseUrl: 'https://sgma-66ec41075156.herokuapp.com/api/instructorsAuth',
+    endpoints: {
+        login: '/instructorLogin',
+        me: '/meInstructor'
+    }
+};
 
+// =============================================================================
+// SERVICIOS DE AUTENTICACIÓN
+// =============================================================================
+
+// Realiza el inicio de sesión con email y password
+async function login({ email, password }) {
+    const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.login}`, {
+        method: "POST",
+        headers: { 
+            "Content-Type": "application/json" 
+        },
+        credentials: "include", // Importante para cookies
+        body: JSON.stringify({ email, password })
+    });
+    
+    if (!response.ok) {
+        const errorText = await response.text().catch(() => "Error de conexión");
+        throw new Error(errorText);
+    }
+    
+    return true;
+}
+
+// Verifica el estado de autenticación actual
+async function me() {
+    try {
+        const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.me}`, {
+            credentials: "include"
+        });
+        
+        if (response.ok) {
+            return await response.json();
+        }
+        
+        return { authenticated: false };
+    } catch (error) {
+        return { authenticated: false };
+    }
+}
+
+// Cierra la sesión del usuario
+async function logout() {
+    try {
+        // Como no tienes endpoint de logout, simplemente limpiamos el estado local
+        auth.ok = false;
+        auth.user = null;
+        
+        // Podrías agregar una llamada a tu API si tienes endpoint de logout
+        // const response = await fetch(`${API_CONFIG.baseUrl}/logout`, {
+        //     method: "POST",
+        //     credentials: "include"
+        // });
+        
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+// =============================================================================
+// ESTADO DE SESIÓN GLOBAL
+// =============================================================================
+const auth = {
+    ok: false,
+    user: null
+};
+
+// =============================================================================
+// CONTROLADOR DE LOGIN
+// =============================================================================
+function initLoginController() {
+    const form = document.getElementById('loginForm') || document.querySelector('form');
+    
+    if (!form) return;
+
+    // Manejar submit del formulario
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Obtener credenciales del formulario
+        const email = (document.querySelector('#email, [name=email], input[type=email]')?.value || '').trim();
+        const password = document.querySelector('#password, [name=password], input[type=password]')?.value || '';
+
+        // Validación básica
+        if (!email || !password) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Por favor completa todos los campos'
+            });
+            return;
+        }
+
+        const btnIngresar = document.querySelector('#login-btn, button[type="submit"]');
+        let originalText;
+
+        try {
+            // Desactivar botón y mostrar loading
+            if (btnIngresar) {
+                originalText = btnIngresar.innerHTML;
+                btnIngresar.setAttribute("disabled", "disabled");
+                btnIngresar.innerHTML = 'Ingresando...';
+            }
+
+            // Realizar login
+            await login({ email, password });
+
+            // Verificar sesión
+            const info = await me();
+            if (info?.authenticated) {
+                // Actualizar estado global
+                auth.ok = true;
+                auth.user = info.instructor;
+                
+                // Mostrar éxito y redirigir
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: 'Inicio de sesión exitoso',
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.href = 'coordi-index.html';
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error de autenticación'
+                });
+            }
+        } catch (err) {
+            console.error('Error en login:', err);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: err?.message || 'No fue posible iniciar sesión.'
+            });
+        } finally {
+            // Restaurar botón
+            if (btnIngresar) {
+                btnIngresar.removeAttribute("disabled");
+                if (originalText) btnIngresar.innerHTML = originalText;
+            }
+        }
+    });
+
+    // Funcionalidad del toggle de contraseña
+    const togglePassword = document.getElementById('toggle-password');
+    const passwordInput = document.getElementById('password');
+    
     if (togglePassword && passwordInput) {
         togglePassword.addEventListener('click', function() {
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
-            const eyeIcon = this.querySelector('i'); // Get the <i> element within the span
-            if (eyeIcon.classList.contains('fa-eye')) {
-                eyeIcon.classList.remove('fa-eye');
-                eyeIcon.classList.add('fa-eye-slash');
-            } else {
-                eyeIcon.classList.remove('fa-eye-slash');
-                eyeIcon.classList.add('fa-eye');
+            const type = passwordInput.type === 'password' ? 'text' : 'password';
+            passwordInput.type = type;
+            
+            const icon = this.querySelector('i');
+            if (icon) {
+                icon.className = type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
             }
         });
     }
+}
 
-    if (loginButton) {
-        loginButton.addEventListener('click', async function() {
-            const usernameInput = document.getElementById('username-input');
+// =============================================================================
+// CONTROLADOR DE SESIÓN
+// =============================================================================
 
-            if (!usernameInput || !passwordInput) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error de Interfaz',
-                    text: 'Error en la interfaz. Por favor, recarga la página.',
-                });
-                return;
-            }
-
-            const email = usernameInput.value.trim();
-            const password = passwordInput.value.trim();
-
-            // Validación de campos vacíos
-            if (!email || !password) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Campos Vacíos',
-                    text: 'Por favor, ingresa tus credenciales completas (correo y contraseña).',
-                });
-                return;
-            }
-
-            // Validación de correo institucional
-            if (!email.endsWith('@ricaldone.edu.sv')) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Correo inválido',
-                    text: 'Debes ingresar tu correo institucional (@ricaldone.edu.sv).',
-                });
-                return;
-            }
-
-            try {
-                // Elimina credentials: 'include' si el endpoint es público
-                const response = await fetch('https://sgma-66ec41075156.herokuapp.com/api/instructorAuth/instructorLogin', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    // credentials: 'include', // Quitar si el endpoint es público
-                    body: JSON.stringify({ email, password })
-                });
-
-                // Log para depuración
-                const responseText = await response.text();
-                console.log('Login response:', response.status, responseText);
-
-                if (response.ok) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Inicio de sesión exitoso',
-                        text: 'Bienvenido al sistema.',
-                        timer: 1500,
-                        showConfirmButton: false
-                    }).then(() => {
-                        window.location.href = 'coordi-index.html';
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error de inicio de sesión',
-                        text: responseText.includes('Credenciales') ? 'Credenciales incorrectas.' : responseText,
-                    });
-                }
-            } catch (error) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error de Conexión',
-                    text: 'No se pudo conectar con el servidor. Intenta más tarde.',
-                });
-            }
-        });
+// Controla qué elementos del menú mostrar según la sesión
+function ensureMenuLinks(shouldShow) {
+    const loginLink = document.getElementById("loginLink");
+    
+    if (shouldShow) {
+        loginLink?.classList.add("d-none");
+        // Aquí puedes agregar más elementos del menú que solo aparezcan cuando esté logueado
     } else {
-        console.error("Error: Botón de inicio de sesión no encontrado.");
+        loginLink?.classList.remove("d-none");
+        // Ocultar elementos que requieren autenticación
     }
+}
 
-    const vehicleTrackingButton = document.getElementById('vehicle-tracking-btn');
-    if (vehicleTrackingButton) {
-        vehicleTrackingButton.addEventListener('click', function() {
-            window.location.href = 'auth-seguimiento.html';
-        });
-    }
+// Renderiza la información del usuario y ajusta el menú
+async function renderUser() {
+    const userBox = document.getElementById("userBox");
+    
+    try {
+        const info = await me();
+        auth.ok = !!info?.authenticated;
+        auth.user = info?.instructor ?? null;
 
-    // Ejemplo: consulta autenticada usando la cookie creada por el backend
-    async function obtenerDatosInstructor() {
-        try {
-            const response = await fetch('https://sgma-66ec41075156.herokuapp.com/api/instructorAuth/meInstructor', {
-                method: 'GET',
-                credentials: 'include', // La cookie authToken se envía automáticamente
+        if (auth.ok && userBox) {
+            ensureMenuLinks(true);
+            
+            // Mostrar información del usuario - corregir los nombres de campos
+            const userName = auth.user?.names || auth.user?.firstName || auth.user?.email || "usuario";
+            userBox.innerHTML = `
+                <span class="me-3">Hola, <strong>${userName}</strong></span>
+                <button id="btnLogout" class="btn btn-outline-danger btn-sm">Salir</button>
+            `;
+            userBox.classList.remove("d-none");
+
+            // Listener para logout
+            document.getElementById("btnLogout")?.addEventListener("click", async () => {
+                await logout();
+                ensureMenuLinks(false);
+                window.location.replace("login.html");
             });
-            const data = await response.json();
-            if (data.authenticated) {
-                // Procesa los datos del instructor
-                console.log('Datos del instructor:', data.instructor);
-            } else {
-                console.log('No autenticado');
-            }
-        } catch (error) {
-            console.error('Error obteniendo datos del instructor:', error);
+        } else {
+            auth.ok = false;
+            auth.user = null;
+            userBox?.classList.add("d-none");
+            ensureMenuLinks(false);
         }
+    } catch {
+        auth.ok = false;
+        auth.user = null;
+        document.getElementById("userBox")?.classList.add("d-none");
+        ensureMenuLinks(false);
+    }
+}
+
+// Verifica si hay sesión activa y redirige si es necesario
+async function requireAuth({ redirect = true } = {}) {
+    try {
+        const info = await me();
+        auth.ok = !!info?.authenticated;
+        auth.user = info?.instructor ?? null;
+    } catch {
+        auth.ok = false;
+        auth.user = null;
     }
 
-    // Llama a la función para obtener los datos del instructor después de iniciar sesión
-    // obtenerDatosInstructor();
+    if (!auth.ok && redirect) {
+        window.location.replace("login.html");
+    }
+    
+    return auth.ok;
+}
+
+// Funciones auxiliares para roles
+function getUserRole() {
+    return auth.user?.role || "";
+}
+
+function hasAuthority(authority) {
+    return Array.isArray(auth.user?.authorities)
+        ? auth.user.authorities.includes(authority)
+        : false;
+}
+
+const role = {
+    isAdmin: () => getUserRole() === "Administrador" || hasAuthority("ROLE_Administrador"),
+    isInstructor: () => getUserRole() === "Instructor" || hasAuthority("ROLE_Instructor")
+};
+
+// =============================================================================
+// INICIALIZACIÓN
+// =============================================================================
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('Inicializando aplicación...');
+    
+    // Inicializar controlador de login si estamos en la página de login
+    initLoginController();
+    
+    // Renderizar usuario en todas las páginas
+    await renderUser();
+    
+    // Verificar autenticación en páginas protegidas
+    const protectedPages = ['dashboard', 'admin', 'panel'];
+    const currentPath = window.location.pathname.toLowerCase();
+    
+    if (protectedPages.some(page => currentPath.includes(page))) {
+        await requireAuth();
+    }
 });
+
+// Refrescar sesión cuando se vuelve con el botón Atrás
+window.addEventListener("pageshow", async (event) => {
+    if (event.persisted) {
+        await renderUser();
+    }
+});
+
+// Exportar funciones principales para uso en otros scripts
+window.authService = {
+    login,
+    logout,
+    me,
+    requireAuth,
+    renderUser,
+    auth,
+    role
+};
