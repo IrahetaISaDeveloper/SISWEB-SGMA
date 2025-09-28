@@ -26,7 +26,7 @@ export async function logout() {
   try {
     // Como no tienes endpoint de logout específico, solo limpiamos localmente
     // Si agregas endpoint de logout en el futuro, descomenta las siguientes líneas:
-     const r = await fetch(`${API_AUTH}/instructorLogout`, {
+     const r = await fetch(`${API_AUTH}/logoutInstructor`, {
       method: "POST",
        credentials: "include",
      });
