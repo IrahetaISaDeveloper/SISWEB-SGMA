@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function () {
     mostrarModulosPorAno('primer');
 
     // Consulta y muestra datos reales de vehículos
-    fetch('https://sgma-66ec41075156.herokuapp.com/api/vehicles/getDataVehicles?page=0&size=50', {
+    fetch('https://sgma-66ec41075156.herokuapp.com/api/vehicles/getAllVehicles', {
         method: 'GET',
         credentials : 'include'
     })
@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Consulta y muestra cantidad de alumnos
-    fetch('https://sgma-66ec41075156.herokuapp.com/api/students/getDataStudents', {
+    fetch('https://sgma-66ec41075156.herokuapp.com/api/students/getAllStudents', {
         method: 'GET',
         credentials : 'include'
     })
@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Consulta y muestra cantidad de instructores
-    fetch('https://sgma-66ec41075156.herokuapp.com/api/instructors/getDataInstructors', {
+    fetch('https://sgma-66ec41075156.herokuapp.com/api/instructors/getAllInstructors', {
         method: 'GET',
         credentials : 'include'
     })
