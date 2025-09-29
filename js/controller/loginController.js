@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           showConfirmButton: false
         }).then(() => {
           console.log("Redirigiendo a coordi-index.html"); // Agrega este registro
-          window.location.href = 'coordi-index.html';
+          window.location.replace = 'coordi-index.html';
         });
       } else {
         // Si no se refleja autenticación, alerta de cookie/sesión
