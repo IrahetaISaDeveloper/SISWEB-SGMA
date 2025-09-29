@@ -79,6 +79,7 @@ export async function renderUser() {
 export async function requireAuth({ redirect = true } = {}) {
   try {
     const info = await me();             // consulta al backend
+    console.log(auth.ok);
     auth.ok = !!info?.authenticated;
     auth.user = info?.instructor ?? null;
   } catch {
