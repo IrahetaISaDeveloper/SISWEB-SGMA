@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           timer: 1500,
           showConfirmButton: false
         }).then(() => {
-          window.location.href = 'coordi-index.html';
+          window.location.replace = 'coordi-index.html';
         });
       } else {
         // Si no se refleja autenticación, alerta de cookie/sesión
