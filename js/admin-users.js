@@ -1,7 +1,7 @@
 const ROLES_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/Roles/getAllRoles';
 const INSTRUCTORS_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/instructors/getAllInstructors';
 const LEVELS_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/levels/getAllLevels';
-const GRADES_API_URL = 'hhttps://sgma-66ec41075156.herokuapp.com/api/grades/getAllGrades';
+const GRADES_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/grades/getAllGrades';
 const ADD_INSTRUCTOR_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/instructors/newInstructor';
 const UPDATE_INSTRUCTOR_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/instructors/updateInstructor/';
 
@@ -28,7 +28,7 @@ let grades = [];
 
 async function cargarRoles() {
   try {
-    const res = await fetch(ROLES_API_URL);
+    const res = await fetch(ROLES_API_URL, { credentials: 'include' });
     const data = await res.json();
     roles = Array.isArray(data) ? data : (data.data || []);
     idRolEl.innerHTML = '';
@@ -56,7 +56,7 @@ async function cargarRoles() {
 
 async function cargarLevels() {
   try {
-    const res = await fetch(LEVELS_API_URL);
+    const res = await fetch(LEVELS_API_URL, { credentials: 'include' });
     const data = await res.json();
     const levels = Array.isArray(data) ? data : (data.data || []);
     idLevelEl.innerHTML = '';
@@ -84,7 +84,7 @@ async function cargarLevels() {
 
 async function cargarGrupos() {
   try {
-    const res = await fetch(GRADES_API_URL);
+    const res = await fetch(GRADES_API_URL, { credentials: 'include' });
     const data = await res.json();
     grades = Array.isArray(data) ? data : (data.data || []);
     filtroGrupoEl.innerHTML = '<option value="">Todos los grupos</option>';
@@ -102,7 +102,7 @@ async function cargarGrupos() {
 
 async function cargarUsuarios() {
   try {
-    const res = await fetch(INSTRUCTORS_API_URL);
+    const res = await fetch(INSTRUCTORS_API_URL, { credentials: 'include' });
     const data = await res.json();
     // Ajusta según la estructura real del JSON
     let instructores = [];
@@ -357,6 +357,7 @@ formulario.addEventListener('submit', async e => {
       await fetch(`${UPDATE_INSTRUCTOR_API_URL}${idUsuarioEl.value}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(cargaUtil)
       });
       Swal.fire({
@@ -374,6 +375,7 @@ formulario.addEventListener('submit', async e => {
       await fetch(ADD_INSTRUCTOR_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(cargaUtil)
       });
       Swal.fire({
@@ -415,7 +417,9 @@ formulario.addEventListener('submit', async e => {
 
 async function cargarParaEditarUsuario(id) {
   try {
-    const res = await fetch(`https://sgma-66ec41075156.herokuapp.com/api/instructors/getInstructorById/${id}`);
+    const res = await fetch(`https://sgma-66ec41075156.herokuapp.com/api/instructors/getInstructorById/${id}`, {
+      credentials: 'include'
+    });
     const result = await res.json();
     const instructor = result.data || {};
 
@@ -475,7 +479,8 @@ async function borrarUsuario(id) {
   if (result.isConfirmed) {
     try {
       const res = await fetch(`https://sgma-66ec41075156.herokuapp.com/api/instructors/deleteInstructor/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        credentials: 'include'
       });
       if (res.ok) {
         Swal.fire({
