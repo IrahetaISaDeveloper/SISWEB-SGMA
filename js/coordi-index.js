@@ -49,7 +49,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Consulta y muestra cantidad de alumnos
     fetch('https://sgma-66ec41075156.herokuapp.com/api/students/getDataStudents', {
-        method: 'GET'
+        method: 'GET',
+        credentials : 'include'
     })
     .then(res => res.json())
     .then(data => {
@@ -67,7 +68,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Consulta y muestra cantidad de instructores
     fetch('https://sgma-66ec41075156.herokuapp.com/api/instructors/getDataInstructors', {
-        method: 'GET'
+        method: 'GET',
+        credentials : 'include'
     })
     .then(res => res.json())
     .then(data => {
@@ -118,6 +120,7 @@ document.addEventListener('DOMContentLoaded', function () {
     async function cargarModulosYMostrar() {
         try {
             const res = await fetch('https://sgma-66ec41075156.herokuapp.com/api/modules/getAllModules');
+            
             const data = await res.json();
             // Si la respuesta es { data: { content: [...] } }
             if (data && data.data && Array.isArray(data.data.content)) {
