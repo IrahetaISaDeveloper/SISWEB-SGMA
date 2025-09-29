@@ -220,6 +220,7 @@ async function subirImagen(archivo) {
   try {
     const res = await fetch('https://sgma-66ec41075156.herokuapp.com/api/image/upload-to-folder', {
       method: 'POST',
+      credentials: 'include',
       body: fd
     });
     const obj = await res.json();
