@@ -1,4 +1,4 @@
-/* 
+
 import { me, logout } from "../service/authService.js";
 
 // Estado de sesión global
@@ -140,4 +140,3 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 });
-*/
