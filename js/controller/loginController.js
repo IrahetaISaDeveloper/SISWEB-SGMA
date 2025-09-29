@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: 'Error de Cookie'
+          text: 'Error de Cookie o sesión no válida'
         });
       }
     } catch (err) {

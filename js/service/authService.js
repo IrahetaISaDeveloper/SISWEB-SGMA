@@ -18,8 +18,20 @@ export async function me() {
   const info = await fetch(`${API_AUTH}/meInstructor`, {
     credentials: "include"
   });
-  console.log("Estado de autenticación:", info); // Agrega este registro
-  return info.ok ? info.json() : { authenticated: false }; // devuelve info del instructor o false
+
+  console.log("Estado de autenticación:", info);
+
+  // Manejo manual de redirección
+  if (info.status === 302) {
+    const redirectUrl = info.headers.get("coordi-index.html");
+    console.log("Redirigiendo manualmente a:", redirectUrl);
+    if (redirectUrl) {
+      window.location.href = redirectUrl;
+    }
+    return { authenticated: false };
+  }
+
+  return info.ok ? info.json() : { authenticated: false };
 }
 
 // Cierra la sesión del usuario
