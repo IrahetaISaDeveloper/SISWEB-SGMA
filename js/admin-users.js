@@ -1,8 +1,8 @@
 const ROLES_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/Roles/getAllRoles';
-const INSTRUCTORS_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/instructors/getDataInstructors';
-const LEVELS_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/levels/getDataLevels';
+const INSTRUCTORS_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/instructors/getAllInstructors';
+const LEVELS_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/levels/getAllLevels';
 const GRADES_API_URL = 'hhttps://sgma-66ec41075156.herokuapp.com/api/grades/getAllGrades';
-const ADD_INSTRUCTOR_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/instructors/addNewInstructor';
+const ADD_INSTRUCTOR_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/instructors/newInstructor';
 const UPDATE_INSTRUCTOR_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/instructors/updateInstructor/';
 
 const formulario = document.getElementById('formulario-usuario');
