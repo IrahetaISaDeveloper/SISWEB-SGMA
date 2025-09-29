@@ -26,7 +26,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Consulta y muestra datos reales de vehículos
     fetch('https://sgma-66ec41075156.herokuapp.com/api/vehicles/getDataVehicles?page=0&size=50', {
-        method: 'GET'
+        method: 'GET',
+        credentials : 'include'
     })
     .then(res => res.json())
     .then(data => {
@@ -116,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Cargar módulos desde el endpoint y mostrar por año
+   /* // Cargar módulos desde el endpoint y mostrar por año
     async function cargarModulosYMostrar() {
         try {
             const res = await fetch('https://sgma-66ec41075156.herokuapp.com/api/modules/getAllModules');
@@ -148,6 +149,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    cargarModulosYMostrar();
+    cargarModulosYMostrar();*/
 
 });

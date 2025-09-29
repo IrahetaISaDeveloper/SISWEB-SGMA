@@ -24,7 +24,7 @@ export function ensureMenuLinks(shouldShow) {
 export async function renderUser() {
   // No hacer peticiones si estamos en la página de login
   const currentPath = window.location.pathname.toLowerCase();
-  const isLoginPage = currentPath.includes('index.html') || currentPath.endsWith('/') || currentPath.includes('login');
+  const isLoginPage = currentPath.includes('.html') || currentPath.endsWith('/') || currentPath.includes('login');
   
   if (isLoginPage) {
     return; // No verificar sesión en página de login
