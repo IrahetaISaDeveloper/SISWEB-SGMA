@@ -18,6 +18,7 @@ export async function me() {
   const info = await fetch(`${API_AUTH}/meInstructor`, {
     credentials: "include"
   });
+  console.log("Estado de autenticación:", info); // Agrega este registro
   return info.ok ? info.json() : { authenticated: false }; // devuelve info del instructor o false
 }
 

@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       // Verifica sesión con /meInstructor para confirmar que la cookie quedó activa
       const info = await me();
+      console.log("Información de sesión:", info); // Agrega este registro
       if (info?.authenticated) {
         // Redirección a la página principal si autenticado
         Swal.fire({
@@ -47,6 +48,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           timer: 1500,
           showConfirmButton: false
         }).then(() => {
+          console.log("Redirigiendo a coordi-index.html"); // Agrega este registro
           window.location.href = 'coordi-index.html';
         });
       } else {
