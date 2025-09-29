@@ -87,7 +87,7 @@ export async function requireAuth({ redirect = true } = {}) {
   }
 
   if (!auth.ok && redirect) {
-    window.location.replace("index.html");
+    window.location.replace(".html");
   }
   return auth.ok; // devuelve booleano indicando si hay sesión
 }
