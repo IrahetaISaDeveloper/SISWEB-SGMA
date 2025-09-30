@@ -119,6 +119,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    /*
     // Cargar módulos desde el endpoint y mostrar por año
     async function cargarModulosYMostrar() {
         try {
@@ -156,5 +157,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     cargarModulosYMostrar();
+    */
 
 });
