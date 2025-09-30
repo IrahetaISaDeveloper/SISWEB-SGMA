@@ -184,9 +184,41 @@ const btnAprobar = document.querySelector('.btn-modal.primario');
 if (btnAprobar) {
     btnAprobar.addEventListener('click', function() {
         if (selectedVehicleId) {
-            // Aquí puedes agregar la lógica para aprobar el vehículo
-            alert('Vehículo aprobado: ' + selectedVehicleId);
-            document.getElementById('modalVehiculo').style.display = 'none';
+            // Cambiar estado del vehículo a aprobado (idStatus = 2)
+            fetch(`https://sgma-66ec41075156.herokuapp.com/api/vehicles/updateStatus/${selectedVehicleId}`, {
+                method: 'PUT',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ idStatus: 2 })
+            })
+            .then(res => res.json())
+            .then(data => {
+                // Mostrar SweetAlert de éxito
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Aprobado',
+                        text: 'El vehículo ha sido aprobado correctamente.'
+                    });
+                } else {
+                    alert('Vehículo aprobado: ' + selectedVehicleId);
+                }
+                document.getElementById('modalVehiculo').style.display = 'none';
+                fetchAllVehicles();
+            })
+            .catch(err => {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No se pudo aprobar el vehículo.'
+                    });
+                } else {
+                    alert('Error al aprobar vehículo');
+                }
+            });
         }
     });
 }
