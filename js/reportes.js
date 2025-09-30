@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // Fetch estudiantes
     try {
-        const resEst = await fetch('https://sgma-66ec41075156.herokuapp.com/api/students/getDataStudents');
+        const resEst = await fetch('https://sgma-66ec41075156.herokuapp.com/api/students/getAllStudents');
         const dataEst = await resEst.json();
         if (dataEst && dataEst.data && Array.isArray(dataEst.data.content)) {
             estudiantes = dataEst.data.content;
@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // Fetch instructores
     try {
-        const resInst = await fetch('https://sgma-66ec41075156.herokuapp.com/api/instructors/getDataInstructors');
+        const resInst = await fetch('https://sgma-66ec41075156.herokuapp.com/api/instructors/getAllInstructors');
         const dataInst = await resInst.json();
         if (dataInst && dataInst.data && Array.isArray(dataInst.data.content)) {
             instructores = dataInst.data.content;
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // Fetch vehículos
     try {
-        const resVeh = await fetch('https://sgma-66ec41075156.herokuapp.com/api/vehicles/getDataVehicles');
+        const resVeh = await fetch('https://sgma-66ec41075156.herokuapp.com/api/vehicles/getAllVehicles');
         const dataVeh = await resVeh.json();
         if (dataVeh && dataVeh.data && Array.isArray(dataVeh.data.content)) {
             vehiculos = dataVeh.data.content;
