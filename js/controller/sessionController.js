@@ -107,10 +107,13 @@ export function hasAuthority(authority) {
 
 export const role = {
   isAdmin: () =>
-    getUserRole() === "Administrador" || hasAuthority("ROLE_Administrador"),
+    getUserRole() === "Animador" || hasAuthority("ROLE_Animador"),
 
-  isInstructor: () =>
-    getUserRole() === "Instructor" || hasAuthority("ROLE_Instructor"),
+  isDocente: () =>
+    getUserRole() === "Docente" || hasAuthority("ROLE_Docente"),
+
+  isCoordinadora: () =>
+    getUserRole() === "Coordinadora" || hasAuthority("ROLE_Docente"),
 };
 
 // Refresca automáticamente la sesión y el menú solo en páginas que no son de login
