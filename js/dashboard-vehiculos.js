@@ -1,4 +1,3 @@
-
 // Renderiza la tabla de vehículos
 function renderVehiclesTable(vehicles) {
     const tbody = document.querySelector('.tabla-moderna tbody');
@@ -81,6 +80,12 @@ function renderSidebarPendingVehicles(vehicles) {
                 </button>
             </div>
         `;
+        // Abrir modal al hacer clic en el div, excepto si se hace clic en el botón de opciones
+        div.addEventListener('click', function(e) {
+            if (!e.target.closest('.btn-opciones')) {
+                showVehicleModal(vehicle.vehicleId);
+            }
+        });
         lista.appendChild(div);
     });
 }
