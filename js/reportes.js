@@ -7,7 +7,7 @@ const API_BASE = "https://sgma-66ec41075156.herokuapp.com/api";
 // Obtiene todos los estudiantes
 export async function getEstudiantes() {
     const res = await fetch(`${API_BASE}/students/getAllStudents`, {
-        credentials: "include", // Importante para evitar error 401 si la API requiere sesión/cookies
+        credentials: "include", //Include para enviar cookies con la petición
     });
     return res.json();
 }
@@ -15,7 +15,7 @@ export async function getEstudiantes() {
 // Obtiene todos los instructores
 export async function getInstructores() {
     const res = await fetch(`${API_BASE}/instructors/getAllInstructors`, {
-        credentials: "include",
+        credentials: "include", //Include para enviar cookies con la petición
     });
     return res.json();
 }
@@ -23,7 +23,7 @@ export async function getInstructores() {
 // Obtiene todos los vehículos
 export async function getVehiculos() {
     const res = await fetch(`${API_BASE}/vehicles/getAllVehicles`, {
-        credentials: "include",
+        credentials: "include", //Include para enviar cookies con la petición
     });
     return res.json();
 }

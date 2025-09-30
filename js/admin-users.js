@@ -1,26 +1,42 @@
-const ROLES_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/Roles/getAllRoles';
-const INSTRUCTORS_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/instructors/getAllInstructors';
-const LEVELS_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/levels/getAllLevels';
-const GRADES_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/grades/getAllGrades';
-const ADD_INSTRUCTOR_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/instructors/newInstructor';
-const UPDATE_INSTRUCTOR_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/instructors/updateInstructor/';
 
-const formulario = document.getElementById('formulario-usuario');
-const nombreCompletoEl = document.getElementById('nombreCompleto');
-const correoEl = document.getElementById('correo');
-const contrasenaEl = document.getElementById('contrasena');
-const idRolEl = document.getElementById('idRol');
-const idLevelEl = document.getElementById('idLevel');
-const fotoPerfilArchivoEl = document.getElementById('fotoPerfil-archivo');
-const urlFotoPerfilEl = document.getElementById('url-foto-perfil');
-const previsualizacionFotoPerfilEl = document.getElementById('previsualizacion-foto-perfil');
-const idUsuarioEl = document.getElementById('idUsuario');
-const btnCancelar = document.getElementById('btn-cancelar');
-const btnEnviar = document.getElementById('btn-enviar');
-const cuerpoTablaUsuarios = document.getElementById('cuerpo-tabla-usuarios');
-const filtroAnoEl = document.getElementById('filtro-ano');
-const filtroGrupoEl = document.getElementById('filtro-grupo');
-const buscadorUsuariosEl = document.getElementById('buscador-usuarios');
+//Variable para la URL base de la API
+const API_BASE = "https://sgma-66ec41075156.herokuapp.com/api";
+
+// Endpoints
+const ROLES_API_URL = `${API_BASE}/Roles/getAllRoles`;
+const INSTRUCTORS_API_URL = `${API_BASE}/instructors/getAllInstructors`;
+const LEVELS_API_URL = `${API_BASE}/levels/getAllLevels`;
+const GRADES_API_URL = `${API_BASE}/grades/getAllGrades`;
+const ADD_INSTRUCTOR_API_URL = `${API_BASE}/instructors/newInstructor`;
+const UPDATE_INSTRUCTOR_API_URL = `${API_BASE}/instructors/updateInstructor/`; 
+
+// Variables para obtener ID
+const getById = (id) => document.getElementById(id);
+
+// Elementos del formulario
+const formulario = getById('formulario-usuario');
+const nombreCompletoEl = getById('nombreCompleto');
+const correoEl = getById('correo');
+const contrasenaEl = getById('contrasena');
+const idRolEl = getById('idRol');
+const idLevelEl = getById('idLevel');
+const fotoPerfilArchivoEl = getById('fotoPerfil-archivo');
+const urlFotoPerfilEl = getById('url-foto-perfil');
+const previsualizacionFotoPerfilEl = getById('previsualizacion-foto-perfil');
+const idUsuarioEl = getById('idUsuario');
+
+// Botones
+const btnCancelar = getById('btn-cancelar');
+const btnEnviar = getById('btn-enviar');
+
+// Tabla
+const cuerpoTablaUsuarios = getById('cuerpo-tabla-usuarios');
+
+// Filtros y buscador
+const filtroAnoEl = getById('filtro-ano');
+const filtroGrupoEl = getById('filtro-grupo');
+const buscadorUsuariosEl = getById('buscador-usuarios');
+
 
 let roles = [];
 let instructoresOriginal = [];
