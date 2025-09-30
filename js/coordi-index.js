@@ -1,3 +1,5 @@
+const API_BASE_URL = 'https://sgma-66ec41075156.herokuapp.com/api';
+
 document.addEventListener('DOMContentLoaded', function () {
     // Mostrar solo los módulos del año seleccionado
     function mostrarModulosPorAno(ano) {
@@ -25,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function () {
     mostrarModulosPorAno('primer');
 
     // Consulta y muestra datos reales de vehículos
-    fetch('https://sgma-66ec41075156.herokuapp.com/api/vehicles/getAllVehicles', {
+    fetch(`${API_BASE_URL}/vehicles/getAllVehicles`, {
         method: 'GET',
         credentials : 'include'
     })
@@ -49,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Consulta y muestra cantidad de alumnos
-    fetch('https://sgma-66ec41075156.herokuapp.com/api/students/getAllStudents', {
+    fetch(`${API_BASE_URL}/students/getAllStudents`, {
         method: 'GET',
         credentials : 'include'
     })
@@ -68,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Consulta y muestra cantidad de instructores
-    fetch('https://sgma-66ec41075156.herokuapp.com/api/instructors/getAllInstructors', {
+    fetch(`${API_BASE_URL}/instructors/getAllInstructors`, {
         method: 'GET',
         credentials : 'include'
     })
@@ -117,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-   /* // Cargar módulos desde el endpoint y mostrar por año
+    // Cargar módulos desde el endpoint y mostrar por año
     async function cargarModulosYMostrar() {
         try {
             const res = await fetch('https://sgma-66ec41075156.herokuapp.com/api/modules/getAllModules');
@@ -149,6 +151,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    cargarModulosYMostrar();*/
+    cargarModulosYMostrar();
 
 });
