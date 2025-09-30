@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Cargar módulos desde el endpoint y mostrar por año
     async function cargarModulosYMostrar() {
         try {
-            const res = await fetch('https://sgma-66ec41075156.herokuapp.com/api/getallmodules', {
+            const res = await fetch('https://sgma-66ec41075156.herokuapp.com/api/getAllModules', {
 // La URL termina aquí 👆
     credentials: 'include'
 });
