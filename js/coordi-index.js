@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Consulta y muestra datos reales de vehículos
     fetch(`${API_BASE_URL}/vehicles/getAllVehicles`, {
         method: 'GET',
-        credentials : 'include'
+        credentials: 'include'
     })
     .then(res => res.json())
     .then(data => {
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Consulta y muestra cantidad de alumnos
     fetch(`${API_BASE_URL}/students/getAllStudents`, {
         method: 'GET',
-        credentials : 'include'
+        credentials: 'include'
     })
     .then(res => res.json())
     .then(data => {
@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Consulta y muestra cantidad de instructores
     fetch(`${API_BASE_URL}/instructors/getAllInstructors`, {
         method: 'GET',
-        credentials : 'include'
+        credentials: 'include'
     })
     .then(res => res.json())
     .then(data => {
@@ -122,7 +122,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // Cargar módulos desde el endpoint y mostrar por año
     async function cargarModulosYMostrar() {
         try {
-            const res = await fetch('https://sgma-66ec41075156.herokuapp.com/api/modules/getAllModules');
+            const res = await fetch('https://sgma-66ec41075156.herokuapp.com/api/modules/getAllModules', {
+                credentials: 'include'
+            });
             
             const data = await res.json();
             // Si la respuesta es { data: { content: [...] } }
