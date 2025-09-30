@@ -1,5 +1,8 @@
+let allVehicles = [];
+
 // Renderiza la tabla de vehículos
 function renderVehiclesTable(vehicles) {
+    allVehicles = vehicles;
     const tbody = document.querySelector('.tabla-moderna tbody');
     if (!tbody) {
         console.error('No se encontró el tbody de la tabla de vehículos. Verifica que exista .tabla-moderna y su <tbody>.');
@@ -150,6 +153,27 @@ document.getElementById('buscarRegistro').addEventListener('input', function(e) 
 
 window.showVehicleModal = function(vehicleId) {
     document.getElementById('modalVehiculo').style.display = 'block';
+    const vehicle = allVehicles.find(v => v.vehicleId === vehicleId);
+    const tabVehiculo = document.getElementById('tab-vehiculo');
+    if (vehicle && tabVehiculo) {
+        tabVehiculo.innerHTML = `
+            <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+                <img src="${vehicle.vehicleImage && vehicle.vehicleImage !== 'null' ? vehicle.vehicleImage : 'imgs/default-car.png'}" style="width:80px;height:80px;border-radius:8px;border:1px solid #ccc;object-fit:cover;" alt="Imagen">
+                <div>
+                    <div><strong>Placa:</strong> ${vehicle.plateNumber || '-'}</div>
+                    <div><strong>Marca:</strong> ${vehicle.brand || '-'}</div>
+                    <div><strong>Modelo:</strong> ${vehicle.model || '-'}</div>
+                    <div><strong>Tipo:</strong> ${vehicle.typeName || '-'}</div>
+                    <div><strong>Estado:</strong> ${vehicle.idStatus != null ? vehicle.idStatus : '-'}</div>
+                    <div><strong>Estudiante:</strong> ${(vehicle.studentName || '-') + ' ' + (vehicle.studentLastName || '')}</div>
+                    <div><strong>Propietario:</strong> ${vehicle.ownerName || '-'}</div>
+                    <div><strong>Tel. Propietario:</strong> ${vehicle.ownerPhone || '-'}</div>
+                </div>
+            </div>
+        `;
+    } else if (tabVehiculo) {
+        tabVehiculo.innerHTML = '<div style="color:#888;text-align:center;">No se encontraron datos del vehículo.</div>';
+    }
 }
 
 document.querySelector('.btn-cerrar-modal').addEventListener('click', function() {
