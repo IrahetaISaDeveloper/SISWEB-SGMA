@@ -185,13 +185,12 @@ if (btnAprobar) {
     btnAprobar.addEventListener('click', function() {
         if (selectedVehicleId) {
             // Cambiar estado del vehículo a aprobado (idStatus = 2)
-            fetch(`https://sgma-66ec41075156.herokuapp.com/api/vehicles/updateStatusVehicle/${selectedVehicleId}`, {
+            fetch(`https://sgma-66ec41075156.herokuapp.com/api/vehicles/updateStatusVehicle/${selectedVehicleId}?newStatus=2`, {
                 method: 'PATCH',
                 credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ idStatus: 2 })
+                }
             })
             .then(res => res.json())
             .then(data => {
