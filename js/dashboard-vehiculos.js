@@ -186,7 +186,7 @@ if (btnAprobar) {
         if (selectedVehicleId) {
             // Cambiar estado del vehículo a aprobado (idStatus = 2)
             fetch(`https://sgma-66ec41075156.herokuapp.com/api/vehicles/updateStatusVehicle/${selectedVehicleId}`, {
-                method: 'PUT',
+                method: 'PATCH',
                 credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json'

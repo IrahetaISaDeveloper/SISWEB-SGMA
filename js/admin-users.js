@@ -212,7 +212,7 @@ fotoPerfilArchivoEl.addEventListener('change', function() {
     lector.readAsDataURL(archivo);
   } else {
     // If no file is selected, revert to the current stored URL or default
-    previsualizacionFotoPerfilEl.src = urlFotoPerfilEl.value || 'https://i.ibb.co/N6fL89pF/yo.jpg';
+    previsualizacionFotoPerfilEl.src = urlFotoPerfilEl.value || '';
   }
 });
 
@@ -330,7 +330,7 @@ formulario.addEventListener('submit', async e => {
       errores.push('No se pudo subir la imagen del instructor.');
     }
   } else if (!instructorImage) {
-    instructorImage = 'https://i.ibb.co/N6fL89pF/yo.jpg';
+    instructorImage = '';
   }
   if (!instructorImage) {
     errores.push('La imagen del instructor es obligatoria.');
@@ -453,7 +453,7 @@ async function cargarParaEditarUsuario(id) {
     }, 0);
 
     urlFotoPerfilEl.value = instructor.instructorImage || '';
-    previsualizacionFotoPerfilEl.src = instructor.instructorImage || 'https://i.ibb.co/N6fL89pF/yo.jpg';
+    previsualizacionFotoPerfilEl.src = instructor.instructorImage || '';
     fotoPerfilArchivoEl.value = '';
     idUsuarioEl.value = instructor.instructorId || '';
 
