@@ -122,9 +122,11 @@ document.addEventListener('DOMContentLoaded', function () {
     // Cargar módulos desde el endpoint y mostrar por año
     async function cargarModulosYMostrar() {
         try {
-            const res = await fetch('https://sgma-66ec41075156.herokuapp.com/api/modules/getAllModules', {
-                credentials: 'include'
-            });
+            const res = await fetch('https://sgma-66ec41075156.herokuapp.com/api/getallmodules', {
+// La URL termina aquí 👆
+    credentials: 'include'
+});
+// El error debería desaparecer.
             
             const data = await res.json();
             // Si la respuesta es { data: { content: [...] } }
