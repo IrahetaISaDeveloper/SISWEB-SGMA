@@ -151,8 +151,11 @@ document.getElementById('buscarRegistro').addEventListener('input', function(e) 
     });
 });
 
+let selectedVehicleId = null;
+
 window.showVehicleModal = function(vehicleId) {
     document.getElementById('modalVehiculo').style.display = 'block';
+    selectedVehicleId = vehicleId;
     const vehicle = allVehicles.find(v => v.vehicleId === vehicleId);
     const tabVehiculo = document.getElementById('tab-vehiculo');
     if (vehicle && tabVehiculo) {
@@ -174,6 +177,18 @@ window.showVehicleModal = function(vehicleId) {
     } else if (tabVehiculo) {
         tabVehiculo.innerHTML = '<div style="color:#888;text-align:center;">No se encontraron datos del vehículo.</div>';
     }
+}
+
+// Evento para el botón Aprobar
+const btnAprobar = document.querySelector('.btn-modal.primario');
+if (btnAprobar) {
+    btnAprobar.addEventListener('click', function() {
+        if (selectedVehicleId) {
+            // Aquí puedes agregar la lógica para aprobar el vehículo
+            alert('Vehículo aprobado: ' + selectedVehicleId);
+            document.getElementById('modalVehiculo').style.display = 'none';
+        }
+    });
 }
 
 document.querySelector('.btn-cerrar-modal').addEventListener('click', function() {
