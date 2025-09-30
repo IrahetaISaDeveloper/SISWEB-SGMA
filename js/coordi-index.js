@@ -31,62 +31,63 @@ document.addEventListener('DOMContentLoaded', function () {
         method: 'GET',
         credentials: 'include'
     })
-    .then(res => res.json())
-    .then(data => {
-        let vehicles = [];
-        if (data && data.data && Array.isArray(data.data.content)) {
-            vehicles = data.data.content;
-        }
-        const totalElem = document.getElementById('total-vehiculos');
-        if (totalElem) totalElem.textContent = vehicles.length;
-        const ptcCount = vehicles.filter(v => v.maintenanceEXPO === 1).length;
-        const ptcElem = document.getElementById('vehiculos-ptc');
-        if (ptcElem) ptcElem.textContent = ptcCount;
-    })
-    .catch(() => {
-        const totalElem = document.getElementById('total-vehiculos');
-        const ptcElem = document.getElementById('vehiculos-ptc');
-        if (totalElem) totalElem.textContent = '0';
-        if (ptcElem) ptcElem.textContent = '0';
-    });
+        .then(res => res.json())
+        .then(data => {
+            let vehicles = [];
+            if (data && data.data && Array.isArray(data.data.content)) {
+                vehicles = data.data.content;
+            }
+            const totalElem = document.getElementById('total-vehiculos');
+            if (totalElem) totalElem.textContent = vehicles.length;
+            const ptcCount = vehicles.filter(v => v.maintenanceEXPO === 1).length;
+            const ptcElem = document.getElementById('vehiculos-ptc');
+            if (ptcElem) ptcElem.textContent = ptcCount;
+        })
+        .catch(() => {
+            const totalElem = document.getElementById('total-vehiculos');
+            const ptcElem = document.getElementById('vehiculos-ptc');
+            if (totalElem) totalElem.textContent = '0';
+            if (ptcElem) ptcElem.textContent = '0';
+        });
 
     // Consulta y muestra cantidad de alumnos
     fetch(`${API_BASE_URL}/student/getAllStudents`, {
         method: 'GET',
         credentials: 'include'
     })
-    .then(res => res.json())
-    .then(data => {
-        let students = [];
-        if (data && data.data && Array.isArray(data.data.content)) {
-            students = data.data.content;
-        }
-        const alumnosElem = document.getElementById('alumnos-registrados');
-        if (alumnosElem) alumnosElem.textContent = students.length;
-    })
-    .catch(() => {
-        const alumnosElem = document.getElementById('alumnos-registrados');
-        if (alumnosElem) alumnosElem.textContent = '0';
-    });
+
+        .then(res => res.json())
+        .then(data => {
+            let students = [];
+            if (data && data.data && Array.isArray(data.data.content)) {
+                students = data.data.content;
+            }
+            const alumnosElem = document.getElementById('alumnos-registrados');
+            if (alumnosElem) alumnosElem.textContent = students.length;
+        })
+        .catch(() => {
+            const alumnosElem = document.getElementById('alumnos-registrados');
+            if (alumnosElem) alumnosElem.textContent = '0';
+        });
 
     // Consulta y muestra cantidad de instructores
     fetch(`${API_BASE_URL}/instructors/getAllInstructors`, {
         method: 'GET',
         credentials: 'include'
     })
-    .then(res => res.json())
-    .then(data => {
-        let instructors = [];
-        if (data && data.data && Array.isArray(data.data.content)) {
-            instructors = data.data.content;
-        }
-        const instructoresElem = document.getElementById('maestros-registrados');
-        if (instructoresElem) instructoresElem.textContent = instructors.length;
-    })
-    .catch(() => {
-        const instructoresElem = document.getElementById('maestros-registrados');
-        if (instructoresElem) instructoresElem.textContent = '0';
-    });
+        .then(res => res.json())
+        .then(data => {
+            let instructors = [];
+            if (data && data.data && Array.isArray(data.data.content)) {
+                instructors = data.data.content;
+            }
+            const instructoresElem = document.getElementById('maestros-registrados');
+            if (instructoresElem) instructoresElem.textContent = instructors.length;
+        })
+        .catch(() => {
+            const instructoresElem = document.getElementById('maestros-registrados');
+            if (instructoresElem) instructoresElem.textContent = '0';
+        });
 
     // Mostrar módulos por año dinámicamente
     let allModules = [];
