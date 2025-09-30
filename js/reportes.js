@@ -1,40 +1,72 @@
+// Servicio para obtener datos de estudiantes, instructores y vehículos
+// Adaptado para usar credenciales (cookies/sesión) en las peticiones fetch
+// y estructurado como funciones reutilizables tipo "service".
+
+const API_BASE = "https://sgma-66ec41075156.herokuapp.com/api";
+
+// Obtiene todos los estudiantes
+export async function getEstudiantes() {
+    const res = await fetch(`${API_BASE}/students/getAllStudents`, {
+        credentials: "include", // Importante para evitar error 401 si la API requiere sesión/cookies
+    });
+    return res.json();
+}
+
+// Obtiene todos los instructores
+export async function getInstructores() {
+    const res = await fetch(`${API_BASE}/instructors/getAllInstructors`, {
+        credentials: "include",
+    });
+    return res.json();
+}
+
+// Obtiene todos los vehículos
+export async function getVehiculos() {
+    const res = await fetch(`${API_BASE}/vehicles/getAllVehicles`, {
+        credentials: "include",
+    });
+    return res.json();
+}
+
+// Función principal para renderizar los reportes
 document.addEventListener('DOMContentLoaded', async function () {
     let estudiantes = [];
     let instructores = [];
     let vehiculos = [];
 
-    // Fetch estudiantes
+    // --- Fetch de datos usando los servicios ---
     try {
-        const resEst = await fetch('https://sgma-66ec41075156.herokuapp.com/api/students/getAllStudents');
-        const dataEst = await resEst.json();
+        const dataEst = await getEstudiantes();
         if (dataEst && dataEst.data && Array.isArray(dataEst.data.content)) {
             estudiantes = dataEst.data.content;
         } else if (dataEst && Array.isArray(dataEst.data)) {
             estudiantes = dataEst.data;
         }
-    } catch {}
+    } catch (e) {
+        console.error("Error obteniendo estudiantes:", e);
+    }
 
-    // Fetch instructores
     try {
-        const resInst = await fetch('https://sgma-66ec41075156.herokuapp.com/api/instructors/getAllInstructors');
-        const dataInst = await resInst.json();
+        const dataInst = await getInstructores();
         if (dataInst && dataInst.data && Array.isArray(dataInst.data.content)) {
             instructores = dataInst.data.content;
         } else if (dataInst && Array.isArray(dataInst.data)) {
             instructores = dataInst.data;
         }
-    } catch {}
+    } catch (e) {
+        console.error("Error obteniendo instructores:", e);
+    }
 
-    // Fetch vehículos
     try {
-        const resVeh = await fetch('https://sgma-66ec41075156.herokuapp.com/api/vehicles/getAllVehicles');
-        const dataVeh = await resVeh.json();
+        const dataVeh = await getVehiculos();
         if (dataVeh && dataVeh.data && Array.isArray(dataVeh.data.content)) {
             vehiculos = dataVeh.data.content;
         } else if (dataVeh && Array.isArray(dataVeh.data)) {
             vehiculos = dataVeh.data;
         }
-    } catch {}
+    } catch (e) {
+        console.error("Error obteniendo vehículos:", e);
+    }
 
     // Validar que los datos existen y son arrays
     if (!Array.isArray(estudiantes) || !Array.isArray(vehiculos) || !Array.isArray(instructores)) {
@@ -51,7 +83,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     );
 
     // --- Vehículos por tipo ---
-    // Obtener todos los tipos únicos
     const tiposVehiculos = [...new Set(vehiculos.map(v => v.typeName).filter(Boolean))];
     const vehiculosPorTipo = tiposVehiculos.map(tipo =>
         vehiculos.filter(v => v.typeName === tipo).length
