@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
     // Consulta y muestra cantidad de alumnos
-    fetch(`${API_BASE_URL}/student/getAllStudents`, {
+    fetch(`${API_BASE_URL}/students/getAllStudents`, {
         method: 'GET',
         credentials: 'include'
     })
