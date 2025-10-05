@@ -256,7 +256,7 @@ formulario.addEventListener('submit', async e => {
         }
     } else {
         try {
-            await fetch(`${MODULES_API_URL}/addNewModule`, {
+            await fetch(`${MODULES_API_URL}/newModule`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
