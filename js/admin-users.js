@@ -234,7 +234,7 @@ async function subirImagen(archivo) {
   fd.append('image', archivo);
   fd.append('folder', 'instructors');
   try {
-    const res = await fetch('https://sgma-66ec41075156.herokuapp.com/api/image/upload-to-folder', {
+    const res = await fetch('https://sgma-66ec41075156.herokuapp.com/api/images/upload-to-folder', {
       method: 'POST',
       credentials: 'include',
       body: fd
