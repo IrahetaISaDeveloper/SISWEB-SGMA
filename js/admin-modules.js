@@ -18,7 +18,9 @@ let modulosFiltrados = [];
 
 async function cargarLevels() {
     try {
-        const res = await fetch(LEVELS_API_URL);
+        const res = await fetch(LEVELS_API_URL, {
+            credentials: 'include'
+        });
         const data = await res.json();
         levels = Array.isArray(data) ? data : (data.data || []);
         comboLevelEl.innerHTML = '';
@@ -33,7 +35,9 @@ async function cargarLevels() {
 
 async function cargarModulos() {
     try {
-        const res = await fetch(`${MODULES_API_URL}/getAllModules`);
+        const res = await fetch(`${MODULES_API_URL}/getAllModules`, {
+            credentials: 'include'
+        });
         const data = await res.json();
         if (data && data.data && Array.isArray(data.data.content)) {
             modulos = data.data.content;
@@ -139,7 +143,10 @@ async function borrarModulo(id) {
 
     if (resultado.isConfirmed) {
         try {
-            await fetch(`${MODULES_API_URL}/deleteModule/${id}`, { method: 'DELETE' });
+            await fetch(`${MODULES_API_URL}/deleteModule/${id}`, { 
+                method: 'DELETE',
+                credentials: 'include'
+            });
             await cargarModulos();
             Swal.fire({
                 title: '¡Eliminado!',
@@ -216,6 +223,7 @@ formulario.addEventListener('submit', async e => {
             await fetch(`${MODULES_API_URL}/updateModule/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({
                     moduleId: id,
                     moduleName: nombre,
@@ -251,6 +259,7 @@ formulario.addEventListener('submit', async e => {
             await fetch(`${MODULES_API_URL}/addNewModule`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({
                     moduleName: nombre,
                     levelId: Number(levelId)
