@@ -1,5 +1,5 @@
 const MODULES_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/modules';
-const LEVELS_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/levels/getDataLevels';
+const LEVELS_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/levels/getAllLevels';
 
 const formulario = document.getElementById('formulario-modulo');
 const nombreModuloEl = document.getElementById('nombreModulo');
