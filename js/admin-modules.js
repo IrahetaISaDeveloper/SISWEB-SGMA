@@ -33,10 +33,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Event Listeners
 function setupEventListeners() {
-    formulario.addEventListener('submit', handleFormSubmit);
-    botonCancelar.addEventListener('click', resetForm);
-    buscadorModulosEl.addEventListener('input', debounce(filterModules, 300));
-    filtroAnoModuloEl.addEventListener('change', filterModules);
+    if (formulario) {
+        formulario.addEventListener('submit', handleFormSubmit);
+    }
+    if (botonCancelar) {
+        botonCancelar.addEventListener('click', resetForm);
+    }
+    if (buscadorModulosEl) {
+        buscadorModulosEl.addEventListener('input', debounce(filterModules, 300));
+    }
+    if (filtroAnoModuloEl) {
+        filtroAnoModuloEl.addEventListener('change', filterModules);
+    }
 }
 
 // Cargar niveles para el combobox
@@ -75,6 +83,8 @@ async function loadInstructors() {
 
 // Poblar combobox de niveles
 function populateLevelsCombo() {
+    if (!comboLevelEl) return;
+    
     comboLevelEl.innerHTML = '<option value="">Seleccione un nivel</option>';
     levels.forEach(level => {
         const option = document.createElement('option');
@@ -86,6 +96,8 @@ function populateLevelsCombo() {
 
 // Poblar combobox de instructores
 function populateInstructorsCombo() {
+    if (!comboInstructorEl) return;
+    
     comboInstructorEl.innerHTML = '<option value="">Seleccione un instructor</option>';
     instructors.forEach(instructor => {
         const option = document.createElement('option');
@@ -218,22 +230,80 @@ async function updateModule(id, moduleData) {
 
 // Editar módulo
 function editModule(id) {
+    console.log('Editando módulo con ID:', id);
+    
     const module = modules.find(m => m.moduleId === id);
-    if (module && idModuloEl && codigoModuloEl && nombreModuloEl && descripcionModuloEl && comboLevelEl && comboInstructorEl && botonEnviar) {
+    if (!module) {
+        showMessage('Error: Módulo no encontrado', 'error');
+        return;
+    }
+    
+    // Verificar que todos los elementos del formulario existan
+    const elementos = {
+        idModuloEl,
+        codigoModuloEl,
+        nombreModuloEl,
+        descripcionModuloEl,
+        comboLevelEl,
+        comboInstructorEl,
+        botonEnviar
+    };
+    
+    const elementosFaltantes = [];
+    for (const [nombre, elemento] of Object.entries(elementos)) {
+        if (!elemento) {
+            elementosFaltantes.push(nombre);
+        }
+    }
+    
+    if (elementosFaltantes.length > 0) {
+        console.error('Elementos no encontrados:', elementosFaltantes);
+        showMessage(`Error: Elementos del formulario no encontrados: ${elementosFaltantes.join(', ')}`, 'error');
+        return;
+    }
+    
+    try {
+        // Llenar los campos del formulario
         idModuloEl.value = module.moduleId;
-        codigoModuloEl.value = module.moduleCode;
-        nombreModuloEl.value = module.moduleName;
+        codigoModuloEl.value = module.moduleCode || '';
+        nombreModuloEl.value = module.moduleName || '';
         descripcionModuloEl.value = module.moduleDescription || '';
-        comboLevelEl.value = module.levelId;
-        comboInstructorEl.value = module.instructorId;
         
+        // Esperar un momento antes de seleccionar los valores de los combobox
+        setTimeout(() => {
+            // Seleccionar nivel
+            if (module.levelId) {
+                comboLevelEl.value = module.levelId;
+                // Verificar si se seleccionó correctamente
+                if (comboLevelEl.value != module.levelId) {
+                    console.warn('No se pudo seleccionar el nivel:', module.levelId);
+                }
+            }
+            
+            // Seleccionar instructor
+            if (module.instructorId) {
+                comboInstructorEl.value = module.instructorId;
+                // Verificar si se seleccionó correctamente
+                if (comboInstructorEl.value != module.instructorId) {
+                    console.warn('No se pudo seleccionar el instructor:', module.instructorId);
+                }
+            }
+        }, 100);
+        
+        // Cambiar el botón a modo edición
         botonEnviar.textContent = 'Actualizar';
         botonEnviar.className = 'btn btn-warning';
         
         // Scroll al formulario
-        formulario.scrollIntoView({ behavior: 'smooth' });
-    } else {
-        showMessage('Error: No se pudo cargar la información del módulo', 'error');
+        if (formulario) {
+            formulario.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        showMessage('Módulo cargado para edición', 'success');
+        
+    } catch (error) {
+        console.error('Error al cargar datos del módulo:', error);
+        showMessage('Error al cargar la información del módulo', 'error');
     }
 }
 
@@ -289,9 +359,18 @@ function resetForm() {
 // Validar formulario
 function validateForm() {
     // Validar que los elementos existen
-    if (!codigoModuloEl || !nombreModuloEl || !comboLevelEl || !comboInstructorEl) {
-        showMessage('Error: Elementos del formulario no encontrados', 'error');
-        return false;
+    const elementosRequeridos = [
+        { elemento: codigoModuloEl, nombre: 'Código del módulo' },
+        { elemento: nombreModuloEl, nombre: 'Nombre del módulo' },
+        { elemento: comboLevelEl, nombre: 'Selector de nivel' },
+        { elemento: comboInstructorEl, nombre: 'Selector de instructor' }
+    ];
+    
+    for (const { elemento, nombre } of elementosRequeridos) {
+        if (!elemento) {
+            showMessage(`Error: ${nombre} no encontrado`, 'error');
+            return false;
+        }
     }
 
     const codigo = codigoModuloEl.value.trim();
