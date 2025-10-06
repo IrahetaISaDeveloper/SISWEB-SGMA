@@ -265,9 +265,26 @@ form.addEventListener('submit', async e => {
     email,
     gradeId: Number(gradeId)
   };
+
   if (!isEditing) {
-    cargaUtil.password = password;
+    if (!password || password.length < 6) {
+      Swal.fire({
+        title: 'Error',
+        text: 'La contraseña debe tener al menos 6 caracteres.',
+        icon: 'error',
+        customClass: {
+          popup: 'swal-custom-popup',
+          title: 'swal-custom-title',
+          content: 'swal-custom-content',
+          confirmButton: 'swal-custom-confirm-button'
+        },
+        buttonsStyling: false
+      });
+      return;
+    }
+    cargaUtil.password = password; // Asegúrate de que la contraseña se incluya correctamente
   }
+
   if (isEditing) {
     cargaUtil.studentId = Number(userIdEl.value);
   }
