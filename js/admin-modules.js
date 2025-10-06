@@ -218,45 +218,8 @@ function aplicarFiltrosYBuscador() {
     cargarTabla(lista);
 }
 
-// Add authentication check function
-async function verificarAutenticacion() {
-    try {
-        const response = await fetch(`${MODULES_API_URL}/getAllModules`, {
-            method: 'HEAD', // Just check if we can access the endpoint
-            credentials: 'include'
-        });
-        
-        if (response.status === 401 || response.status === 403) {
-            await Swal.fire({
-                title: 'Sesión Expirada',
-                text: 'Tu sesión ha expirado. Serás redirigido al login.',
-                icon: 'warning',
-                confirmButtonText: 'Ir al Login',
-                allowOutsideClick: false,
-                customClass: {
-                    popup: 'swal-custom-popup',
-                    title: 'swal-custom-title',
-                    htmlContainer: 'swal-custom-content',
-                    confirmButton: 'swal-custom-confirm-button'
-                }
-            });
-            window.location.href = 'index.html';
-            return false;
-        }
-        return true;
-    } catch (error) {
-        console.error('Error checking authentication:', error);
-        return false;
-    }
-}
-
 window.addEventListener('DOMContentLoaded', async () => {
     console.log('Loading data...'); // Debug log
-    
-    // Check authentication first
-    const isAuthenticated = await verificarAutenticacion();
-    if (!isAuthenticated) return;
-    
     await cargarLevels();
     await cargarInstructors();
     await cargarModulos();
@@ -266,20 +229,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     filtroAnoModuloEl.addEventListener('change', aplicarFiltrosYBuscador);
 });
 
-// Add the missing cancel button functionality
-botonCancelar.addEventListener('click', () => {
-    formulario.reset();
-    idModuloEl.value = '';
-    botonEnviar.textContent = 'Agregar Módulo';
-    botonCancelar.hidden = true;
-});
-
 formulario.addEventListener('submit', async e => {
     e.preventDefault();
-
-    // Check authentication before submitting
-    const isAuthenticated = await verificarAutenticacion();
-    if (!isAuthenticated) return;
 
     const nombre = nombreModuloEl.value.trim();
     const codigo = codigoModuloEl.value.trim();
@@ -372,34 +323,7 @@ formulario.addEventListener('submit', async e => {
 
             if (!response.ok) {
                 if (response.status === 403) {
-                    await Swal.fire({
-                        title: 'Sin Permisos',
-                        text: 'No tienes permisos para realizar esta acción. Contacta al administrador del sistema.',
-                        icon: 'error',
-                        confirmButtonText: 'Entendido',
-                        customClass: {
-                            popup: 'swal-custom-popup',
-                            title: 'swal-custom-title',
-                            htmlContainer: 'swal-custom-content',
-                            confirmButton: 'swal-custom-confirm-button'
-                        }
-                    });
-                    return;
-                } else if (response.status === 401) {
-                    await Swal.fire({
-                        title: 'Sesión Expirada',
-                        text: 'Tu sesión ha expirado. Serás redirigido al login.',
-                        icon: 'warning',
-                        confirmButtonText: 'Ir al Login',
-                        customClass: {
-                            popup: 'swal-custom-popup',
-                            title: 'swal-custom-title',
-                            htmlContainer: 'swal-custom-content',
-                            confirmButton: 'swal-custom-confirm-button'
-                        }
-                    });
-                    window.location.href = 'index.html';
-                    return;
+                    throw new Error('No tienes permisos para realizar esta acción. Verifica tu sesión.');
                 }
                 throw new Error(responseData.message || `Error ${response.status}: ${response.statusText}`);
             }
@@ -460,34 +384,9 @@ formulario.addEventListener('submit', async e => {
 
             if (!response.ok) {
                 if (response.status === 403) {
-                    await Swal.fire({
-                        title: 'Sin Permisos',
-                        text: 'No tienes permisos para crear módulos. Contacta al administrador del sistema.',
-                        icon: 'error',
-                        confirmButtonText: 'Entendido',
-                        customClass: {
-                            popup: 'swal-custom-popup',
-                            title: 'swal-custom-title',
-                            htmlContainer: 'swal-custom-content',
-                            confirmButton: 'swal-custom-confirm-button'
-                        }
-                    });
-                    return;
+                    throw new Error('No tienes permisos para realizar esta acción. Verifica tu sesión.');
                 } else if (response.status === 401) {
-                    await Swal.fire({
-                        title: 'Sesión Expirada',
-                        text: 'Tu sesión ha expirado. Serás redirigido al login.',
-                        icon: 'warning',
-                        confirmButtonText: 'Ir al Login',
-                        customClass: {
-                            popup: 'swal-custom-popup',
-                            title: 'swal-custom-title',
-                            htmlContainer: 'swal-custom-content',
-                            confirmButton: 'swal-custom-confirm-button'
-                        }
-                    });
-                    window.location.href = 'index.html';
-                    return;
+                    throw new Error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
                 }
                 throw new Error(responseData.message || `Error ${response.status}: ${response.statusText}`);
             }
@@ -528,10 +427,6 @@ formulario.addEventListener('submit', async e => {
 );
 
 async function borrarModulo(id) {
-    // Check authentication before deleting
-    const isAuthenticated = await verificarAutenticacion();
-    if (!isAuthenticated) return;
-
     const resultado = await Swal.fire({
         title: '¿Estás seguro?',
         text: "¡No podrás revertir esto!",
@@ -571,34 +466,9 @@ async function borrarModulo(id) {
 
             if (!response.ok) {
                 if (response.status === 403) {
-                    await Swal.fire({
-                        title: 'Sin Permisos',
-                        text: 'No tienes permisos para eliminar módulos. Contacta al administrador del sistema.',
-                        icon: 'error',
-                        confirmButtonText: 'Entendido',
-                        customClass: {
-                            popup: 'swal-custom-popup',
-                            title: 'swal-custom-title',
-                            htmlContainer: 'swal-custom-content',
-                            confirmButton: 'swal-custom-confirm-button'
-                        }
-                    });
-                    return;
+                    throw new Error('No tienes permisos para realizar esta acción. Verifica tu sesión.');
                 } else if (response.status === 401) {
-                    await Swal.fire({
-                        title: 'Sesión Expirada',
-                        text: 'Tu sesión ha expirado. Serás redirigido al login.',
-                        icon: 'warning',
-                        confirmButtonText: 'Ir al Login',
-                        customClass: {
-                            popup: 'swal-custom-popup',
-                            title: 'swal-custom-title',
-                            htmlContainer: 'swal-custom-content',
-                            confirmButton: 'swal-custom-confirm-button'
-                        }
-                    });
-                    window.location.href = 'index.html';
-                    return;
+                    throw new Error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
                 }
                 throw new Error(responseData.message || `Error ${response.status}: ${response.statusText}`);
             }
