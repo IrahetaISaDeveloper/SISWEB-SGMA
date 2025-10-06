@@ -166,17 +166,32 @@ async function handleFormSubmit(e) {
         return;
     }
     
+    // Validar que los valores de los combobox sean números válidos
+    const levelId = parseInt(comboLevelEl.value);
+    const instructorId = parseInt(comboInstructorEl.value);
+    
+    if (isNaN(levelId) || isNaN(instructorId)) {
+        showMessage('Error: Debe seleccionar valores válidos para nivel e instructor', 'error');
+        return;
+    }
+    
     const moduleData = {
         moduleCode: codigoModuloEl.value.trim(),
         moduleName: nombreModuloEl.value.trim(),
         moduleDescription: descripcionModuloEl ? descripcionModuloEl.value.trim() : '',
-        levelId: parseInt(comboLevelEl.value),
-        instructorId: parseInt(comboInstructorEl.value)
+        levelId: levelId,
+        instructorId: instructorId
     };
     
     const isEditing = idModuloEl.value !== '';
     
     try {
+        // Mostrar indicador de carga
+        if (botonEnviar) {
+            botonEnviar.disabled = true;
+            botonEnviar.textContent = isEditing ? 'Actualizando...' : 'Creando...';
+        }
+        
         if (isEditing) {
             await updateModule(parseInt(idModuloEl.value), moduleData);
         } else {
@@ -188,44 +203,80 @@ async function handleFormSubmit(e) {
         showMessage(`Módulo ${isEditing ? 'actualizado' : 'creado'} exitosamente`, 'success');
     } catch (error) {
         console.error('Error al guardar módulo:', error);
-        showMessage('Error al guardar el módulo', 'error');
+        showMessage(`Error al guardar el módulo: ${error.message}`, 'error');
+    } finally {
+        // Restaurar botón
+        if (botonEnviar) {
+            botonEnviar.disabled = false;
+            botonEnviar.textContent = idModuloEl.value !== '' ? 'Actualizar' : 'Crear';
+        }
     }
 }
 
 // Crear nuevo módulo
 async function createModule(moduleData) {
-    const response = await fetch(`${API_BASE_URL}/api/modules/newModule`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify(moduleData)
-    });
-    
-    if (!response.ok) {
-        throw new Error('Error al crear módulo');
+    try {
+        console.log('Enviando datos para crear módulo:', moduleData);
+        
+        const response = await fetch(`${API_BASE_URL}/api/modules/newModule`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify(moduleData)
+        });
+        
+        const responseData = await response.json();
+        console.log('Respuesta del servidor:', responseData);
+        
+        if (!response.ok) {
+            if (response.status === 403) {
+                throw new Error('No tiene permisos para crear módulos. Verifique su sesión.');
+            }
+            throw new Error(responseData.message || `Error del servidor: ${response.status}`);
+        }
+        
+        return responseData;
+    } catch (error) {
+        console.error('Error en createModule:', error);
+        throw error;
     }
-    
-    return response.json();
 }
 
 // Actualizar módulo
 async function updateModule(id, moduleData) {
-    const response = await fetch(`${API_BASE_URL}/api/modules/updateModule/${id}`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify(moduleData)
-    });
-    
-    if (!response.ok) {
-        throw new Error('Error al actualizar módulo');
+    try {
+        console.log('Enviando datos para actualizar módulo:', id, moduleData);
+        
+        const response = await fetch(`${API_BASE_URL}/api/modules/updateModule/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify(moduleData)
+        });
+        
+        const responseData = await response.json();
+        console.log('Respuesta del servidor:', responseData);
+        
+        if (!response.ok) {
+            if (response.status === 400) {
+                const errorMessage = responseData.message || 'Datos inválidos. Verifique la información ingresada.';
+                throw new Error(errorMessage);
+            }
+            if (response.status === 403) {
+                throw new Error('No tiene permisos para actualizar módulos. Verifique su sesión.');
+            }
+            throw new Error(responseData.message || `Error del servidor: ${response.status}`);
+        }
+        
+        return responseData;
+    } catch (error) {
+        console.error('Error en updateModule:', error);
+        throw error;
     }
-    
-    return response.json();
 }
 
 // Editar módulo
@@ -387,8 +438,20 @@ function validateForm() {
         return false;
     }
     
+    if (codigo.length > 20) {
+        showMessage('El código del módulo no puede exceder 20 caracteres', 'error');
+        codigoModuloEl.focus();
+        return false;
+    }
+    
     if (!nombre) {
         showMessage('El nombre del módulo es requerido', 'error');
+        nombreModuloEl.focus();
+        return false;
+    }
+    
+    if (nombre.length > 500) {
+        showMessage('El nombre del módulo no puede exceder 500 caracteres', 'error');
         nombreModuloEl.focus();
         return false;
     }
