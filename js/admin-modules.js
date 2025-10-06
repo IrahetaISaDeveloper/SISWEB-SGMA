@@ -229,66 +229,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     filtroAnoModuloEl.addEventListener('change', aplicarFiltrosYBuscador);
 });
 
-async function borrarModulo(id) {
-    const resultado = await Swal.fire({
-        title: '¿Estás seguro?',
-        text: "¡No podrás revertir esto!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#881F1E',
-        cancelButtonColor: '#555',
-        confirmButtonText: 'Sí, eliminarlo!',
-        cancelButtonText: 'Cancelar',
-        customClass: {
-            popup: 'swal-custom-popup',
-            title: 'swal-custom-title',
-            htmlContainer: 'swal-custom-content',
-            confirmButton: 'swal-custom-confirm-button',
-            cancelButton: 'swal-custom-cancel-button'
-        }
-    });
-
-    if (resultado.isConfirmed) {
-        try {
-            await fetch(`${MODULES_API_URL}/deleteModule/${id}`, { 
-                method: 'DELETE',
-                credentials: 'include'
-            });
-            await cargarModulos();
-            Swal.fire({
-                title: '¡Eliminado!',
-                text: 'El módulo ha sido eliminado.',
-                icon: 'success',
-                customClass: {
-                    popup: 'swal-custom-popup',
-                    title: 'swal-custom-title',
-                    htmlContainer: 'swal-custom-content',
-                    confirmButton: 'swal-custom-confirm-button'
-                }
-            });
-        } catch {
-            Swal.fire({
-                title: 'Error',
-                text: 'No se pudo eliminar el módulo.',
-                icon: 'error',
-                customClass: {
-                    popup: 'swal-custom-popup',
-                    title: 'swal-custom-title',
-                    htmlContainer: 'swal-custom-content',
-                    confirmButton: 'swal-custom-confirm-button'
-                }
-            });
-        }
-    }
-}
-
-botonCancelar.addEventListener('click', () => {
-    formulario.reset();
-    idModuloEl.value = '';
-    botonEnviar.textContent = 'Agregar Módulo';
-    botonCancelar.hidden = true;
-});
-
 formulario.addEventListener('submit', async e => {
     e.preventDefault();
 
@@ -357,7 +297,7 @@ formulario.addEventListener('submit', async e => {
 
     if (id) {
         try {
-            await fetch(`${MODULES_API_URL}/updateModule/${id}`, {
+            const response = await fetch(`${MODULES_API_URL}/updateModule/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
@@ -369,6 +309,14 @@ formulario.addEventListener('submit', async e => {
                     instructorId: Number(instructorId)
                 })
             });
+
+            const responseData = await response.json();
+            console.log('Update response:', response.status, responseData);
+
+            if (!response.ok) {
+                throw new Error(responseData.message || `Error ${response.status}: ${response.statusText}`);
+            }
+
             await Swal.fire({
                 title: 'Éxito',
                 text: 'Módulo actualizado correctamente.',
@@ -380,10 +328,11 @@ formulario.addEventListener('submit', async e => {
                     confirmButton: 'swal-custom-confirm-button'
                 }
             });
-        } catch {
+        } catch (error) {
+            console.error('Error updating module:', error);
             await Swal.fire({
                 title: 'Error',
-                text: 'No se pudo actualizar el módulo.',
+                text: error.message || 'No se pudo actualizar el módulo.',
                 icon: 'error',
                 customClass: {
                     popup: 'swal-custom-popup',
@@ -395,17 +344,31 @@ formulario.addEventListener('submit', async e => {
         }
     } else {
         try {
-            await fetch(`${MODULES_API_URL}/newModule`, {
+            const requestBody = {
+                moduleCode: codigo,
+                moduleName: nombre,
+                levelId: Number(levelId),
+                instructorId: Number(instructorId)
+            };
+            console.log('Creating module with data:', requestBody);
+
+            const response = await fetch(`${MODULES_API_URL}/newModule`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({
-                    moduleCode: codigo,
-                    moduleName: nombre,
-                    levelId: Number(levelId),
-                    instructorId: Number(instructorId)
-                })
+                body: JSON.stringify(requestBody)
             });
+
+            const responseData = await response.json();
+            console.log('Create response:', response.status, responseData);
+
+            if (!response.ok) {
+                if (response.status === 403) {
+                    throw new Error('No tienes permisos para realizar esta acción. Verifica tu sesión.');
+                }
+                throw new Error(responseData.message || `Error ${response.status}: ${response.statusText}`);
+            }
+
             await Swal.fire({
                 title: 'Éxito',
                 text: 'Módulo agregado correctamente.',
@@ -417,10 +380,11 @@ formulario.addEventListener('submit', async e => {
                     confirmButton: 'swal-custom-confirm-button'
                 }
             });
-        } catch {
+        } catch (error) {
+            console.error('Error creating module:', error);
             await Swal.fire({
                 title: 'Error',
-                text: 'No se pudo agregar el módulo.',
+                text: error.message || 'No se pudo agregar el módulo.',
                 icon: 'error',
                 customClass: {
                     popup: 'swal-custom-popup',
@@ -439,3 +403,68 @@ formulario.addEventListener('submit', async e => {
     await cargarModulos();
 }
 );
+
+async function borrarModulo(id) {
+    const resultado = await Swal.fire({
+        title: '¿Estás seguro?',
+        text: "¡No podrás revertir esto!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#881F1E',
+        cancelButtonColor: '#555',
+        confirmButtonText: 'Sí, eliminarlo!',
+        cancelButtonText: 'Cancelar',
+        customClass: {
+            popup: 'swal-custom-popup',
+            title: 'swal-custom-title',
+            htmlContainer: 'swal-custom-content',
+            confirmButton: 'swal-custom-confirm-button',
+            cancelButton: 'swal-custom-cancel-button'
+        }
+    });
+
+    if (resultado.isConfirmed) {
+        try {
+            const response = await fetch(`${MODULES_API_URL}/deleteModule/${id}`, { 
+                method: 'DELETE',
+                credentials: 'include'
+            });
+
+            const responseData = await response.json();
+            console.log('Delete response:', response.status, responseData);
+
+            if (!response.ok) {
+                if (response.status === 403) {
+                    throw new Error('No tienes permisos para realizar esta acción. Verifica tu sesión.');
+                }
+                throw new Error(responseData.message || `Error ${response.status}: ${response.statusText}`);
+            }
+
+            await cargarModulos();
+            Swal.fire({
+                title: '¡Eliminado!',
+                text: 'El módulo ha sido eliminado.',
+                icon: 'success',
+                customClass: {
+                    popup: 'swal-custom-popup',
+                    title: 'swal-custom-title',
+                    htmlContainer: 'swal-custom-content',
+                    confirmButton: 'swal-custom-confirm-button'
+                }
+            });
+        } catch (error) {
+            console.error('Error deleting module:', error);
+            Swal.fire({
+                title: 'Error',
+                text: error.message || 'No se pudo eliminar el módulo.',
+                icon: 'error',
+                customClass: {
+                    popup: 'swal-custom-popup',
+                    title: 'swal-custom-title',
+                    htmlContainer: 'swal-custom-content',
+                    confirmButton: 'swal-custom-confirm-button'
+                }
+            });
+        }
+    }
+}
