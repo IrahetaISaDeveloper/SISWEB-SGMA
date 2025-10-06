@@ -310,10 +310,21 @@ formulario.addEventListener('submit', async e => {
                 })
             });
 
-            const responseData = await response.json();
+            let responseData;
+            const contentType = response.headers.get('content-type');
+            
+            if (contentType && contentType.includes('application/json')) {
+                responseData = await response.json();
+            } else {
+                responseData = { message: await response.text() };
+            }
+            
             console.log('Update response:', response.status, responseData);
 
             if (!response.ok) {
+                if (response.status === 403) {
+                    throw new Error('No tienes permisos para realizar esta acción. Verifica tu sesión.');
+                }
                 throw new Error(responseData.message || `Error ${response.status}: ${response.statusText}`);
             }
 
@@ -359,12 +370,23 @@ formulario.addEventListener('submit', async e => {
                 body: JSON.stringify(requestBody)
             });
 
-            const responseData = await response.json();
+            let responseData;
+            const contentType = response.headers.get('content-type');
+            
+            if (contentType && contentType.includes('application/json')) {
+                responseData = await response.json();
+            } else {
+                const textResponse = await response.text();
+                responseData = { message: textResponse || 'Error desconocido' };
+            }
+            
             console.log('Create response:', response.status, responseData);
 
             if (!response.ok) {
                 if (response.status === 403) {
                     throw new Error('No tienes permisos para realizar esta acción. Verifica tu sesión.');
+                } else if (response.status === 401) {
+                    throw new Error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
                 }
                 throw new Error(responseData.message || `Error ${response.status}: ${response.statusText}`);
             }
@@ -430,12 +452,23 @@ async function borrarModulo(id) {
                 credentials: 'include'
             });
 
-            const responseData = await response.json();
+            let responseData;
+            const contentType = response.headers.get('content-type');
+            
+            if (contentType && contentType.includes('application/json')) {
+                responseData = await response.json();
+            } else {
+                const textResponse = await response.text();
+                responseData = { message: textResponse || 'Error desconocido' };
+            }
+            
             console.log('Delete response:', response.status, responseData);
 
             if (!response.ok) {
                 if (response.status === 403) {
                     throw new Error('No tienes permisos para realizar esta acción. Verifica tu sesión.');
+                } else if (response.status === 401) {
+                    throw new Error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
                 }
                 throw new Error(responseData.message || `Error ${response.status}: ${response.statusText}`);
             }
