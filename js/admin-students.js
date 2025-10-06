@@ -24,7 +24,7 @@ let grades = [];
 
 async function cargarLevels() {
   try {
-    const res = await fetch(LEVELS_API_URL);
+    const res = await fetch(LEVELS_API_URL, { credentials: 'include' });
     const data = await res.json();
     const levels = Array.isArray(data) ? data : (data.data || []);
     if (filtroAnoEl) {
@@ -40,7 +40,7 @@ async function cargarLevels() {
 
 async function cargarGrupos() {
   try {
-    const res = await fetch(GRADES_API_URL);
+    const res = await fetch(GRADES_API_URL, { credentials: 'include' });
     const data = await res.json();
     grades = Array.isArray(data) ? data : (data.data || []);
     if (filtroGrupoEl) {
@@ -62,7 +62,7 @@ async function cargarGrupos() {
 
 async function cargarEstudiantes() {
   try {
-    const res = await fetch(STUDENTS_API_URL);
+    const res = await fetch(STUDENTS_API_URL, { credentials: 'include' });
     const data = await res.json();
     let students = [];
     if (data && data.data && Array.isArray(data.data.content)) {
@@ -277,7 +277,8 @@ form.addEventListener('submit', async e => {
       const res = await fetch(`${UPDATE_STUDENT_API_URL}${userIdEl.value}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(cargaUtil)
+        body: JSON.stringify(cargaUtil),
+        credentials: 'include'
       });
       if (res.ok) {
         Swal.fire({
@@ -310,7 +311,8 @@ form.addEventListener('submit', async e => {
       const res = await fetch(ADD_STUDENT_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(cargaUtil)
+        body: JSON.stringify(cargaUtil),
+        credentials: 'include'
       });
       if (res.ok) {
         Swal.fire({
@@ -365,7 +367,7 @@ form.addEventListener('submit', async e => {
 
 async function cargarParaEditarEstudiante(id) {
   try {
-    const res = await fetch(`https://sgma-66ec41075156.herokuapp.com/api/students/getStudentById/${id}`);
+    const res = await fetch(`https://sgma-66ec41075156.herokuapp.com/api/students/getStudentById/${id}`, { credentials: 'include' });
     const result = await res.json();
     const student = result.data || {};
     fullNameEl.value = student.firstName || '';
@@ -422,7 +424,8 @@ async function borrarEstudiante(id) {
   if (result.isConfirmed) {
     try {
       const res = await fetch(`${DELETE_STUDENT_API_URL}${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        credentials: 'include'
       });
       if (res.ok) {
         Swal.fire({
