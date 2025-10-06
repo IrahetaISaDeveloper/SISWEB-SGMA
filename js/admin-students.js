@@ -2,6 +2,7 @@ const STUDENTS_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/students/g
 const ADD_STUDENT_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/students/addNewStudent';
 const UPDATE_STUDENT_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/students/updateStudent/';
 const DELETE_STUDENT_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/students/deleteStudent/';
+const LEVELS_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/levels/getAllLevels';
 const GRADES_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/grades/getAllGrades';
 
 const form = document.getElementById('user-form');
@@ -21,7 +22,21 @@ const idGradeEl = document.getElementById('idGrade'); // Usar este para el grupo
 let studentsOriginal = [];
 let grades = [];
 
-
+async function cargarLevels() {
+  try {
+    const res = await fetch(LEVELS_API_URL, { credentials: 'include' });
+    const data = await res.json();
+    const levels = Array.isArray(data) ? data : (data.data || []);
+    if (filtroAnoEl) {
+      filtroAnoEl.innerHTML = '<option value="">Seleccione año</option>';
+      levels.forEach(level => {
+        filtroAnoEl.innerHTML += `<option value="${level.levelId}">${level.levelName}</option>`;
+      });
+    }
+  } catch (error) {
+    console.error('Error al cargar niveles:', error);
+  }
+}
 
 async function cargarGrupos() {
   try {
