@@ -166,12 +166,39 @@ async function handleFormSubmit(e) {
         return;
     }
     
-    // Validar que los valores de los combobox sean números válidos
-    const levelId = parseInt(comboLevelEl.value);
-    const instructorId = parseInt(comboInstructorEl.value);
+    // Obtener valores de los combobox
+    const levelValue = comboLevelEl.value;
+    const instructorValue = comboInstructorEl.value;
     
-    if (isNaN(levelId) || isNaN(instructorId)) {
-        showMessage('Error: Debe seleccionar valores válidos para nivel e instructor', 'error');
+    console.log('Valores de combobox:', { levelValue, instructorValue });
+    
+    // Validar que se hayan seleccionado valores
+    if (!levelValue || levelValue === '') {
+        showMessage('Error: Debe seleccionar un nivel', 'error');
+        comboLevelEl.focus();
+        return;
+    }
+    
+    if (!instructorValue || instructorValue === '') {
+        showMessage('Error: Debe seleccionar un instructor', 'error');
+        comboInstructorEl.focus();
+        return;
+    }
+    
+    // Convertir a números
+    const levelId = parseInt(levelValue);
+    const instructorId = parseInt(instructorValue);
+    
+    // Validar que la conversión a número sea exitosa
+    if (isNaN(levelId) || levelId <= 0) {
+        showMessage('Error: ID de nivel inválido', 'error');
+        comboLevelEl.focus();
+        return;
+    }
+    
+    if (isNaN(instructorId) || instructorId <= 0) {
+        showMessage('Error: ID de instructor inválido', 'error');
+        comboInstructorEl.focus();
         return;
     }
     
@@ -182,6 +209,8 @@ async function handleFormSubmit(e) {
         levelId: levelId,
         instructorId: instructorId
     };
+    
+    console.log('Datos del módulo a enviar:', moduleData);
     
     const isEditing = idModuloEl.value !== '';
     
@@ -289,6 +318,8 @@ function editModule(id) {
         return;
     }
     
+    console.log('Datos del módulo a editar:', module);
+    
     // Verificar que los elementos esenciales del formulario existan
     const elementosEsenciales = {
         idModuloEl,
@@ -323,26 +354,18 @@ function editModule(id) {
             descripcionModuloEl.value = module.moduleDescription || '';
         }
         
-        // Esperar un momento antes de seleccionar los valores de los combobox
-        setTimeout(() => {
-            // Seleccionar nivel
-            if (module.levelId) {
-                comboLevelEl.value = module.levelId;
-                // Verificar si se seleccionó correctamente
-                if (comboLevelEl.value != module.levelId) {
-                    console.warn('No se pudo seleccionar el nivel:', module.levelId);
-                }
-            }
-            
-            // Seleccionar instructor
-            if (module.instructorId) {
-                comboInstructorEl.value = module.instructorId;
-                // Verificar si se seleccionó correctamente
-                if (comboInstructorEl.value != module.instructorId) {
-                    console.warn('No se pudo seleccionar el instructor:', module.instructorId);
-                }
-            }
-        }, 100);
+        // Seleccionar valores en los combobox inmediatamente
+        if (module.levelId) {
+            console.log('Seleccionando nivel:', module.levelId);
+            comboLevelEl.value = module.levelId.toString();
+            console.log('Valor seleccionado en nivel:', comboLevelEl.value);
+        }
+        
+        if (module.instructorId) {
+            console.log('Seleccionando instructor:', module.instructorId);
+            comboInstructorEl.value = module.instructorId.toString();
+            console.log('Valor seleccionado en instructor:', comboInstructorEl.value);
+        }
         
         // Cambiar el botón a modo edición
         botonEnviar.textContent = 'Actualizar';
@@ -429,8 +452,10 @@ function validateForm() {
 
     const codigo = codigoModuloEl.value.trim();
     const nombre = nombreModuloEl.value.trim();
-    const levelId = comboLevelEl.value;
-    const instructorId = comboInstructorEl.value;
+    const levelValue = comboLevelEl.value;
+    const instructorValue = comboInstructorEl.value;
+    
+    console.log('Validando formulario:', { codigo, nombre, levelValue, instructorValue });
     
     if (!codigo) {
         showMessage('El código del módulo es requerido', 'error');
@@ -456,13 +481,13 @@ function validateForm() {
         return false;
     }
     
-    if (!levelId) {
+    if (!levelValue || levelValue === '' || levelValue === '0') {
         showMessage('Debe seleccionar un nivel', 'error');
         comboLevelEl.focus();
         return false;
     }
     
-    if (!instructorId) {
+    if (!instructorValue || instructorValue === '' || instructorValue === '0') {
         showMessage('Debe seleccionar un instructor', 'error');
         comboInstructorEl.focus();
         return false;
