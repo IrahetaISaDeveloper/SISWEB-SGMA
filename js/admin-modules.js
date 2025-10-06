@@ -42,7 +42,9 @@ function setupEventListeners() {
 // Cargar niveles para el combobox
 async function loadLevels() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/levels/getAllLevels`);
+        const response = await fetch(`${API_BASE_URL}/api/levels/getAllLevels`, {
+            credentials: 'include'
+        });
         const data = await response.json();
         if (data.success) {
             levels = data.data.content || data.data;
@@ -57,7 +59,9 @@ async function loadLevels() {
 // Cargar instructores para el combobox
 async function loadInstructors() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/instructors/getAllInstructors`);
+        const response = await fetch(`${API_BASE_URL}/api/instructors/getAllInstructors`, {
+            credentials: 'include'
+        });
         const data = await response.json();
         if (data.success) {
             instructors = data.data.content || data.data;
@@ -94,7 +98,9 @@ function populateInstructorsCombo() {
 // Cargar módulos con paginación
 async function loadModules(page = 0) {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/modules/getAllModules?page=${page}&size=${pageSize}`);
+        const response = await fetch(`${API_BASE_URL}/api/modules/getAllModules?page=${page}&size=${pageSize}`, {
+            credentials: 'include'
+        });
         const data = await response.json();
         
         if (data.success) {
@@ -175,6 +181,7 @@ async function createModule(moduleData) {
         headers: {
             'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(moduleData)
     });
     
@@ -192,6 +199,7 @@ async function updateModule(id, moduleData) {
         headers: {
             'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(moduleData)
     });
     
@@ -226,7 +234,8 @@ async function deleteModule(id) {
     
     try {
         const response = await fetch(`${API_BASE_URL}/api/modules/deleteModule/${id}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            credentials: 'include'
         });
         
         if (response.ok) {
