@@ -1,5 +1,5 @@
 const STUDENTS_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/students/getAllStudents';
-const ADD_STUDENT_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/students/addNewStudent';
+const ADD_STUDENT_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/students/newStudent';
 const UPDATE_STUDENT_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/students/updateStudent/';
 const DELETE_STUDENT_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/students/deleteStudent/';
 const LEVELS_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/levels/getAllLevels';
