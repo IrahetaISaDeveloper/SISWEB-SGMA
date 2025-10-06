@@ -1,6 +1,4 @@
-const MODULES_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/modules';
-const LEVELS_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/levels/getAllLevels';
-const INSTRUCTORS_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/instructors/getAllInstructors';
+const API_BASE_URL = 'https://sgma-66ec41075156.herokuapp.com';
 
 const formulario = document.getElementById('formulario-modulo');
 const nombreModuloEl = document.getElementById('nombreModulo');
@@ -15,496 +13,390 @@ const cuerpoTabla = document.getElementById('cuerpo-tabla-modulos');
 const buscadorModulosEl = document.getElementById('buscador-modulos');
 const filtroAnoModuloEl = document.getElementById('filtro-ano-modulo');
 
-let modulos = [];
+// Variables para paginación
+let currentPage = 0;
+const pageSize = 10;
+let totalPages = 0;
+
+// Variables para datos
 let levels = [];
 let instructors = [];
-let modulosFiltrados = [];
+let modules = [];
 
-async function cargarLevels() {
+// Inicialización
+document.addEventListener('DOMContentLoaded', function() {
+    loadLevels();
+    loadInstructors();
+    loadModules();
+    setupEventListeners();
+});
+
+// Event Listeners
+function setupEventListeners() {
+    formulario.addEventListener('submit', handleFormSubmit);
+    botonCancelar.addEventListener('click', resetForm);
+    buscadorModulosEl.addEventListener('input', debounce(filterModules, 300));
+    filtroAnoModuloEl.addEventListener('change', filterModules);
+}
+
+// Cargar niveles para el combobox
+async function loadLevels() {
     try {
-        const res = await fetch(LEVELS_API_URL, {
-            credentials: 'include'
-        });
-        const data = await res.json();
-        console.log('Levels data:', data); // Debug log
-        
-        // Extract the levels array from the response structure
-        if (data.success && data.data) {
-            levels = Array.isArray(data.data) ? data.data : [];
-        } else {
-            levels = [];
+        const response = await fetch(`${API_BASE_URL}/api/levels/getAllLevels`);
+        const data = await response.json();
+        if (data.success) {
+            levels = data.data.content || data.data;
+            populateLevelsCombo();
         }
-        
-        // Populate main form combobox
-        comboLevelEl.innerHTML = '<option value="">Seleccionar año académico...</option>';
-        
-        // Populate filter dropdown
-        filtroAnoModuloEl.innerHTML = '<option value="">Todos los años</option>';
-        
-        levels.forEach(level => {
-            const levelId = level.levelId || level.id;
-            const levelName = level.levelName;
-            
-            // Main form option
-            const opcionForm = document.createElement('option');
-            opcionForm.value = levelId;
-            opcionForm.textContent = levelName;
-            comboLevelEl.appendChild(opcionForm);
-            
-            // Filter option
-            const opcionFilter = document.createElement('option');
-            opcionFilter.value = levelId;
-            opcionFilter.textContent = levelName;
-            filtroAnoModuloEl.appendChild(opcionFilter);
-        });
     } catch (error) {
-        console.error('Error loading levels:', error);
-        levels = [];
+        console.error('Error al cargar niveles:', error);
+        showMessage('Error al cargar niveles', 'error');
     }
 }
 
-async function cargarInstructors() {
+// Cargar instructores para el combobox
+async function loadInstructors() {
     try {
-        const res = await fetch(INSTRUCTORS_API_URL, {
-            credentials: 'include'
-        });
-        const data = await res.json();
-        console.log('Instructors data:', data); // Debug log
-        
-        // Extract the instructors array from the response structure
-        if (data.success && data.data) {
-            // Check if data.data is an array or has a nested structure
-            if (Array.isArray(data.data)) {
-                instructors = data.data;
-            } else if (data.data.content && Array.isArray(data.data.content)) {
-                instructors = data.data.content;
-            } else if (typeof data.data === 'object') {
-                // If data.data is an object, it might contain the array in a property
-                const possibleArrays = Object.values(data.data).filter(val => Array.isArray(val));
-                instructors = possibleArrays.length > 0 ? possibleArrays[0] : [];
-            } else {
-                instructors = [];
-            }
-        } else {
-            instructors = [];
+        const response = await fetch(`${API_BASE_URL}/api/instructors/getAllInstructors`);
+        const data = await response.json();
+        if (data.success) {
+            instructors = data.data.content || data.data;
+            populateInstructorsCombo();
         }
-        
-        console.log('Processed instructors:', instructors); // Debug log
-        
-        comboInstructorEl.innerHTML = '<option value="">Seleccionar instructor...</option>';
-        instructors.forEach(instructor => {
-            const opcion = document.createElement('option');
-            opcion.value = instructor.instructorId;
-            opcion.textContent = `${instructor.firstName} ${instructor.lastName}`;
-            comboInstructorEl.appendChild(opcion);
-        });
     } catch (error) {
-        console.error('Error loading instructors:', error);
-        instructors = [];
+        console.error('Error al cargar instructores:', error);
+        showMessage('Error al cargar instructores', 'error');
     }
 }
 
-async function cargarModulos() {
-    try {
-        const res = await fetch(`${MODULES_API_URL}/getAllModules`, {
-            credentials: 'include'
-        });
-        const data = await res.json();
-        console.log('Modules data:', data); // Debug log
-        
-        // Extract the modules array from the response structure
-        if (data.success && data.data) {
-            if (Array.isArray(data.data)) {
-                modulos = data.data;
-            } else if (data.data.content && Array.isArray(data.data.content)) {
-                modulos = data.data.content;
-            } else if (typeof data.data === 'object') {
-                // If data.data is an object, it might contain the array in a property
-                const possibleArrays = Object.values(data.data).filter(val => Array.isArray(val));
-                modulos = possibleArrays.length > 0 ? possibleArrays[0] : [];
-            } else {
-                modulos = [];
-            }
-        } else {
-            modulos = [];
-        }
-        
-        console.log('Processed modules:', modulos); // Debug log
-        cargarTabla(modulos);
-    } catch (error) {
-        console.error('Error loading modules:', error);
-        modulos = [];
-        cuerpoTabla.innerHTML = `<tr><td colspan="6" style="text-align: center;">No se pudieron cargar los módulos.</td></tr>`;
-    }
-}
-
-function cargarTabla(modulosACargar) {
-    cuerpoTabla.innerHTML = '';
-    if (!modulosACargar || modulosACargar.length === 0) {
-        cuerpoTabla.innerHTML = `<tr><td colspan="6" style="text-align: center;">No hay módulos registrados.</td></tr>`;
-        return;
-    }
-    
-    // Ensure instructors array is available before using find
-    if (!Array.isArray(instructors)) {
-        console.warn('Instructors array not properly loaded, using empty array');
-        instructors = [];
-    }
-    
-    modulosACargar.forEach(modulo => {
-        // Fix instructor name lookup with proper error handling
-        const instructor = instructors.find(i => i.instructorId === modulo.instructorId);
-        const instructorName = instructor ? `${instructor.firstName} ${instructor.lastName}` : 'Sin asignar';
-        
-        cuerpoTabla.innerHTML += `
-        <tr>
-            <td>${modulo.moduleId}</td>
-            <td>${modulo.moduleCode || 'N/A'}</td>
-            <td>${modulo.moduleName}</td>
-            <td>${modulo.levelName}</td>
-            <td>${instructorName}</td>
-            <td>
-                <button onclick="cargarParaEditarModulo('${modulo.moduleId}')">Editar</button>
-                <button onclick="borrarModulo('${modulo.moduleId}')">Eliminar</button>
-            </td>
-        </tr>
-        `;
+// Poblar combobox de niveles
+function populateLevelsCombo() {
+    comboLevelEl.innerHTML = '<option value="">Seleccione un nivel</option>';
+    levels.forEach(level => {
+        const option = document.createElement('option');
+        option.value = level.levelId;
+        option.textContent = level.levelName;
+        comboLevelEl.appendChild(option);
     });
 }
 
-function cargarParaEditarModulo(id) {
-    const moduloAEditar = modulos.find(modulo => String(modulo.moduleId) === String(id));
-    if (moduloAEditar) {
-        nombreModuloEl.value = moduloAEditar.moduleName;
-        codigoModuloEl.value = moduloAEditar.moduleCode || '';
-        idModuloEl.value = moduloAEditar.moduleId;
-        comboLevelEl.value = moduloAEditar.levelId;
-        comboInstructorEl.value = moduloAEditar.instructorId;
+// Poblar combobox de instructores
+function populateInstructorsCombo() {
+    comboInstructorEl.innerHTML = '<option value="">Seleccione un instructor</option>';
+    instructors.forEach(instructor => {
+        const option = document.createElement('option');
+        option.value = instructor.instructorId;
+        option.textContent = `${instructor.firstName} ${instructor.lastName}`;
+        comboInstructorEl.appendChild(option);
+    });
+}
 
-        botonEnviar.textContent = 'Actualizar Módulo';
-        botonCancelar.hidden = false;
-    } else {
-        Swal.fire({
-            title: 'Error',
-            text: 'Módulo no encontrado para editar.',
-            icon: 'error',
-            customClass: {
-                popup: 'swal-custom-popup',
-                title: 'swal-custom-title',
-                htmlContainer: 'swal-custom-content',
-                confirmButton: 'swal-custom-confirm-button'
-            }
-        });
+// Cargar módulos con paginación
+async function loadModules(page = 0) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/modules/getAllModules?page=${page}&size=${pageSize}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            modules = data.data.content;
+            currentPage = data.data.number;
+            totalPages = data.data.totalPages;
+            renderModulesTable();
+            renderPagination();
+        }
+    } catch (error) {
+        console.error('Error al cargar módulos:', error);
+        showMessage('Error al cargar módulos', 'error');
     }
 }
 
-function aplicarFiltrosYBuscador() {
-    let lista = modulos.slice();
-
-    const levelId = filtroAnoModuloEl.value;
-    if (levelId && levelId !== '') {
-        lista = lista.filter(m => String(m.levelId) === levelId);
-    }
-
-    const texto = buscadorModulosEl.value.trim().toLowerCase();
-    if (texto) {
-        lista = lista.filter(m =>
-            (m.moduleName && m.moduleName.toLowerCase().includes(texto)) ||
-            (m.levelName && m.levelName.toLowerCase().includes(texto)) ||
-            (m.moduleCode && m.moduleCode.toLowerCase().includes(texto))
-        );
-    }
-
-    cargarTabla(lista);
+// Renderizar tabla de módulos
+function renderModulesTable() {
+    cuerpoTabla.innerHTML = '';
+    
+    modules.forEach(module => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${module.moduleCode}</td>
+            <td>${module.moduleName}</td>
+            <td>${module.levelName || 'N/A'}</td>
+            <td>${module.instructorName || 'N/A'}</td>
+            <td>
+                <button class="btn btn-sm btn-warning" onclick="editModule(${module.moduleId})">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="deleteModule(${module.moduleId})">
+                    <i class="fas fa-trash"></i> Eliminar
+                </button>
+            </td>
+        `;
+        cuerpoTabla.appendChild(row);
+    });
 }
 
-window.addEventListener('DOMContentLoaded', async () => {
-    console.log('Loading data...'); // Debug log
-    await cargarLevels();
-    await cargarInstructors();
-    await cargarModulos();
-    console.log('Data loaded - Levels:', levels.length, 'Instructors:', Array.isArray(instructors) ? instructors.length : 'not array', 'Modules:', modulos.length); // Debug log
-
-    buscadorModulosEl.addEventListener('input', aplicarFiltrosYBuscador);
-    filtroAnoModuloEl.addEventListener('change', aplicarFiltrosYBuscador);
-});
-
-formulario.addEventListener('submit', async e => {
+// Manejar envío del formulario
+async function handleFormSubmit(e) {
     e.preventDefault();
+    
+    if (!validateForm()) {
+        return;
+    }
+    
+    const moduleData = {
+        moduleCode: codigoModuloEl.value.trim(),
+        moduleName: nombreModuloEl.value.trim(),
+        moduleDescription: descripcionModuloEl.value.trim(),
+        levelId: parseInt(comboLevelEl.value),
+        instructorId: parseInt(comboInstructorEl.value)
+    };
+    
+    const isEditing = idModuloEl.value !== '';
+    
+    try {
+        if (isEditing) {
+            await updateModule(parseInt(idModuloEl.value), moduleData);
+        } else {
+            await createModule(moduleData);
+        }
+        
+        resetForm();
+        loadModules(currentPage);
+        showMessage(`Módulo ${isEditing ? 'actualizado' : 'creado'} exitosamente`, 'success');
+    } catch (error) {
+        console.error('Error al guardar módulo:', error);
+        showMessage('Error al guardar el módulo', 'error');
+    }
+}
 
-    const nombre = nombreModuloEl.value.trim();
+// Crear nuevo módulo
+async function createModule(moduleData) {
+    const response = await fetch(`${API_BASE_URL}/api/modules/newModule`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(moduleData)
+    });
+    
+    if (!response.ok) {
+        throw new Error('Error al crear módulo');
+    }
+    
+    return response.json();
+}
+
+// Actualizar módulo
+async function updateModule(id, moduleData) {
+    const response = await fetch(`${API_BASE_URL}/api/modules/updateModule/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(moduleData)
+    });
+    
+    if (!response.ok) {
+        throw new Error('Error al actualizar módulo');
+    }
+    
+    return response.json();
+}
+
+// Editar módulo
+function editModule(id) {
+    const module = modules.find(m => m.moduleId === id);
+    if (module) {
+        idModuloEl.value = module.moduleId;
+        codigoModuloEl.value = module.moduleCode;
+        nombreModuloEl.value = module.moduleName;
+        descripcionModuloEl.value = module.moduleDescription || '';
+        comboLevelEl.value = module.levelId;
+        comboInstructorEl.value = module.instructorId;
+        
+        botonEnviar.textContent = 'Actualizar';
+        botonEnviar.className = 'btn btn-warning';
+    }
+}
+
+// Eliminar módulo
+async function deleteModule(id) {
+    if (!confirm('¿Está seguro de que desea eliminar este módulo?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/modules/deleteModule/${id}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            loadModules(currentPage);
+            showMessage('Módulo eliminado exitosamente', 'success');
+        } else {
+            showMessage('Error al eliminar el módulo', 'error');
+        }
+    } catch (error) {
+        console.error('Error al eliminar módulo:', error);
+        showMessage('Error al eliminar el módulo', 'error');
+    }
+}
+
+// Resetear formulario
+function resetForm() {
+    formulario.reset();
+    idModuloEl.value = '';
+    botonEnviar.textContent = 'Crear';
+    botonEnviar.className = 'btn btn-primary';
+}
+
+// Validar formulario
+function validateForm() {
     const codigo = codigoModuloEl.value.trim();
-    const id = idModuloEl.value;
+    const nombre = nombreModuloEl.value.trim();
     const levelId = comboLevelEl.value;
     const instructorId = comboInstructorEl.value;
-
-    if (!nombre) {
-        Swal.fire({
-            title: 'Error',
-            text: 'El nombre del módulo es obligatorio.',
-            icon: 'error',
-            customClass: {
-                popup: 'swal-custom-popup',
-                title: 'swal-custom-title',
-                htmlContainer: 'swal-custom-content',
-                confirmButton: 'swal-custom-confirm-button'
-            }
-        });
-        return;
-    }
+    
     if (!codigo) {
-        Swal.fire({
-            title: 'Error',
-            text: 'El código del módulo es obligatorio.',
-            icon: 'error',
-            customClass: {
-                popup: 'swal-custom-popup',
-                title: 'swal-custom-title',
-                htmlContainer: 'swal-custom-content',
-                confirmButton: 'swal-custom-confirm-button'
-            }
-        });
-        return;
+        showMessage('El código del módulo es requerido', 'error');
+        codigoModuloEl.focus();
+        return false;
     }
+    
+    if (!nombre) {
+        showMessage('El nombre del módulo es requerido', 'error');
+        nombreModuloEl.focus();
+        return false;
+    }
+    
     if (!levelId) {
-        Swal.fire({
-            title: 'Error',
-            text: 'Debes seleccionar un año académico.',
-            icon: 'error',
-            customClass: {
-                popup: 'swal-custom-popup',
-                title: 'swal-custom-title',
-                htmlContainer: 'swal-custom-content',
-                confirmButton: 'swal-custom-confirm-button'
-            }
-        });
-        return;
+        showMessage('Debe seleccionar un nivel', 'error');
+        comboLevelEl.focus();
+        return false;
     }
+    
     if (!instructorId) {
-        Swal.fire({
-            title: 'Error',
-            text: 'Debes seleccionar un instructor.',
-            icon: 'error',
-            customClass: {
-                popup: 'swal-custom-popup',
-                title: 'swal-custom-title',
-                htmlContainer: 'swal-custom-content',
-                confirmButton: 'swal-custom-confirm-button'
-            }
-        });
-        return;
+        showMessage('Debe seleccionar un instructor', 'error');
+        comboInstructorEl.focus();
+        return false;
     }
-
-    if (id) {
-        try {
-            const response = await fetch(`${MODULES_API_URL}/updateModule/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({
-                    moduleId: id,
-                    moduleCode: codigo,
-                    moduleName: nombre,
-                    levelId: Number(levelId),
-                    instructorId: Number(instructorId)
-                })
-            });
-
-            let responseData;
-            const contentType = response.headers.get('content-type');
-            
-            if (contentType && contentType.includes('application/json')) {
-                responseData = await response.json();
-            } else {
-                responseData = { message: await response.text() };
-            }
-            
-            console.log('Update response:', response.status, responseData);
-
-            if (!response.ok) {
-                if (response.status === 403) {
-                    throw new Error('No tienes permisos para realizar esta acción. Verifica tu sesión.');
-                }
-                throw new Error(responseData.message || `Error ${response.status}: ${response.statusText}`);
-            }
-
-            await Swal.fire({
-                title: 'Éxito',
-                text: 'Módulo actualizado correctamente.',
-                icon: 'success',
-                customClass: {
-                    popup: 'swal-custom-popup',
-                    title: 'swal-custom-title',
-                    htmlContainer: 'swal-custom-content',
-                    confirmButton: 'swal-custom-confirm-button'
-                }
-            });
-        } catch (error) {
-            console.error('Error updating module:', error);
-            await Swal.fire({
-                title: 'Error',
-                text: error.message || 'No se pudo actualizar el módulo.',
-                icon: 'error',
-                customClass: {
-                    popup: 'swal-custom-popup',
-                    title: 'swal-custom-title',
-                    htmlContainer: 'swal-custom-content',
-                    confirmButton: 'swal-custom-confirm-button'
-                }
-            });
-        }
-    } else {
-        try {
-            const requestBody = {
-                moduleCode: codigo,
-                moduleName: nombre,
-                levelId: Number(levelId),
-                instructorId: Number(instructorId)
-            };
-            console.log('Creating module with data:', requestBody);
-
-            const response = await fetch(`${MODULES_API_URL}/newModule`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify(requestBody)
-            });
-
-            let responseData;
-            const contentType = response.headers.get('content-type');
-            
-            if (contentType && contentType.includes('application/json')) {
-                responseData = await response.json();
-            } else {
-                const textResponse = await response.text();
-                responseData = { message: textResponse || 'Error desconocido' };
-            }
-            
-            console.log('Create response:', response.status, responseData);
-
-            if (!response.ok) {
-                if (response.status === 403) {
-                    throw new Error('No tienes permisos para realizar esta acción. Verifica tu sesión.');
-                } else if (response.status === 401) {
-                    throw new Error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
-                }
-                throw new Error(responseData.message || `Error ${response.status}: ${response.statusText}`);
-            }
-
-            await Swal.fire({
-                title: 'Éxito',
-                text: 'Módulo agregado correctamente.',
-                icon: 'success',
-                customClass: {
-                    popup: 'swal-custom-popup',
-                    title: 'swal-custom-title',
-                    htmlContainer: 'swal-custom-content',
-                    confirmButton: 'swal-custom-confirm-button'
-                }
-            });
-        } catch (error) {
-            console.error('Error creating module:', error);
-            await Swal.fire({
-                title: 'Error',
-                text: error.message || 'No se pudo agregar el módulo.',
-                icon: 'error',
-                customClass: {
-                    popup: 'swal-custom-popup',
-                    title: 'swal-custom-title',
-                    htmlContainer: 'swal-custom-content',
-                    confirmButton: 'swal-custom-confirm-button'
-                }
-            });
-        }
-    }
-
-    formulario.reset();
-    idModuloEl.value = '';
-    botonCancelar.hidden = true;
-    botonEnviar.textContent = 'Agregar Módulo';
-    await cargarModulos();
+    
+    return true;
 }
-);
 
-botonCancelar.addEventListener('click', () => {
-    formulario.reset();
-    idModuloEl.value = '';
-    botonEnviar.textContent = 'Agregar Módulo';
-    botonCancelar.hidden = true;
-});
+// Filtrar módulos
+function filterModules() {
+    const searchTerm = buscadorModulosEl.value.toLowerCase();
+    const selectedYear = filtroAnoModuloEl.value;
+    
+    let filteredModules = modules;
+    
+    if (searchTerm) {
+        filteredModules = filteredModules.filter(module =>
+            module.moduleCode.toLowerCase().includes(searchTerm) ||
+            module.moduleName.toLowerCase().includes(searchTerm) ||
+            (module.instructorName && module.instructorName.toLowerCase().includes(searchTerm))
+        );
+    }
+    
+    if (selectedYear) {
+        filteredModules = filteredModules.filter(module =>
+            module.levelName && module.levelName.includes(selectedYear)
+        );
+    }
+    
+    renderFilteredTable(filteredModules);
+}
 
-async function borrarModulo(id) {
-    const resultado = await Swal.fire({
-        title: '¿Estás seguro?',
-        text: "¡No podrás revertir esto!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#881F1E',
-        cancelButtonColor: '#555',
-        confirmButtonText: 'Sí, eliminarlo!',
-        cancelButtonText: 'Cancelar',
-        customClass: {
-            popup: 'swal-custom-popup',
-            title: 'swal-custom-title',
-            htmlContainer: 'swal-custom-content',
-            confirmButton: 'swal-custom-confirm-button',
-            cancelButton: 'swal-custom-cancel-button'
-        }
+// Renderizar tabla filtrada
+function renderFilteredTable(filteredModules) {
+    cuerpoTabla.innerHTML = '';
+    
+    filteredModules.forEach(module => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${module.moduleCode}</td>
+            <td>${module.moduleName}</td>
+            <td>${module.levelName || 'N/A'}</td>
+            <td>${module.instructorName || 'N/A'}</td>
+            <td>
+                <button class="btn btn-sm btn-warning" onclick="editModule(${module.moduleId})">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="deleteModule(${module.moduleId})">
+                    <i class="fas fa-trash"></i> Eliminar
+                </button>
+            </td>
+        `;
+        cuerpoTabla.appendChild(row);
     });
-
-    if (resultado.isConfirmed) {
-        try {
-            const response = await fetch(`${MODULES_API_URL}/deleteModule/${id}`, { 
-                method: 'DELETE',
-                credentials: 'include'
-            });
-
-            let responseData;
-            const contentType = response.headers.get('content-type');
-            
-            if (contentType && contentType.includes('application/json')) {
-                responseData = await response.json();
-            } else {
-                const textResponse = await response.text();
-                responseData = { message: textResponse || 'Error desconocido' };
-            }
-            
-            console.log('Delete response:', response.status, responseData);
-
-            if (!response.ok) {
-                if (response.status === 403) {
-                    throw new Error('No tienes permisos para realizar esta acción. Verifica tu sesión.');
-                } else if (response.status === 401) {
-                    throw new Error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
-                }
-                throw new Error(responseData.message || `Error ${response.status}: ${response.statusText}`);
-            }
-
-            await cargarModulos();
-            Swal.fire({
-                title: '¡Eliminado!',
-                text: 'El módulo ha sido eliminado.',
-                icon: 'success',
-                customClass: {
-                    popup: 'swal-custom-popup',
-                    title: 'swal-custom-title',
-                    htmlContainer: 'swal-custom-content',
-                    confirmButton: 'swal-custom-confirm-button'
-                }
-            });
-        } catch (error) {
-            console.error('Error deleting module:', error);
-            Swal.fire({
-                title: 'Error',
-                text: error.message || 'No se pudo eliminar el módulo.',
-                icon: 'error',
-                customClass: {
-                    popup: 'swal-custom-popup',
-                    title: 'swal-custom-title',
-                    htmlContainer: 'swal-custom-content',
-                    confirmButton: 'swal-custom-confirm-button'
-                }
-            });
-        }
-    }
 }
+
+// Renderizar paginación
+function renderPagination() {
+    const paginationContainer = document.getElementById('pagination-container');
+    if (!paginationContainer) return;
+    
+    paginationContainer.innerHTML = '';
+    
+    // Botón anterior
+    const prevButton = document.createElement('button');
+    prevButton.textContent = 'Anterior';
+    prevButton.className = `btn btn-sm ${currentPage === 0 ? 'btn-secondary' : 'btn-primary'}`;
+    prevButton.disabled = currentPage === 0;
+    prevButton.onclick = () => currentPage > 0 && loadModules(currentPage - 1);
+    paginationContainer.appendChild(prevButton);
+    
+    // Información de página
+    const pageInfo = document.createElement('span');
+    pageInfo.textContent = ` Página ${currentPage + 1} de ${totalPages} `;
+    pageInfo.className = 'mx-2';
+    paginationContainer.appendChild(pageInfo);
+    
+    // Botón siguiente
+    const nextButton = document.createElement('button');
+    nextButton.textContent = 'Siguiente';
+    nextButton.className = `btn btn-sm ${currentPage >= totalPages - 1 ? 'btn-secondary' : 'btn-primary'}`;
+    nextButton.disabled = currentPage >= totalPages - 1;
+    nextButton.onclick = () => currentPage < totalPages - 1 && loadModules(currentPage + 1);
+    paginationContainer.appendChild(nextButton);
+}
+
+// Función debounce para búsqueda
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Mostrar mensajes
+function showMessage(message, type) {
+    // Crear elemento de mensaje
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `alert alert-${type === 'error' ? 'danger' : 'success'} alert-dismissible fade show`;
+    messageDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    // Insertar en el DOM
+    const container = document.querySelector('.container-fluid') || document.body;
+    container.insertBefore(messageDiv, container.firstChild);
+    
+    // Auto-remover después de 5 segundos
+    setTimeout(() => {
+        if (messageDiv.parentNode) {
+            messageDiv.remove();
+        }
+    }, 5000);
+}
+
+// Exportar funciones para uso global
+window.editModule = editModule;
+window.deleteModule = deleteModule;
+
