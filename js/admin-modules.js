@@ -26,15 +26,34 @@ async function cargarLevels() {
             credentials: 'include'
         });
         const data = await res.json();
+        console.log('Levels data:', data); // Debug log
         levels = Array.isArray(data) ? data : (data.data || []);
-        comboLevelEl.innerHTML = '';
+        
+        // Populate main form combobox
+        comboLevelEl.innerHTML = '<option value="">Seleccionar año académico...</option>';
+        
+        // Populate filter dropdown
+        filtroAnoModuloEl.innerHTML = '<option value="">Todos los años</option>';
+        
         levels.forEach(level => {
-            const opcion = document.createElement('option');
-            opcion.value = level.id;
-            opcion.textContent = level.levelName;
-            comboLevelEl.appendChild(opcion);
+            const levelId = level.levelId || level.id;
+            const levelName = level.levelName;
+            
+            // Main form option
+            const opcionForm = document.createElement('option');
+            opcionForm.value = levelId;
+            opcionForm.textContent = levelName;
+            comboLevelEl.appendChild(opcionForm);
+            
+            // Filter option
+            const opcionFilter = document.createElement('option');
+            opcionFilter.value = levelId;
+            opcionFilter.textContent = levelName;
+            filtroAnoModuloEl.appendChild(opcionFilter);
         });
-    } catch (error) {}
+    } catch (error) {
+        console.error('Error loading levels:', error);
+    }
 }
 
 async function cargarInstructors() {
@@ -43,6 +62,7 @@ async function cargarInstructors() {
             credentials: 'include'
         });
         const data = await res.json();
+        console.log('Instructors data:', data); // Debug log
         instructors = Array.isArray(data) ? data : (data.data || []);
         comboInstructorEl.innerHTML = '<option value="">Seleccionar instructor...</option>';
         instructors.forEach(instructor => {
@@ -51,7 +71,9 @@ async function cargarInstructors() {
             opcion.textContent = `${instructor.firstName} ${instructor.lastName}`;
             comboInstructorEl.appendChild(opcion);
         });
-    } catch (error) {}
+    } catch (error) {
+        console.error('Error loading instructors:', error);
+    }
 }
 
 async function cargarModulos() {
@@ -60,13 +82,17 @@ async function cargarModulos() {
             credentials: 'include'
         });
         const data = await res.json();
+        console.log('Modules data:', data); // Debug log
         if (data && data.data && Array.isArray(data.data.content)) {
             modulos = data.data.content;
+        } else if (Array.isArray(data)) {
+            modulos = data;
         } else {
             modulos = [];
         }
         cargarTabla(modulos);
     } catch (error) {
+        console.error('Error loading modules:', error);
         cuerpoTabla.innerHTML = `<tr><td colspan="6" style="text-align: center;">No se pudieron cargar los módulos.</td></tr>`;
     }
 }
@@ -78,7 +104,10 @@ function cargarTabla(modulosACargar) {
         return;
     }
     modulosACargar.forEach(modulo => {
-        const instructorName = instructors.find(i => i.instructorId === modulo.instructorId)?.firstName + ' ' + instructors.find(i => i.instructorId === modulo.instructorId)?.lastName || 'Sin asignar';
+        // Fix instructor name lookup
+        const instructor = instructors.find(i => i.instructorId === modulo.instructorId);
+        const instructorName = instructor ? `${instructor.firstName} ${instructor.lastName}` : 'Sin asignar';
+        
         cuerpoTabla.innerHTML += `
         <tr>
             <td>${modulo.moduleId}</td>
@@ -133,7 +162,8 @@ function aplicarFiltrosYBuscador() {
     if (texto) {
         lista = lista.filter(m =>
             (m.moduleName && m.moduleName.toLowerCase().includes(texto)) ||
-            (m.levelName && m.levelName.toLowerCase().includes(texto))
+            (m.levelName && m.levelName.toLowerCase().includes(texto)) ||
+            (m.moduleCode && m.moduleCode.toLowerCase().includes(texto))
         );
     }
 
@@ -141,9 +171,11 @@ function aplicarFiltrosYBuscador() {
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
+    console.log('Loading data...'); // Debug log
     await cargarLevels();
     await cargarInstructors();
     await cargarModulos();
+    console.log('Data loaded - Levels:', levels.length, 'Instructors:', instructors.length, 'Modules:', modulos.length); // Debug log
 
     buscadorModulosEl.addEventListener('input', aplicarFiltrosYBuscador);
     filtroAnoModuloEl.addEventListener('change', aplicarFiltrosYBuscador);
