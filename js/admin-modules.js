@@ -27,7 +27,13 @@ async function cargarLevels() {
         });
         const data = await res.json();
         console.log('Levels data:', data); // Debug log
-        levels = Array.isArray(data) ? data : (data.data || []);
+        
+        // Extract the levels array from the response structure
+        if (data.success && data.data) {
+            levels = Array.isArray(data.data) ? data.data : [];
+        } else {
+            levels = [];
+        }
         
         // Populate main form combobox
         comboLevelEl.innerHTML = '<option value="">Seleccionar año académico...</option>';
@@ -53,6 +59,7 @@ async function cargarLevels() {
         });
     } catch (error) {
         console.error('Error loading levels:', error);
+        levels = [];
     }
 }
 
@@ -63,7 +70,27 @@ async function cargarInstructors() {
         });
         const data = await res.json();
         console.log('Instructors data:', data); // Debug log
-        instructors = Array.isArray(data) ? data : (data.data || []);
+        
+        // Extract the instructors array from the response structure
+        if (data.success && data.data) {
+            // Check if data.data is an array or has a nested structure
+            if (Array.isArray(data.data)) {
+                instructors = data.data;
+            } else if (data.data.content && Array.isArray(data.data.content)) {
+                instructors = data.data.content;
+            } else if (typeof data.data === 'object') {
+                // If data.data is an object, it might contain the array in a property
+                const possibleArrays = Object.values(data.data).filter(val => Array.isArray(val));
+                instructors = possibleArrays.length > 0 ? possibleArrays[0] : [];
+            } else {
+                instructors = [];
+            }
+        } else {
+            instructors = [];
+        }
+        
+        console.log('Processed instructors:', instructors); // Debug log
+        
         comboInstructorEl.innerHTML = '<option value="">Seleccionar instructor...</option>';
         instructors.forEach(instructor => {
             const opcion = document.createElement('option');
@@ -73,6 +100,7 @@ async function cargarInstructors() {
         });
     } catch (error) {
         console.error('Error loading instructors:', error);
+        instructors = [];
     }
 }
 
@@ -83,16 +111,29 @@ async function cargarModulos() {
         });
         const data = await res.json();
         console.log('Modules data:', data); // Debug log
-        if (data && data.data && Array.isArray(data.data.content)) {
-            modulos = data.data.content;
-        } else if (Array.isArray(data)) {
-            modulos = data;
+        
+        // Extract the modules array from the response structure
+        if (data.success && data.data) {
+            if (Array.isArray(data.data)) {
+                modulos = data.data;
+            } else if (data.data.content && Array.isArray(data.data.content)) {
+                modulos = data.data.content;
+            } else if (typeof data.data === 'object') {
+                // If data.data is an object, it might contain the array in a property
+                const possibleArrays = Object.values(data.data).filter(val => Array.isArray(val));
+                modulos = possibleArrays.length > 0 ? possibleArrays[0] : [];
+            } else {
+                modulos = [];
+            }
         } else {
             modulos = [];
         }
+        
+        console.log('Processed modules:', modulos); // Debug log
         cargarTabla(modulos);
     } catch (error) {
         console.error('Error loading modules:', error);
+        modulos = [];
         cuerpoTabla.innerHTML = `<tr><td colspan="6" style="text-align: center;">No se pudieron cargar los módulos.</td></tr>`;
     }
 }
@@ -103,8 +144,15 @@ function cargarTabla(modulosACargar) {
         cuerpoTabla.innerHTML = `<tr><td colspan="6" style="text-align: center;">No hay módulos registrados.</td></tr>`;
         return;
     }
+    
+    // Ensure instructors array is available before using find
+    if (!Array.isArray(instructors)) {
+        console.warn('Instructors array not properly loaded, using empty array');
+        instructors = [];
+    }
+    
     modulosACargar.forEach(modulo => {
-        // Fix instructor name lookup
+        // Fix instructor name lookup with proper error handling
         const instructor = instructors.find(i => i.instructorId === modulo.instructorId);
         const instructorName = instructor ? `${instructor.firstName} ${instructor.lastName}` : 'Sin asignar';
         
@@ -175,7 +223,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     await cargarLevels();
     await cargarInstructors();
     await cargarModulos();
-    console.log('Data loaded - Levels:', levels.length, 'Instructors:', instructors.length, 'Modules:', modulos.length); // Debug log
+    console.log('Data loaded - Levels:', levels.length, 'Instructors:', Array.isArray(instructors) ? instructors.length : 'not array', 'Modules:', modulos.length); // Debug log
 
     buscadorModulosEl.addEventListener('input', aplicarFiltrosYBuscador);
     filtroAnoModuloEl.addEventListener('change', aplicarFiltrosYBuscador);
