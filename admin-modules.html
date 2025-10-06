@@ -74,15 +74,25 @@
         <form id="formulario-modulo" class="formulario-modulo">
             <input type="hidden" id="idModulo" />
             <div class="grupo-formulario">
+                <label for="codigoModulo">Código del Módulo:</label>
+                <input type="text" id="codigoModulo" required />
+            </div>
+            <div class="grupo-formulario">
                 <label for="nombreModulo">Nombre del Módulo:</label>
                 <input type="text" id="nombreModulo" required />
             </div>
             <div class="grupo-formulario seleccion-contenedor">
-        <label for="comboLevel">Año académico:</label>
-        <select id="comboLevel" required>
-            <!-- Se llena dinámicamente desde JS -->
-        </select>
-    </div>
+                <label for="comboLevel">Año académico:</label>
+                <select id="comboLevel" required>
+                    <!-- Se llena dinámicamente desde JS -->
+                </select>
+            </div>
+            <div class="grupo-formulario seleccion-contenedor">
+                <label for="comboInstructor">Instructor:</label>
+                <select id="comboInstructor" required>
+                    <!-- Se llena dinámicamente desde JS -->
+                </select>
+            </div>
             <button type="submit" id="btn-enviar" class="botones">Agregar Módulo</button>
             <button type="button" id="btn-cancelar" class="botones secundario" hidden>Cancelar</button>
         </form>
@@ -112,8 +122,10 @@
                 <thead>
                     <tr>
                         <th>ID</th>
+                        <th>Código</th>
                         <th>Nombre del Módulo</th>
                         <th>Año Académico</th>
+                        <th>Instructor</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>

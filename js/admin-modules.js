@@ -1,11 +1,14 @@
 const MODULES_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/modules';
 const LEVELS_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/levels/getAllLevels';
+const INSTRUCTORS_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/instructors/getAllInstructors';
 
 const formulario = document.getElementById('formulario-modulo');
 const nombreModuloEl = document.getElementById('nombreModulo');
+const codigoModuloEl = document.getElementById('codigoModulo');
 const descripcionModuloEl = document.getElementById('descripcionModulo');
 const idModuloEl = document.getElementById('idModulo');
 const comboLevelEl = document.getElementById('comboLevel');
+const comboInstructorEl = document.getElementById('comboInstructor');
 const botonCancelar = document.getElementById('btn-cancelar');
 const botonEnviar = document.getElementById('btn-enviar');
 const cuerpoTabla = document.getElementById('cuerpo-tabla-modulos');
@@ -14,6 +17,7 @@ const filtroAnoModuloEl = document.getElementById('filtro-ano-modulo');
 
 let modulos = [];
 let levels = [];
+let instructors = [];
 let modulosFiltrados = [];
 
 async function cargarLevels() {
@@ -33,6 +37,23 @@ async function cargarLevels() {
     } catch (error) {}
 }
 
+async function cargarInstructors() {
+    try {
+        const res = await fetch(INSTRUCTORS_API_URL, {
+            credentials: 'include'
+        });
+        const data = await res.json();
+        instructors = Array.isArray(data) ? data : (data.data || []);
+        comboInstructorEl.innerHTML = '<option value="">Seleccionar instructor...</option>';
+        instructors.forEach(instructor => {
+            const opcion = document.createElement('option');
+            opcion.value = instructor.instructorId;
+            opcion.textContent = `${instructor.firstName} ${instructor.lastName}`;
+            comboInstructorEl.appendChild(opcion);
+        });
+    } catch (error) {}
+}
+
 async function cargarModulos() {
     try {
         const res = await fetch(`${MODULES_API_URL}/getAllModules`, {
@@ -46,22 +67,25 @@ async function cargarModulos() {
         }
         cargarTabla(modulos);
     } catch (error) {
-        cuerpoTabla.innerHTML = `<tr><td colspan="4" style="text-align: center;">No se pudieron cargar los módulos.</td></tr>`;
+        cuerpoTabla.innerHTML = `<tr><td colspan="6" style="text-align: center;">No se pudieron cargar los módulos.</td></tr>`;
     }
 }
 
 function cargarTabla(modulosACargar) {
     cuerpoTabla.innerHTML = '';
     if (!modulosACargar || modulosACargar.length === 0) {
-        cuerpoTabla.innerHTML = `<tr><td colspan="4" style="text-align: center;">No hay módulos registrados.</td></tr>`;
+        cuerpoTabla.innerHTML = `<tr><td colspan="6" style="text-align: center;">No hay módulos registrados.</td></tr>`;
         return;
     }
     modulosACargar.forEach(modulo => {
+        const instructorName = instructors.find(i => i.instructorId === modulo.instructorId)?.firstName + ' ' + instructors.find(i => i.instructorId === modulo.instructorId)?.lastName || 'Sin asignar';
         cuerpoTabla.innerHTML += `
         <tr>
             <td>${modulo.moduleId}</td>
+            <td>${modulo.moduleCode || 'N/A'}</td>
             <td>${modulo.moduleName}</td>
             <td>${modulo.levelName}</td>
+            <td>${instructorName}</td>
             <td>
                 <button onclick="cargarParaEditarModulo('${modulo.moduleId}')">Editar</button>
                 <button onclick="borrarModulo('${modulo.moduleId}')">Eliminar</button>
@@ -75,8 +99,10 @@ function cargarParaEditarModulo(id) {
     const moduloAEditar = modulos.find(modulo => String(modulo.moduleId) === String(id));
     if (moduloAEditar) {
         nombreModuloEl.value = moduloAEditar.moduleName;
+        codigoModuloEl.value = moduloAEditar.moduleCode || '';
         idModuloEl.value = moduloAEditar.moduleId;
         comboLevelEl.value = moduloAEditar.levelId;
+        comboInstructorEl.value = moduloAEditar.instructorId;
 
         botonEnviar.textContent = 'Actualizar Módulo';
         botonCancelar.hidden = false;
@@ -116,6 +142,7 @@ function aplicarFiltrosYBuscador() {
 
 window.addEventListener('DOMContentLoaded', async () => {
     await cargarLevels();
+    await cargarInstructors();
     await cargarModulos();
 
     buscadorModulosEl.addEventListener('input', aplicarFiltrosYBuscador);
@@ -186,13 +213,29 @@ formulario.addEventListener('submit', async e => {
     e.preventDefault();
 
     const nombre = nombreModuloEl.value.trim();
+    const codigo = codigoModuloEl.value.trim();
     const id = idModuloEl.value;
     const levelId = comboLevelEl.value;
+    const instructorId = comboInstructorEl.value;
 
     if (!nombre) {
         Swal.fire({
             title: 'Error',
             text: 'El nombre del módulo es obligatorio.',
+            icon: 'error',
+            customClass: {
+                popup: 'swal-custom-popup',
+                title: 'swal-custom-title',
+                htmlContainer: 'swal-custom-content',
+                confirmButton: 'swal-custom-confirm-button'
+            }
+        });
+        return;
+    }
+    if (!codigo) {
+        Swal.fire({
+            title: 'Error',
+            text: 'El código del módulo es obligatorio.',
             icon: 'error',
             customClass: {
                 popup: 'swal-custom-popup',
@@ -217,6 +260,20 @@ formulario.addEventListener('submit', async e => {
         });
         return;
     }
+    if (!instructorId) {
+        Swal.fire({
+            title: 'Error',
+            text: 'Debes seleccionar un instructor.',
+            icon: 'error',
+            customClass: {
+                popup: 'swal-custom-popup',
+                title: 'swal-custom-title',
+                htmlContainer: 'swal-custom-content',
+                confirmButton: 'swal-custom-confirm-button'
+            }
+        });
+        return;
+    }
 
     if (id) {
         try {
@@ -226,8 +283,10 @@ formulario.addEventListener('submit', async e => {
                 credentials: 'include',
                 body: JSON.stringify({
                     moduleId: id,
+                    moduleCode: codigo,
                     moduleName: nombre,
-                    levelId: Number(levelId)
+                    levelId: Number(levelId),
+                    instructorId: Number(instructorId)
                 })
             });
             await Swal.fire({
@@ -261,8 +320,10 @@ formulario.addEventListener('submit', async e => {
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
                 body: JSON.stringify({
+                    moduleCode: codigo,
                     moduleName: nombre,
-                    levelId: Number(levelId)
+                    levelId: Number(levelId),
+                    instructorId: Number(instructorId)
                 })
             });
             await Swal.fire({
