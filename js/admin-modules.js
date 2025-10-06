@@ -160,16 +160,16 @@ async function handleFormSubmit(e) {
         return;
     }
     
-    // Validar que los elementos existen antes de acceder a sus propiedades
-    if (!codigoModuloEl || !nombreModuloEl || !descripcionModuloEl || !comboLevelEl || !comboInstructorEl || !idModuloEl) {
-        showMessage('Error: Elementos del formulario no encontrados', 'error');
+    // Validar que los elementos esenciales existen antes de acceder a sus propiedades
+    if (!codigoModuloEl || !nombreModuloEl || !comboLevelEl || !comboInstructorEl || !idModuloEl) {
+        showMessage('Error: Elementos esenciales del formulario no encontrados', 'error');
         return;
     }
     
     const moduleData = {
         moduleCode: codigoModuloEl.value.trim(),
         moduleName: nombreModuloEl.value.trim(),
-        moduleDescription: descripcionModuloEl.value.trim(),
+        moduleDescription: descripcionModuloEl ? descripcionModuloEl.value.trim() : '',
         levelId: parseInt(comboLevelEl.value),
         instructorId: parseInt(comboInstructorEl.value)
     };
@@ -238,27 +238,26 @@ function editModule(id) {
         return;
     }
     
-    // Verificar que todos los elementos del formulario existan
-    const elementos = {
+    // Verificar que los elementos esenciales del formulario existan
+    const elementosEsenciales = {
         idModuloEl,
         codigoModuloEl,
         nombreModuloEl,
-        descripcionModuloEl,
         comboLevelEl,
         comboInstructorEl,
         botonEnviar
     };
     
     const elementosFaltantes = [];
-    for (const [nombre, elemento] of Object.entries(elementos)) {
+    for (const [nombre, elemento] of Object.entries(elementosEsenciales)) {
         if (!elemento) {
             elementosFaltantes.push(nombre);
         }
     }
     
     if (elementosFaltantes.length > 0) {
-        console.error('Elementos no encontrados:', elementosFaltantes);
-        showMessage(`Error: Elementos del formulario no encontrados: ${elementosFaltantes.join(', ')}`, 'error');
+        console.error('Elementos esenciales no encontrados:', elementosFaltantes);
+        showMessage(`Error: Elementos esenciales del formulario no encontrados: ${elementosFaltantes.join(', ')}`, 'error');
         return;
     }
     
@@ -267,7 +266,11 @@ function editModule(id) {
         idModuloEl.value = module.moduleId;
         codigoModuloEl.value = module.moduleCode || '';
         nombreModuloEl.value = module.moduleName || '';
-        descripcionModuloEl.value = module.moduleDescription || '';
+        
+        // Campo descripción es opcional
+        if (descripcionModuloEl) {
+            descripcionModuloEl.value = module.moduleDescription || '';
+        }
         
         // Esperar un momento antes de seleccionar los valores de los combobox
         setTimeout(() => {
