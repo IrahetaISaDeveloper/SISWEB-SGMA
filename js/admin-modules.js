@@ -54,9 +54,13 @@ async function loadLevels() {
             credentials: 'include'
         });
         const data = await response.json();
+        console.log('Respuesta de niveles:', data);
         if (data.success) {
             levels = data.data.content || data.data;
+            console.log('Niveles cargados:', levels);
             populateLevelsCombo();
+        } else {
+            console.error('Error en respuesta de niveles:', data);
         }
     } catch (error) {
         console.error('Error al cargar niveles:', error);
@@ -83,28 +87,54 @@ async function loadInstructors() {
 
 // Poblar combobox de niveles
 function populateLevelsCombo() {
-    if (!comboLevelEl) return;
+    if (!comboLevelEl) {
+        console.error('comboLevelEl no encontrado');
+        return;
+    }
     
+    console.log('Poblando combo de niveles con:', levels);
     comboLevelEl.innerHTML = '<option value="">Seleccione un nivel</option>';
-    levels.forEach(level => {
+    
+    if (!levels || levels.length === 0) {
+        console.warn('No hay niveles para poblar el combo');
+        return;
+    }
+    
+    levels.forEach((level, index) => {
+        console.log(`Creando opción ${index}:`, level);
         const option = document.createElement('option');
         option.value = level.levelId;
         option.textContent = level.levelName;
         comboLevelEl.appendChild(option);
     });
+    
+    console.log('Combo de niveles poblado. Opciones:', comboLevelEl.children.length);
 }
 
 // Poblar combobox de instructores
 function populateInstructorsCombo() {
-    if (!comboInstructorEl) return;
+    if (!comboInstructorEl) {
+        console.error('comboInstructorEl no encontrado');
+        return;
+    }
     
+    console.log('Poblando combo de instructores con:', instructors);
     comboInstructorEl.innerHTML = '<option value="">Seleccione un instructor</option>';
-    instructors.forEach(instructor => {
+    
+    if (!instructors || instructors.length === 0) {
+        console.warn('No hay instructores para poblar el combo');
+        return;
+    }
+    
+    instructors.forEach((instructor, index) => {
+        console.log(`Creando opción instructor ${index}:`, instructor);
         const option = document.createElement('option');
         option.value = instructor.instructorId;
         option.textContent = `${instructor.firstName} ${instructor.lastName}`;
         comboInstructorEl.appendChild(option);
     });
+    
+    console.log('Combo de instructores poblado. Opciones:', comboInstructorEl.children.length);
 }
 
 // Cargar módulos con paginación
@@ -354,17 +384,47 @@ function editModule(id) {
             descripcionModuloEl.value = module.moduleDescription || '';
         }
         
+        // Verificar estado de los combos antes de seleccionar
+        console.log('Estado de combos antes de seleccionar:', {
+            levelOptions: comboLevelEl.options.length,
+            instructorOptions: comboInstructorEl.options.length,
+            moduleLevel: module.levelId,
+            moduleInstructor: module.instructorId
+        });
+        
         // Seleccionar valores en los combobox inmediatamente
         if (module.levelId) {
-            console.log('Seleccionando nivel:', module.levelId);
-            comboLevelEl.value = module.levelId.toString();
-            console.log('Valor seleccionado en nivel:', comboLevelEl.value);
+            console.log('Intentando seleccionar nivel:', module.levelId);
+            
+            // Buscar la opción correspondiente
+            let levelFound = false;
+            for (let i = 0; i < comboLevelEl.options.length; i++) {
+                if (comboLevelEl.options[i].value == module.levelId) {
+                    comboLevelEl.selectedIndex = i;
+                    levelFound = true;
+                    break;
+                }
+            }
+            
+            console.log('Nivel encontrado y seleccionado:', levelFound);
+            console.log('Valor actual del combo nivel:', comboLevelEl.value);
         }
         
         if (module.instructorId) {
-            console.log('Seleccionando instructor:', module.instructorId);
-            comboInstructorEl.value = module.instructorId.toString();
-            console.log('Valor seleccionado en instructor:', comboInstructorEl.value);
+            console.log('Intentando seleccionar instructor:', module.instructorId);
+            
+            // Buscar la opción correspondiente
+            let instructorFound = false;
+            for (let i = 0; i < comboInstructorEl.options.length; i++) {
+                if (comboInstructorEl.options[i].value == module.instructorId) {
+                    comboInstructorEl.selectedIndex = i;
+                    instructorFound = true;
+                    break;
+                }
+            }
+            
+            console.log('Instructor encontrado y seleccionado:', instructorFound);
+            console.log('Valor actual del combo instructor:', comboInstructorEl.value);
         }
         
         // Cambiar el botón a modo edición
@@ -455,6 +515,22 @@ function validateForm() {
     const levelValue = comboLevelEl.value;
     const instructorValue = comboInstructorEl.value;
     
+    // Debug adicional
+    console.log('Estado del comboLevelEl:', {
+        exists: !!comboLevelEl,
+        value: comboLevelEl?.value,
+        selectedIndex: comboLevelEl?.selectedIndex,
+        optionsCount: comboLevelEl?.options?.length,
+        innerHTML: comboLevelEl?.innerHTML?.substring(0, 100)
+    });
+    
+    console.log('Estado del comboInstructorEl:', {
+        exists: !!comboInstructorEl,
+        value: comboInstructorEl?.value,
+        selectedIndex: comboInstructorEl?.selectedIndex,
+        optionsCount: comboInstructorEl?.options?.length
+    });
+    
     console.log('Validando formulario:', { codigo, nombre, levelValue, instructorValue });
     
     if (!codigo) {
@@ -481,13 +557,13 @@ function validateForm() {
         return false;
     }
     
-    if (!levelValue || levelValue === '' || levelValue === '0') {
+    if (!levelValue || levelValue === '' || levelValue === '0' || levelValue === 'undefined') {
         showMessage('Debe seleccionar un nivel', 'error');
         comboLevelEl.focus();
         return false;
     }
     
-    if (!instructorValue || instructorValue === '' || instructorValue === '0') {
+    if (!instructorValue || instructorValue === '' || instructorValue === '0' || instructorValue === 'undefined') {
         showMessage('Debe seleccionar un instructor', 'error');
         comboInstructorEl.focus();
         return false;
