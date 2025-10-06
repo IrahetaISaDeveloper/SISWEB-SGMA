@@ -426,6 +426,13 @@ formulario.addEventListener('submit', async e => {
 }
 );
 
+botonCancelar.addEventListener('click', () => {
+    formulario.reset();
+    idModuloEl.value = '';
+    botonEnviar.textContent = 'Agregar Módulo';
+    botonCancelar.hidden = true;
+});
+
 async function borrarModulo(id) {
     const resultado = await Swal.fire({
         title: '¿Estás seguro?',
