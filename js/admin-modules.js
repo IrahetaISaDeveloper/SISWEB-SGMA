@@ -128,10 +128,10 @@ function renderModulesTable() {
             <td>${module.levelName || 'N/A'}</td>
             <td>${module.instructorName || 'N/A'}</td>
             <td>
-                <button class="btn btn-sm btn-warning" onclick="editModule(${module.moduleId})">
+                <button class="btn btn-sm btn-warning mb-1 me-1" onclick="editModule(${module.moduleId})">
                     <i class="fas fa-edit"></i> Editar
                 </button>
-                <button class="btn btn-sm btn-danger" onclick="deleteModule(${module.moduleId})">
+                <button class="btn btn-sm btn-danger mb-1" onclick="deleteModule(${module.moduleId})">
                     <i class="fas fa-trash"></i> Eliminar
                 </button>
             </td>
@@ -145,6 +145,12 @@ async function handleFormSubmit(e) {
     e.preventDefault();
     
     if (!validateForm()) {
+        return;
+    }
+    
+    // Validar que los elementos existen antes de acceder a sus propiedades
+    if (!codigoModuloEl || !nombreModuloEl || !descripcionModuloEl || !comboLevelEl || !comboInstructorEl || !idModuloEl) {
+        showMessage('Error: Elementos del formulario no encontrados', 'error');
         return;
     }
     
@@ -213,7 +219,7 @@ async function updateModule(id, moduleData) {
 // Editar módulo
 function editModule(id) {
     const module = modules.find(m => m.moduleId === id);
-    if (module) {
+    if (module && idModuloEl && codigoModuloEl && nombreModuloEl && descripcionModuloEl && comboLevelEl && comboInstructorEl && botonEnviar) {
         idModuloEl.value = module.moduleId;
         codigoModuloEl.value = module.moduleCode;
         nombreModuloEl.value = module.moduleName;
@@ -223,12 +229,28 @@ function editModule(id) {
         
         botonEnviar.textContent = 'Actualizar';
         botonEnviar.className = 'btn btn-warning';
+        
+        // Scroll al formulario
+        formulario.scrollIntoView({ behavior: 'smooth' });
+    } else {
+        showMessage('Error: No se pudo cargar la información del módulo', 'error');
     }
 }
 
 // Eliminar módulo
 async function deleteModule(id) {
-    if (!confirm('¿Está seguro de que desea eliminar este módulo?')) {
+    const result = await Swal.fire({
+        title: '¿Está seguro?',
+        text: '¿Desea eliminar este módulo? Esta acción no se puede deshacer.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (!result.isConfirmed) {
         return;
     }
     
@@ -252,14 +274,26 @@ async function deleteModule(id) {
 
 // Resetear formulario
 function resetForm() {
-    formulario.reset();
-    idModuloEl.value = '';
-    botonEnviar.textContent = 'Crear';
-    botonEnviar.className = 'btn btn-primary';
+    if (formulario) {
+        formulario.reset();
+    }
+    if (idModuloEl) {
+        idModuloEl.value = '';
+    }
+    if (botonEnviar) {
+        botonEnviar.textContent = 'Crear';
+        botonEnviar.className = 'btn btn-primary';
+    }
 }
 
 // Validar formulario
 function validateForm() {
+    // Validar que los elementos existen
+    if (!codigoModuloEl || !nombreModuloEl || !comboLevelEl || !comboInstructorEl) {
+        showMessage('Error: Elementos del formulario no encontrados', 'error');
+        return false;
+    }
+
     const codigo = codigoModuloEl.value.trim();
     const nombre = nombreModuloEl.value.trim();
     const levelId = comboLevelEl.value;
@@ -294,6 +328,10 @@ function validateForm() {
 
 // Filtrar módulos
 function filterModules() {
+    if (!buscadorModulosEl || !filtroAnoModuloEl) {
+        return;
+    }
+    
     const searchTerm = buscadorModulosEl.value.toLowerCase();
     const selectedYear = filtroAnoModuloEl.value;
     
@@ -328,10 +366,10 @@ function renderFilteredTable(filteredModules) {
             <td>${module.levelName || 'N/A'}</td>
             <td>${module.instructorName || 'N/A'}</td>
             <td>
-                <button class="btn btn-sm btn-warning" onclick="editModule(${module.moduleId})">
+                <button class="btn btn-sm btn-warning mb-1 me-1" onclick="editModule(${module.moduleId})">
                     <i class="fas fa-edit"></i> Editar
                 </button>
-                <button class="btn btn-sm btn-danger" onclick="deleteModule(${module.moduleId})">
+                <button class="btn btn-sm btn-danger mb-1" onclick="deleteModule(${module.moduleId})">
                     <i class="fas fa-trash"></i> Eliminar
                 </button>
             </td>
@@ -383,26 +421,21 @@ function debounce(func, wait) {
     };
 }
 
-// Mostrar mensajes
+// Mostrar mensajes con SweetAlert2
 function showMessage(message, type) {
-    // Crear elemento de mensaje
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `alert alert-${type === 'error' ? 'danger' : 'success'} alert-dismissible fade show`;
-    messageDiv.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
+    const iconType = type === 'error' ? 'error' : 'success';
+    const title = type === 'error' ? 'Error' : 'Éxito';
     
-    // Insertar en el DOM
-    const container = document.querySelector('.container-fluid') || document.body;
-    container.insertBefore(messageDiv, container.firstChild);
-    
-    // Auto-remover después de 5 segundos
-    setTimeout(() => {
-        if (messageDiv.parentNode) {
-            messageDiv.remove();
-        }
-    }, 5000);
+    Swal.fire({
+        title: title,
+        text: message,
+        icon: iconType,
+        timer: 3000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end'
+    });
 }
 
 // Exportar funciones para uso global
