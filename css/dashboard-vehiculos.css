@@ -50,20 +50,10 @@ body {
     display: grid;
     grid-template-columns: var(--ancho-sidebar) 1fr;
     min-height: 100vh;
+    overflow-x: hidden; /* Prevenir scroll horizontal */
 }
 
-.tarjeta-principal {
-    background: var(--fondo-tarjeta);
-    border-radius: var(--radio-borde-grande);
-    box-shadow: var(--sombra-media);
-    border: 1px solid var(--color-borde);
-    overflow: hidden;
-    max-width: 1100px;      /* Más ancho */
-    width: 130%;             /* Ocupa casi todo el espacio disponible */
-    padding: 40px 32px;     /* Más espacio interno */
-}
-
-
+/* ===== SIDEBAR ===== */
 .sidebar {
     background: linear-gradient(180deg, #1a1a1a 0%, #2d2d2d 100%);
     width: var(--ancho-sidebar);
@@ -308,10 +298,13 @@ body {
     display: none;
 }
 
+/* ===== CONTENIDO PRINCIPAL ===== */
 .contenedor-principal {
     margin-left: var(--ancho-sidebar);
     min-height: 100vh;
     background-color: var(--fondo-app);
+    width: calc(100vw - var(--ancho-sidebar)); /* Asegurar ancho correcto */
+    overflow-x: hidden; /* Prevenir scroll horizontal */
 }
 
 .header-usuario {
@@ -319,6 +312,7 @@ body {
     padding: var(--espaciado-l);
     border-bottom: 1px solid var(--color-borde);
     box-shadow: var(--sombra-suave);
+    width: 100%;
 }
 
 .info-usuario-header {
@@ -371,6 +365,9 @@ body {
     gap: var(--espaciado-l);
     padding: var(--espaciado-l);
     min-height: calc(100vh - 180px);
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .panel-lateral {
@@ -383,6 +380,7 @@ body {
     box-shadow: var(--sombra-media);
     border: 1px solid var(--color-borde);
     overflow: hidden;
+    width: 100%;
 }
 
 .header-sidebar {
@@ -486,6 +484,8 @@ body {
 
 .contenido-principal {
     background: transparent;
+    width: 100%;
+    overflow-x: hidden; /* Prevenir scroll horizontal */
 }
 
 .tarjeta-principal {
@@ -494,6 +494,10 @@ body {
     box-shadow: var(--sombra-media);
     border: 1px solid var(--color-borde);
     overflow: hidden;
+    width: 100%; /* Cambiado de 130% a 100% */
+    max-width: 100%; /* Asegurar que no exceda el contenedor */
+    padding: var(--espaciado-xl);
+    box-sizing: border-box;
 }
 
 .header-tarjeta {
@@ -543,6 +547,7 @@ body {
     gap: var(--espaciado-m);
     flex-wrap: wrap;
     border-bottom: 1px solid var(--color-borde);
+    width: 100%;
 }
 
 .buscador {
@@ -601,12 +606,15 @@ body {
 
 .tabla-container {
     overflow-x: auto;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
 }
 
 .tabla-moderna {
     width: 100%;
     border-collapse: collapse;
     background: white;
+    min-width: 1000px; /* Forzar scroll horizontal solo si es necesario */
 }
 
 .tabla-moderna th {
@@ -777,6 +785,7 @@ body {
     justify-content: space-between;
     align-items: center;
     border-top: 1px solid var(--color-borde);
+    width: 100%;
 }
 
 .info-paginacion {
@@ -955,81 +964,701 @@ body {
     background: #38a169;
 }
 
+/* ===== RESPONSIVE ===== */
+
+/* ===== CORRECCIONES RESPONSIVE PARA MEJOR USO DEL ESPACIO ===== */
+
+/* Tablets - Mejor uso del espacio */
 @media (max-width: 1024px) {
     .contenido-layout {
         grid-template-columns: 1fr;
-        gap: var(--espaciado-m);
+        gap: var(--espaciado-l);
+        padding: var(--espaciado-l);
+        min-height: auto;
     }
     
     .panel-lateral {
         order: 2;
+        width: 100%;
     }
     
     .contenido-principal {
         order: 1;
-    }
-}
-
-@media (max-width: 768px) {
-    :root {
-        --ancho-sidebar: 70px;
+        width: 100%;
     }
     
-    .sidebar-logo img {
-        width: 48px;
-        height: 48px;
+    .tarjeta-sidebar {
+        width: 100%;
+        margin-bottom: 0;
     }
     
-    .enlace-sidebar {
-        height: 60px;
+    .tarjeta-principal {
+        width: 100%;
+        padding: var(--espaciado-xl);
+        margin: 0 auto;
     }
     
-    .enlace-sidebar i {
-        font-size: 1.5rem;
+    .lista-registros {
+        max-height: 400px;
     }
     
-    .contenedor-principal {
-        margin-left: 70px;
-    }
-    
-    .controles-filtro {
-        flex-direction: column;
-    }
-    
-    .buscador {
-        min-width: auto;
-    }
-    
+    /* Mejorar la tabla para tablets */
     .tabla-moderna {
-        font-size: 0.85rem;
+        min-width: 900px;
+        font-size: 0.9rem;
     }
     
-    .tabla-moderna th,
-    .tabla-moderna td {
-        padding: 12px 8px;
-    }
-    
-    .acciones-tabla {
-        flex-direction: column;
+    .tabla-container {
+        border: 1px solid var(--color-borde);
+        border-radius: var(--radio-borde);
+        background: white;
     }
 }
 
-@media (max-width: 480px) {
-    .header-usuario {
-        padding: var(--espaciado-m);
-    }
-    
-    .titulo-pagina h1 {
-        font-size: 1.5rem;
+/* Móviles grandes - Expandir elementos */
+@media (max-width: 768px) {
+    .contenedor-principal {
+        width: 100vw;
+        margin-left: 0;
+        padding-top: 60px; /* Espacio para navbar móvil */
     }
     
     .contenido-layout {
         padding: var(--espaciado-m);
+        gap: var(--espaciado-l);
+        width: 100%;
+        margin: 0;
+    }
+    
+    .tarjeta-principal {
+        width: 100%;
+        padding: var(--espaciado-l);
+        margin: 0;
+        border-radius: var(--radio-borde-grande);
+    }
+    
+    .tarjeta-sidebar {
+        width: 100%;
+        margin: 0;
+    }
+    
+    .header-tarjeta {
+        padding: var(--espaciado-l);
+    }
+    
+    .header-tarjeta h2 {
+        font-size: 1.4rem;
+        width: 100%;
+    }
+    
+    .controles-header {
+        width: 100%;
+        justify-content: flex-start;
+        margin-top: var(--espaciado-s);
+    }
+    
+    .controles-filtro {
+        padding: var(--espaciado-l);
+        gap: var(--espaciado-m);
+    }
+    
+    .buscador {
+        width: 100%;
+    }
+    
+    .buscador input {
+        width: 100%;
+        font-size: 1rem;
+        padding: 14px 14px 14px 45px;
+    }
+    
+    .filtros {
+        width: 100%;
+        gap: var(--espaciado-m);
+    }
+    
+    .select-filtro {
+        flex: 1;
+        min-width: 0;
+        font-size: 1rem;
+        padding: 14px 16px;
+    }
+    
+    /* Tabla más compacta pero legible */
+    .tabla-moderna {
+        min-width: 850px;
+        font-size: 0.88rem;
+    }
+    
+    .tabla-moderna th,
+    .tabla-moderna td {
+        padding: 14px 10px;
+    }
+    
+    /* Mejorar items del panel lateral */
+    .item-registro {
+        padding: var(--espaciado-l);
+        gap: var(--espaciado-l);
+    }
+    
+    .icono-vehiculo {
+        width: 50px;
+        height: 50px;
+        font-size: 1.3rem;
+    }
+    
+    .placa-vehiculo {
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+    
+    .servicio-vehiculo {
+        font-size: 1rem;
+        color: var(--texto-oscuro);
+    }
+    
+    .fecha-vehiculo {
+        font-size: 0.9rem;
+    }
+    
+    .paginacion {
+        padding: var(--espaciado-l);
+        gap: var(--espaciado-m);
+    }
+    
+    .info-paginacion {
+        font-size: 1rem;
+    }
+    
+    .btn-paginacion {
+        width: 44px;
+        height: 44px;
+        font-size: 1rem;
+    }
+}
+
+/* Móviles pequeños - Ocupar máximo espacio */
+@media (max-width: 576px) {
+    .contenido-layout {
+        padding: var(--espaciado-s);
+        gap: var(--espaciado-m);
+    }
+    
+    .tarjeta-principal {
+        padding: var(--espaciado-l);
+        border-radius: var(--radio-borde);
+    }
+    
+    .header-tarjeta {
+        padding: var(--espaciado-l);
+    }
+    
+    .header-tarjeta h2 {
+        font-size: 1.3rem;
+        text-align: center;
+        width: 100%;
+    }
+    
+    .controles-header {
+        justify-content: center;
+    }
+    
+    .btn-exportar {
+        padding: 12px 20px;
+        font-size: 1rem;
+    }
+    
+    .controles-filtro {
+        padding: var(--espaciado-l);
+        gap: var(--espaciado-l);
+    }
+    
+    .buscador input {
+        padding: 16px 16px 16px 50px;
+        font-size: 1.1rem;
+    }
+    
+    .buscador i {
+        font-size: 1.2rem;
+        left: 16px;
+    }
+    
+    .filtros {
         gap: var(--espaciado-s);
     }
     
-    .modal-container {
-        margin: var(--espaciado-s);
-        max-width: none;
+    .select-filtro {
+        padding: 16px;
+        font-size: 1.1rem;
+    }
+    
+    /* Tabla optimizada para móviles pequeños */
+    .tabla-moderna {
+        min-width: 800px;
+        font-size: 0.85rem;
+    }
+    
+    .tabla-moderna th:nth-child(n+7),
+    .tabla-moderna td:nth-child(n+7) {
+        display: none; /* Ocultar columnas menos importantes */
+    }
+    
+    /* Panel lateral más compacto pero legible */
+    .item-registro {
+        padding: var(--espaciado-m);
+        gap: var(--espaciado-m);
+    }
+    
+    .icono-vehiculo {
+        width: 45px;
+        height: 45px;
+        font-size: 1.2rem;
+    }
+    
+    .placa-vehiculo {
+        font-size: 1rem;
+    }
+    
+    .servicio-vehiculo {
+        font-size: 0.95rem;
+    }
+    
+    .header-sidebar h3 {
+        font-size: 1.2rem;
+    }
+    
+    .badge-contador {
+        font-size: 0.9rem;
+        padding: 6px 10px;
     }
 }
+
+/* Móviles muy pequeños - Enfocar en usabilidad */
+@media (max-width: 480px) {
+    .contenido-layout {
+        padding: 10px;
+        gap: 15px;
+    }
+    
+    .tarjeta-principal,
+    .tarjeta-sidebar {
+        border-radius: 12px;
+        padding: 20px;
+    }
+    
+    .header-tarjeta,
+    .header-sidebar {
+        padding: 20px;
+    }
+    
+    .header-tarjeta h2 {
+        font-size: 1.25rem;
+    }
+    
+    .controles-filtro {
+        padding: 20px;
+    }
+    
+    /* Botones más grandes para touch */
+    .btn-accion {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
+    }
+    
+    .btn-opciones {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
+    }
+    
+    .btn-paginacion {
+        width: 42px;
+        height: 42px;
+    }
+    
+    /* Mejorar legibilidad */
+    .placa-vehiculo {
+        font-size: 1.05rem;
+        font-weight: 700;
+    }
+    
+    .servicio-vehiculo {
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+}
+
+/* Landscape en móviles - Aprovechar el ancho */
+@media (max-width: 768px) and (orientation: landscape) {
+    .contenido-layout {
+        grid-template-columns: 1fr 1fr;
+        gap: var(--espaciado-m);
+    }
+    
+    .panel-lateral {
+        order: 1;
+    }
+    
+    .contenido-principal {
+        order: 2;
+    }
+    
+    .lista-registros {
+        max-height: 250px;
+    }
+    
+    .tarjeta-principal {
+        height: fit-content;
+    }
+}
+
+/* Asegurar que los textos sean legibles */
+@media (max-width: 768px) {
+    .placa-vehiculo,
+    .servicio-vehiculo,
+    .fecha-vehiculo {
+        line-height: 1.4;
+    }
+    
+    .vehiculo-info .marca,
+    .estudiante-info .nombre {
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+    
+    .estado-badge {
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+}
+
+/* Mejorar espaciado general en móviles */
+@media (max-width: 768px) {
+    * {
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    .tarjeta-principal > *:not(:last-child) {
+        margin-bottom: var(--espaciado-l);
+    }
+    
+    .tarjeta-sidebar > *:not(:last-child) {
+        margin-bottom: var(--espaciado-m);
+    }
+}
+
+/* ===== NAVBAR MOBILE Y OFFCANVAS ===== */
+.navbar-mobile {
+    display: none;
+    background: linear-gradient(90deg, #1a1a1a 0%, #2d2d2d 100%);
+    color: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    z-index: 1001;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid var(--color-borde-oscuro);
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.navbar-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    padding: 0 15px;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.navbar-logo {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    max-width: calc(100% - 60px);
+}
+
+.navbar-logo img {
+    height: 35px;
+    border-radius: var(--radio-borde-pequeno);
+    max-width: 100%;
+    object-fit: contain;
+}
+
+.hamburger-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.4rem;
+    cursor: pointer;
+    padding: 0;
+    border-radius: var(--radio-borde-pequeno);
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    position: relative;
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.hamburger-btn:hover {
+    background-color: rgba(231, 76, 60, 0.3);
+    transform: scale(1.05);
+}
+
+/* Offcanvas para móviles */
+.offcanvas {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 280px;
+    height: 100%;
+    background: linear-gradient(180deg, #1a1a1a 0%, #2d2d2d 100%);
+    color: white;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1002;
+    overflow-y: auto;
+    box-shadow: 2px 0 20px rgba(0, 0, 0, 0.4);
+    border-right: 1px solid var(--color-borde-oscuro);
+}
+
+.offcanvas.active {
+    left: 0;
+}
+
+.offcanvas-header {
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--color-borde-oscuro);
+    background: linear-gradient(135deg, var(--acento-rojo), var(--acento-rojo-oscuro));
+    height: 80px;
+}
+
+.offcanvas-logo img {
+    height: 50px;
+    border-radius: var(--radio-borde-pequeno);
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: var(--radio-borde-pequeno);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+
+.close-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+}
+
+/* Overlay para cerrar offcanvas */
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1001;
+    backdrop-filter: blur(3px);
+}
+
+.overlay.active {
+    display: block;
+}
+
+/* Estilos específicos para el offcanvas */
+.offcanvas .navegacion-sidebar {
+    padding-top: var(--espaciado-m);
+    padding-bottom: var(--espaciado-l);
+}
+
+.offcanvas .enlace-sidebar {
+    justify-content: flex-start;
+    padding-left: 25px;
+    height: 65px;
+    border-left: 4px solid transparent;
+    margin: 2px 0;
+}
+
+.offcanvas .enlace-sidebar i {
+    font-size: 1.6rem;
+    margin-right: 15px;
+    width: 25px;
+    text-align: center;
+}
+
+.offcanvas .tooltip {
+    display: inline !important;
+    position: static !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    background: none !important;
+    color: inherit !important;
+    padding: 0 !important;
+    transform: none !important;
+    font-size: 1rem;
+}
+
+.offcanvas .tooltip::before {
+    display: none;
+}
+
+.offcanvas .dropdown-content-sidebar {
+    position: static;
+    background: rgba(0, 0, 0, 0.25);
+    box-shadow: none;
+    border: none;
+    border-radius: 0;
+    min-width: auto;
+    margin-left: 25px;
+    border-left: 2px solid var(--acento-rojo);
+    display: none;
+}
+
+.offcanvas .dropdown-content-sidebar[style*="display: block"] {
+    display: block !important;
+}
+
+.offcanvas .dropdown-content-sidebar a {
+    padding: 12px 20px;
+    font-size: 0.9rem;
+    border-left: 3px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.offcanvas .dropdown-content-sidebar a:hover {
+    border-left-color: var(--acento-rojo);
+    background: rgba(231, 76, 60, 0.1);
+}
+
+.offcanvas .dropdown-content-sidebar a i {
+    font-size: 1rem;
+    width: 20px;
+}
+
+/* Scrollbar personalizado para el offcanvas */
+.offcanvas::-webkit-scrollbar {
+    width: 6px;
+}
+
+.offcanvas::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.offcanvas::-webkit-scrollbar-thumb {
+    background: var(--acento-rojo);
+    border-radius: 3px;
+}
+
+.offcanvas::-webkit-scrollbar-thumb:hover {
+    background: var(--acento-rojo-oscuro);
+}
+
+/* Responsive - Mostrar navbar en móviles */
+@media (max-width: 768px) {
+    .navbar-mobile {
+        display: flex;
+        align-items: center;
+    }
+    
+    .sidebar {
+        display: none;
+    }
+    
+    body {
+        grid-template-columns: 1fr;
+        grid-template-areas: "main";
+        overflow: auto;
+    }
+    
+    .contenedor-principal {
+        margin-left: 0;
+        padding-top: 70px;
+        min-height: calc(100vh - 70px);
+    }
+    
+    .contenido-layout {
+        padding: var(--espaciado-m);
+        padding-top: var(--espaciado-s);
+    }
+}
+
+/* Ajustes para tablets - mantener sidebar visible */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .navbar-mobile {
+        display: none;
+    }
+    
+    .sidebar {
+        display: flex;
+    }
+}
+
+/* Para pantallas muy pequeñas */
+@media (max-width: 480px) {
+    .offcanvas {
+        width: 260px;
+    }
+    
+    .offcanvas-header {
+        padding: 12px 15px;
+        height: 70px;
+    }
+    
+    .offcanvas-logo img {
+        height: 45px;
+    }
+    
+    .offcanvas .enlace-sidebar {
+        padding-left: 20px;
+        height: 60px;
+    }
+    
+    .offcanvas .enlace-sidebar i {
+        font-size: 1.4rem;
+        margin-right: 12px;
+    }
+    
+    .offcanvas .tooltip {
+        font-size: 0.95rem;
+    }
+    
+    .navbar-content {
+        padding: 0 15px;
+    }
+    
+    .navbar-logo img {
+        height: 30px;
+    }
+    
+    .hamburger-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+}
+
