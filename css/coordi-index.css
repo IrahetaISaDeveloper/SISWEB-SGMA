@@ -226,9 +226,9 @@ body {
     position: absolute;
     left: calc(100% + 5px);
     top: 0;
-    background: rgba(0, 0, 0, 0.9);
-    min-width: 200px;
-    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.95);
+    min-width: 220px;
+    border-radius: 8px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
     z-index: 1000;
     backdrop-filter: blur(10px);
@@ -245,15 +245,18 @@ body {
     gap: 10px;
     transition: background-color 0.3s ease;
     font-size: 0.9rem;
+    border-left: 3px solid transparent;
 }
 
 .dropdown-content-sidebar a:hover {
     background-color: rgba(231, 76, 60, 0.2);
+    border-left-color: var(--acento-rojo);
 }
 
 .dropdown-content-sidebar a i {
     font-size: 1rem;
     width: 20px;
+    text-align: center;
 }
 
 .dropdown-sidebar:hover .dropdown-content-sidebar {
@@ -596,4 +599,397 @@ body {
     .contenido-principal-coordi {
         padding: var(--espaciado-xl);
     }
+}
+
+@media (min-width: 769px) {
+    .dropdown-sidebar:hover .dropdown-content-sidebar {
+        display: block;
+    }
+}
+
+/* ===== NAVBAR MOBILE ===== */
+.navbar-mobile {
+    display: none;
+    background: linear-gradient(90deg, #1a1a1a 0%, #2d2d2d 100%);
+    color: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw; /* Usar viewport width */
+    height: 60px;
+    z-index: 1001;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid var(--color-borde-oscuro);
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    overflow: hidden; /* Prevenir desbordamiento */
+}
+
+.navbar-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    padding: 0 15px;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.navbar-logo {
+    display: flex;
+    align-items: center;
+}
+
+.navbar-logo img {
+    height: 35px;
+    border-radius: var(--radio-borde-pequeno);
+}
+
+.hamburger-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.4rem;
+    cursor: pointer;
+    padding: 0;
+    border-radius: var(--radio-borde-navbar-boton);
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    position: relative;
+    flex-shrink: 0;
+    margin: 0;
+    /* Asegurar visibilidad */
+    right: 0;
+}
+
+.hamburger-btn:hover {
+    background-color: rgba(231, 76, 60, 0.3);
+    transform: scale(1.05);
+}
+
+/* ===== DROPDOWN OFFCANVAS MOVIL ===== */
+.offcanvas .dropdown-content-sidebar {
+    display: none;
+    background: rgba(0, 0, 0, 0.3);
+    margin-left: 20px;
+    border-left: 2px solid var(--acento-rojo);
+}
+
+.offcanvas .dropdown-content-sidebar a {
+    padding: 12px 20px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: white;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.offcanvas .dropdown-content-sidebar a:hover {
+    background-color: rgba(231, 76, 60, 0.2);
+}
+/* Ocultar tooltip en dropdowns */
+.dropdown-sidebar:hover .tooltip {
+    display: none;
+}
+
+/* Para desktop - hover states mejorados */
+@media (min-width: 769px) {
+    .sidebar .dropdown-sidebar:hover .dropdown-content-sidebar {
+        display: block !important;
+    }
+    
+    .sidebar .dropdown-content-sidebar {
+        display: none;
+    }
+}
+
+/* Offcanvas para móviles */
+.offcanvas {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 280px;
+    height: 100%;
+    background: linear-gradient(180deg, #1a1a1a 0%, #2d2d2d 100%);
+    color: white;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1002;
+    overflow-y: auto;
+    box-shadow: 2px 0 20px rgba(0, 0, 0, 0.4);
+    border-right: 1px solid var(--color-borde-oscuro);
+}
+
+.offcanvas.active {
+    left: 0;
+}
+
+.offcanvas-header {
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--color-borde-oscuro);
+    background: linear-gradient(135deg, var(--acento-rojo), var(--acento-rojo-oscuro));
+    height: 80px;
+}
+
+.offcanvas-logo img {
+    height: 50px;
+    border-radius: var(--radio-borde-pequeno);
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: var(--radio-borde-navbar-boton);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+
+.close-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+}
+
+/* Overlay para cerrar offcanvas */
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1001;
+    backdrop-filter: blur(3px);
+}
+
+.overlay.active {
+    display: block;
+}
+
+/* Estilos específicos para el offcanvas */
+.offcanvas .navegacion-sidebar {
+    padding-top: var(--espaciado-m);
+    padding-bottom: var(--espaciado-l);
+}
+
+.offcanvas .enlace-sidebar {
+    justify-content: flex-start;
+    padding-left: 25px;
+    height: 65px;
+    border-left: 4px solid transparent;
+    margin: 2px 0;
+}
+
+.offcanvas .enlace-sidebar i {
+    font-size: 1.6rem;
+    margin-right: 15px;
+    width: 25px;
+    text-align: center;
+}
+
+.offcanvas .tooltip {
+    display: inline !important;
+    position: static !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    background: none !important;
+    color: inherit !important;
+    padding: 0 !important;
+    transform: none !important;
+    font-size: 1rem;
+}
+
+.offcanvas .tooltip::before {
+    display: none;
+}
+
+.offcanvas .dropdown-content-sidebar {
+    position: static;
+    background: rgba(0, 0, 0, 0.25);
+    box-shadow: none;
+    border: none;
+    border-radius: 0;
+    min-width: auto;
+    margin-left: 25px;
+    border-left: 2px solid var(--acento-rojo);
+}
+
+.offcanvas .dropdown-content-sidebar a {
+    padding: 12px 20px;
+    font-size: 0.9rem;
+    border-left: 3px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.offcanvas .dropdown-content-sidebar a:hover {
+    border-left-color: var(--acento-rojo);
+    background: rgba(231, 76, 60, 0.1);
+}
+
+.offcanvas .dropdown-content-sidebar a i {
+    font-size: 1rem;
+    width: 20px;
+}
+
+/* Scrollbar personalizado para el offcanvas */
+.offcanvas::-webkit-scrollbar {
+    width: 6px;
+}
+
+.offcanvas::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.offcanvas::-webkit-scrollbar-thumb {
+    background: var(--acento-rojo);
+    border-radius: 3px;
+}
+
+.offcanvas::-webkit-scrollbar-thumb:hover {
+    background: var(--acento-rojo-oscuro);
+}
+
+/* Responsive - Mostrar navbar en móviles */
+@media (max-width: 768px) {
+    .navbar-mobile {
+        display: flex;
+        align-items: center;
+    }
+    
+    .sidebar {
+        display: none;
+    }
+    
+    body {
+        grid-template-columns: 1fr;
+        grid-template-areas: "main";
+        overflow: auto;
+    }
+    
+    .contenido-principal-coordi {
+        margin-left: 0;
+        padding-top: 70px;
+        height: auto;
+        min-height: calc(100vh - 70px);
+        overflow: visible;
+    }
+    
+    .info-usuario-header {
+        margin-top: var(--espaciado-s);
+    }
+
+    /* Ajustar los media queries existentes para móviles */
+    @media (max-width: 767px) {
+        :root {
+            --ancho-sidebar: 0px;
+        }
+
+        body {
+            grid-template-columns: 1fr;
+        }
+
+        .contenido-principal-coordi {
+            margin-left: 0;
+            padding: var(--espaciado-l);
+            padding-top: 70px;
+        }
+        
+        .navbar-mobile {
+            padding: 0 15px;
+            height: 60px;
+        }
+        
+        .navbar-logo img {
+            height: 32px;
+        }
+        
+        .hamburger-btn {
+            width: 42px;
+            height: 42px;
+            font-size: 1.3rem;
+        }
+    }
+}
+
+/* Ajustes para tablets - mantener sidebar visible */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .navbar-mobile {
+        display: none;
+    }
+    
+    .sidebar {
+        display: flex;
+    }
+}
+
+/* Para pantallas muy pequeñas */
+@media (max-width: 480px) {
+    .offcanvas {
+        width: 260px;
+    }
+    
+    .offcanvas-header {
+        padding: 12px 15px;
+        height: 70px;
+    }
+    
+    .offcanvas-logo img {
+        height: 45px;
+    }
+    
+    .offcanvas .enlace-sidebar {
+        padding-left: 20px;
+        height: 60px;
+    }
+    
+    .offcanvas .enlace-sidebar i {
+        font-size: 1.4rem;
+        margin-right: 12px;
+    }
+    
+    .offcanvas .tooltip {
+        font-size: 0.95rem;
+    }
+}
+
+/* ===== DROPDOWN DEBUG - FORZAR VISUALIZACIÓN ===== */
+.offcanvas .dropdown-content-sidebar {
+    display: none;
+}
+
+/* FORZAR que se muestre cuando el JavaScript lo active */
+.offcanvas .dropdown-content-sidebar[style*="display: block"] {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    height: auto !important;
+    max-height: 500px !important;
+    overflow: visible !important;
+}
+
+/* O usando clase */
+.offcanvas .dropdown-content-sidebar.dropdown-show {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
