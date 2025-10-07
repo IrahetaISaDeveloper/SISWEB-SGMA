@@ -12,8 +12,20 @@
     <link rel="stylesheet" href="css/coordi-index.css" />
 </head>
 
-
 <body>
+    <!-- Navbar para móviles -->
+    <nav class="navbar-mobile">
+        <div class="navbar-content">
+            <div class="navbar-logo">
+                <img src="imgs/logo.png" alt="Logo ITR" class="navbar-logo-img">
+            </div>
+            <button class="hamburger-btn" id="hamburgerBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Sidebar para pantallas grandes -->
     <aside class="sidebar">
         <div class="sidebar-logo">
             <img src="imgs/logo.png" alt="Logo ITR" class="sidebar-logo-img">
@@ -65,6 +77,66 @@
         </nav>
     </aside>
 
+    <!-- Offcanvas para móviles -->
+<div class="offcanvas" id="offcanvas">
+    <div class="offcanvas-header">
+        <div class="offcanvas-logo">
+            <img src="imgs/logo.png" alt="Logo ITR">
+        </div>
+        <button class="close-btn" id="closeBtn">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <nav class="navegacion-sidebar">
+        <ul>
+            <li>
+                <a href="coordi-index.html" class="enlace-sidebar activo" title="Inicio">
+                    <i class="fas fa-home"></i>
+                    <span class="tooltip">Inicio</span>
+                </a>
+            </li>
+            <li>
+                <a href="dashboard-vehiculos.html" class="enlace-sidebar" title="Vehículos">
+                    <i class="fas fa-car"></i>
+                    <span class="tooltip">Vehículos</span>
+                </a>
+            </li>
+            <li>
+                <a href="reportes.html" class="enlace-sidebar" title="Reportes">
+                    <i class="fas fa-chart-bar"></i>
+                    <span class="tooltip">Reportes</span>
+                </a>
+            </li>
+            <li class="dropdown-sidebar">
+                <a href="#" class="enlace-sidebar dropdown-toggle" title="Administración" onclick="toggleDropdown(this)">
+                    <i class="fas fa-cog"></i>
+                    <span class="tooltip">Administración</span>
+                </a>
+                <div class="dropdown-content-sidebar">
+                    <a href="admin-users.html"><i class="fas fa-users"></i> Gestionar Docentes</a>
+                    <a href="admin-modules.html"><i class="fas fa-puzzle-piece"></i> Gestionar Módulos</a>
+                    <a href="admin-students.html"><i class="fas fa-graduation-cap"></i> Gestionar Estudiantes</a>
+                </div>
+            </li>
+            <li>
+                <a href="perfil-coord.html" class="enlace-sidebar" title="Mi perfil">
+                    <i class="fas fa-user"></i>
+                    <span class="tooltip">Mi Perfil</span>
+                </a>
+            </li>
+            <li>
+                <a href="index.html" class="enlace-sidebar" title="Cerrar Sesión">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="tooltip">Cerrar Sesión</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+    <!-- Overlay para cerrar offcanvas -->
+    <div class="overlay" id="overlay"></div>
+
     <main class="contenido-principal-coordi">
         <div class="info-usuario-header" id="info-usuario-header">
             <div class="avatar-usuario-header">
@@ -94,24 +166,6 @@
                 </div>
             </div>
         </section>
-
-        <!--<section class="tarjeta-principal">
-            <div class="header-tarjeta">
-                <h2>Información vehículos del dia</h2>
-            </div>
-            <div class="contenido-tarjeta">
-                <div class="resumen-estado">
-                    <div class="caja-estado">
-                        <span class="cantidad">5</span>
-                        <span class="etiqueta">Vehículos ingresados</span>
-                    </div>
-                    <div class="caja-estado">
-                        <span class="cantidad">3</span>
-                        <span class="etiqueta">Vehículos despachados</span>
-                    </div>
-                </div>
-            </div>
-        </section>-->
 
         <section class="tarjeta-principal">
             <div class="header-tarjeta">
@@ -151,8 +205,8 @@
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="js/menu-toggle.js"></script>
     <script type="module" src="js/coordi-index.js"></script>
-
+    
 </body>
-
 </html>
