@@ -1,5 +1,6 @@
 // URL base para los endpoints de autenticación de instructores
 const API_AUTH = "https://sgma-66ec41075156.herokuapp.com/api/instructorsAuth";
+const API_INSTRUCTORS = "https://sgma-66ec41075156.herokuapp.com/api/instructors";
 
 // Realiza el inicio de sesión con email y password
 export async function login({ email, password }) {
@@ -52,7 +53,7 @@ export async function logout() {
 
 // Cambia la contraseña del instructor
 export async function changePassword(instructorId) {
-  const r = await fetch(`${API_AUTH}/update/${instructorId}/password`, {
+  const r = await fetch(`${API_INSTRUCTORS}/update/${instructorId}/password`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     credentials: "include"
