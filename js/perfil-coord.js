@@ -29,9 +29,6 @@ async function cargarPerfil() {
         if (instructor.phone) {
             document.getElementById('telefonoUsuario').textContent = instructor.phone;
         }
-        if (instructor.module) {
-            document.getElementById('moduloAsignadoUsuario').textContent = instructor.module;
-        }
     } catch (error) {
         Swal.fire('Error', 'No se pudo cargar el perfil.', 'error');
     }
