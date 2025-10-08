@@ -1,3 +1,5 @@
+import { me } from './service/authService.js';
+
 // Helper para obtener el valor de una cookie por nombre
 function getCookie(name) {
     const value = `; ${document.cookie}`;
@@ -8,22 +10,8 @@ function getCookie(name) {
 
 // Carga los datos del perfil
 async function cargarPerfil() {
-    const token = getCookie('token');
-    if (!token) {
-        Swal.fire('Error', 'No autenticado. Por favor inicia sesión.', 'error');
-        return;
-    }
-
     try {
-        const response = await fetch('/api/meInstructor', {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        const data = await response.json();
+        const data = await me();
 
         if (!data.authenticated) {
             Swal.fire('Error', 'No autenticado. Por favor inicia sesión.', 'error');
@@ -36,6 +24,14 @@ async function cargarPerfil() {
         document.getElementById('emailUsuario').textContent = instructor.email;
         document.getElementById('nombreCompletoUsuario').textContent = `${instructor.names} ${instructor.lastNames}`;
         document.getElementById('anioImpartidoUsuario').textContent = instructor.level || '';
+        
+        // Mapear campos adicionales si están disponibles en la respuesta
+        if (instructor.phone) {
+            document.getElementById('telefonoUsuario').textContent = instructor.phone;
+        }
+        if (instructor.module) {
+            document.getElementById('moduloAsignadoUsuario').textContent = instructor.module;
+        }
     } catch (error) {
         Swal.fire('Error', 'No se pudo cargar el perfil.', 'error');
     }
