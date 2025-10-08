@@ -49,3 +49,15 @@ export async function logout() {
     return false; // false en caso de error de red u otro fallo
   }
 }
+
+// Cambia la contraseña del instructor
+export async function changePassword(instructorId) {
+  const r = await fetch(`${API_AUTH}/update/${instructorId}/password`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include"
+  });
+  
+  if (!r.ok) throw new Error(await r.text().catch(() => "Error al cambiar contraseña"));
+  return r.json();
+}

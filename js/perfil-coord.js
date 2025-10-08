@@ -1,4 +1,4 @@
-import { me } from './service/authService.js';
+import { me, changePassword } from './service/authService.js';
 
 // Helper para obtener el valor de una cookie por nombre
 function getCookie(name) {
@@ -19,6 +19,9 @@ async function cargarPerfil() {
         }
 
         const instructor = data.instructor;
+        // Guardar el ID del instructor para el cambio de contraseña
+        window.instructorId = instructor.id;
+        
         document.getElementById('nombreUsuario').textContent = instructor.names.toUpperCase();
         document.getElementById('rolUsuario').textContent = instructor.role;
         document.getElementById('emailUsuario').textContent = instructor.email;
@@ -34,4 +37,65 @@ async function cargarPerfil() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', cargarPerfil);
+// Maneja el cambio de contraseña
+async function manejarCambioContrasena(event) {
+    event.preventDefault();
+    
+    const contrasenaActual = document.getElementById('contrasenaActual').value;
+    const nuevaContrasena = document.getElementById('nuevaContrasena').value;
+    const confirmarNuevaContrasena = document.getElementById('confirmarNuevaContrasena').value;
+    
+    // Validaciones
+    if (!contrasenaActual || !nuevaContrasena || !confirmarNuevaContrasena) {
+        Swal.fire('Error', 'Todos los campos son obligatorios.', 'error');
+        return;
+    }
+    
+    if (nuevaContrasena !== confirmarNuevaContrasena) {
+        Swal.fire('Error', 'Las contraseñas nuevas no coinciden.', 'error');
+        return;
+    }
+    
+    if (nuevaContrasena.length < 6) {
+        Swal.fire('Error', 'La nueva contraseña debe tener al menos 6 caracteres.', 'error');
+        return;
+    }
+    
+    try {
+        // Mostrar loading
+        Swal.fire({
+            title: 'Cambiando contraseña...',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        const result = await changePassword(window.instructorId);
+        
+        if (result.Success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: result.Message || 'Contraseña actualizada correctamente.'
+            });
+            
+            // Limpiar formulario
+            document.getElementById('formularioCambioContrasena').reset();
+        } else {
+            Swal.fire('Error', result.Message || 'No se pudo cambiar la contraseña.', 'error');
+        }
+    } catch (error) {
+        Swal.fire('Error', 'Error al cambiar la contraseña. Inténtalo de nuevo.', 'error');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    cargarPerfil();
+    
+    // Agregar event listener para el formulario de cambio de contraseña
+    const formulario = document.getElementById('formularioCambioContrasena');
+    if (formulario) {
+        formulario.addEventListener('submit', manejarCambioContrasena);
+    }
+});
