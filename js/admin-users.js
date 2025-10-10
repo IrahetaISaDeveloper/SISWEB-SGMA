@@ -1,4 +1,3 @@
-
 //Variable para la URL base de la API
 const API_BASE = "https://sgma-66ec41075156.herokuapp.com/api";
 
@@ -224,6 +223,7 @@ btnCancelar.addEventListener('click', () => {
   fotoPerfilArchivoEl.value = ''; // Clear file input
   previsualizacionFotoPerfilEl.src = ''; // Clear image preview
   contrasenaEl.disabled = false;
+  contrasenaEl.placeholder = ''; // Reset placeholder
   const contrasenaGroup = document.getElementById('contrasena').closest('.grupo-formulario');
   if (contrasenaGroup) contrasenaGroup.style.display = '';
 });
@@ -300,11 +300,17 @@ formulario.addEventListener('submit', async e => {
     if (!emailRegex.test(email)) errores.push('Debe ser un correo institucional de instructor válido (ejemplo@ricaldone.edu.sv).');
   }
 
-  // password (solo si no está editando)
+  // password validation - required for new users, optional for updates
   if (!isEditing) {
     if (!password) {
       errores.push('La contraseña es obligatoria.');
     } else {
+      if (password.length < 8) errores.push('La contraseña debe tener al menos 8 caracteres.');
+      if (password.length > 255) errores.push('La contraseña no puede exceder los 255 caracteres.');
+    }
+  } else {
+    // When editing, password is optional but if provided, must meet criteria
+    if (password && password.length > 0) {
       if (password.length < 8) errores.push('La contraseña debe tener al menos 8 caracteres.');
       if (password.length > 255) errores.push('La contraseña no puede exceder los 255 caracteres.');
     }
@@ -361,9 +367,12 @@ formulario.addEventListener('submit', async e => {
     roleId: Number(roleId),
     instructorImage
   };
-  if (!isEditing) {
+  
+  // Include password for new users or when updating with a new password
+  if (!isEditing || (isEditing && password && password.length > 0)) {
     cargaUtil.password = password;
   }
+  
   if (isEditing) {
     cargaUtil.instructorId = Number(idUsuarioEl.value);
   }
@@ -442,10 +451,12 @@ async function cargarParaEditarUsuario(id) {
     nombreCompletoEl.value = instructor.firstName || '';
     document.getElementById('apellidos').value = instructor.lastName || '';
     correoEl.value = instructor.email || '';
-    // Muestra el campo de contraseña y déjalo en blanco
+    
+    // Keep password field visible and empty for optional password update
     const contrasenaGroup = document.getElementById('contrasena').closest('.grupo-formulario');
     if (contrasenaGroup) contrasenaGroup.style.display = '';
     contrasenaEl.value = '';
+    contrasenaEl.placeholder = 'Dejar vacío para mantener contraseña actual';
 
     idRolEl.value = instructor.roleId || '';
     setTimeout(() => {

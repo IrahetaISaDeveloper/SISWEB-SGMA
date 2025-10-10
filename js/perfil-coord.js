@@ -56,8 +56,8 @@ async function manejarCambioContrasena(event) {
         return;
     }
     
-    if (nuevaContrasena.length < 6) {
-        Swal.fire('Error', 'La nueva contraseña debe tener al menos 6 caracteres.', 'error');
+    if (nuevaContrasena.length < 8) {
+        Swal.fire('Error', 'La nueva contraseña debe tener al menos 8 caracteres.', 'error');
         return;
     }
     
