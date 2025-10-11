@@ -337,6 +337,13 @@ body {
     flex-direction: column;
 }
 
+.bienvenido-header {
+    font-weight: bold;
+    font-size: 2em;
+    color: var(--texto-fuerte);
+    margin-bottom: 2px;
+}
+
 .nombre-usuario-header {
     font-weight: bold;
     font-size: 1.3em;
