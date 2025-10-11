@@ -345,9 +345,9 @@ body {
 }
 
 .bienvenido-texto {
-    font-size: 1.1em;
-    color: var(--texto-secundario);
-    font-weight: normal;
+    font-size: 1.4em;
+    color: var(--texto-fuerte);
+    font-weight: bold;
 }
 
 .nombre-usuario-header {
