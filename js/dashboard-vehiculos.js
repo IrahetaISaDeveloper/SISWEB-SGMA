@@ -184,7 +184,7 @@ const btnAprobar = document.querySelector('.btn-modal.primario');
 if (btnAprobar) {
     btnAprobar.addEventListener('click', function() {
         if (selectedVehicleId) {
-            fetch(`https://sgma-66ec41075156.herokuapp.com/api/vehicles/updateStatusVehicle/${selectedVehicleId}?newStatus=${newStatusValue}`, {
+            fetch(`https://sgma-66ec41075156.herokuapp.com/api/vehicles/updateStatusVehicle/${selectedVehicleId}?newStatus=2`, {
                 method: 'PUT',
                 credentials: 'include',
                 headers: {
