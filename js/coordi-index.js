@@ -5,44 +5,49 @@ import { me } from './service/authService.js';
 
 document.addEventListener('DOMContentLoaded', function () {
     // Load user information from token
-    async function loadUserInfo() {
+    async function cargarPerfil() {
         try {
-            const userInfo = await me();
-            console.log('User info:', userInfo);
-            
-            if (userInfo && userInfo.authenticated !== false) {
-                // Update avatar
-                const avatarElement = document.getElementById('avatar-usuario');
-                if (avatarElement && userInfo.instructorImage) {
-                    avatarElement.src = userInfo.instructorImage;
-                    avatarElement.alt = `Avatar de ${userInfo.firstName || 'Usuario'}`;
-                }
+            const data = await me();
 
-                // Update user name
-                const nombreElement = document.getElementById('nombre-usuario-header');
-                if (nombreElement) {
-                    const fullName = `${userInfo.firstName || ''} ${userInfo.lastName || ''}`.trim();
-                    nombreElement.textContent = fullName || 'Usuario';
-                }
-
-                // Update role
-                const rolElement = document.getElementById('rol-usuario-header');
-                if (rolElement && userInfo.roleName) {
-                    rolElement.textContent = userInfo.roleName;
-                }
-
-                // Update level/detail
-                const detalleElement = document.getElementById('detalle-usuario-header');
-                if (detalleElement && userInfo.levelName) {
-                    detalleElement.textContent = userInfo.levelName;
-                }
-            } else {
-                // If not authenticated, redirect to login
-                console.log('User not authenticated, redirecting to login');
+            if (!data.authenticated) {
+                Swal.fire('Error', 'No autenticado. Por favor inicia sesión.', 'error');
                 window.location.href = 'index.html';
+                return;
             }
+
+            const instructor = data.instructor;
+            // Guardar el ID del instructor para uso futuro
+            window.instructorId = instructor.id;
+            
+            // Update avatar
+            const avatarElement = document.getElementById('avatar-usuario');
+            if (avatarElement && instructor.instructorImage) {
+                avatarElement.src = instructor.instructorImage;
+                avatarElement.alt = `Avatar de ${instructor.names || 'Usuario'}`;
+            }
+
+            // Update user name in header
+            const nombreElement = document.getElementById('nombre-usuario-header');
+            if (nombreElement) {
+                const fullName = `${instructor.names || ''} ${instructor.lastNames || ''}`.trim();
+                nombreElement.textContent = fullName.toUpperCase() || 'USUARIO';
+            }
+
+            // Update role in header
+            const rolElement = document.getElementById('rol-usuario-header');
+            if (rolElement && instructor.role) {
+                rolElement.textContent = instructor.role;
+            }
+
+            // Update level/detail in header
+            const detalleElement = document.getElementById('detalle-usuario-header');
+            if (detalleElement && instructor.level) {
+                detalleElement.textContent = instructor.level;
+            }
+
         } catch (error) {
             console.error('Error loading user information:', error);
+            Swal.fire('Error', 'No se pudo cargar el perfil.', 'error');
             // On error, show default values or redirect to login
             const nombreElement = document.getElementById('nombre-usuario-header');
             if (nombreElement) {
@@ -52,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Load user info on page load
-    loadUserInfo();
+    cargarPerfil();
 
     // Mostrar solo los módulos del año seleccionado
     function mostrarModulosPorAno(ano) {
