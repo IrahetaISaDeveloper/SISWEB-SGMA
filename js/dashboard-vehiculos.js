@@ -181,10 +181,11 @@ window.showVehicleModal = function(vehicleId) {
 
 // Evento para el botón Aprobar
 const btnAprobar = document.querySelector('.btn-modal.primario');
+const NEW_STATUS_VALUE = 2;
 if (btnAprobar) {
     btnAprobar.addEventListener('click', function() {
         if (selectedVehicleId) {
-            fetch(`https://sgma-66ec41075156.herokuapp.com/api/vehicles/updateStatusVehicle/${selectedVehicleId}?newStatus=2`, {
+            fetch(`https://sgma-66ec41075156.herokuapp.com/api/vehicles/updateStatusVehicle/${selectedVehicleId}?newStatus=${NEW_STATUS_VALUE}`, {
                 method: 'PUT',
                 credentials: 'include',
                 headers: {
