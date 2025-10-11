@@ -337,11 +337,17 @@ body {
     flex-direction: column;
 }
 
-.bienvenido-header {
-    font-weight: bold;
-    font-size: 2em;
-    color: var(--texto-fuerte);
+.linea-bienvenido {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
     margin-bottom: 2px;
+}
+
+.bienvenido-texto {
+    font-size: 1.1em;
+    color: var(--texto-secundario);
+    font-weight: normal;
 }
 
 .nombre-usuario-header {
@@ -557,6 +563,20 @@ body {
         margin-right: var(--espaciado-m);
     }
 
+    .nombre-usuario-header {
+        font-size: 1.1em;
+    }
+
+    .linea-bienvenido {
+        flex-direction: column;
+        gap: 2px;
+        align-items: flex-start;
+    }
+    
+    .bienvenido-texto {
+        font-size: 1em;
+    }
+    
     .nombre-usuario-header {
         font-size: 1.1em;
     }

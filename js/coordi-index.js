@@ -26,11 +26,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 avatarElement.alt = `Avatar de ${instructor.names || 'Usuario'}`;
             }
 
-            // Update user name in header
+            // Update user name in header - proper case instead of uppercase
             const nombreElement = document.getElementById('nombre-usuario-header');
             if (nombreElement) {
                 const fullName = `${instructor.names || ''} ${instructor.lastNames || ''}`.trim();
-                nombreElement.textContent = fullName.toUpperCase() || 'USUARIO';
+                // Capitalize first letter of each word instead of all uppercase
+                const properCaseName = fullName.replace(/\b\w/g, l => l.toUpperCase());
+                nombreElement.textContent = properCaseName || 'Usuario';
             }
 
             // Update role in header
