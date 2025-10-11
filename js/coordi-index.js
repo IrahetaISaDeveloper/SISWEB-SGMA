@@ -1,6 +1,59 @@
 const API_BASE_URL = 'https://sgma-66ec41075156.herokuapp.com/api';
 
+// Import the authentication service
+import { me } from './service/authService.js';
+
 document.addEventListener('DOMContentLoaded', function () {
+    // Load user information from token
+    async function loadUserInfo() {
+        try {
+            const userInfo = await me();
+            console.log('User info:', userInfo);
+            
+            if (userInfo && userInfo.authenticated !== false) {
+                // Update avatar
+                const avatarElement = document.getElementById('avatar-usuario');
+                if (avatarElement && userInfo.instructorImage) {
+                    avatarElement.src = userInfo.instructorImage;
+                    avatarElement.alt = `Avatar de ${userInfo.firstName || 'Usuario'}`;
+                }
+
+                // Update user name
+                const nombreElement = document.getElementById('nombre-usuario-header');
+                if (nombreElement) {
+                    const fullName = `${userInfo.firstName || ''} ${userInfo.lastName || ''}`.trim();
+                    nombreElement.textContent = fullName || 'Usuario';
+                }
+
+                // Update role
+                const rolElement = document.getElementById('rol-usuario-header');
+                if (rolElement && userInfo.roleName) {
+                    rolElement.textContent = userInfo.roleName;
+                }
+
+                // Update level/detail
+                const detalleElement = document.getElementById('detalle-usuario-header');
+                if (detalleElement && userInfo.levelName) {
+                    detalleElement.textContent = userInfo.levelName;
+                }
+            } else {
+                // If not authenticated, redirect to login
+                console.log('User not authenticated, redirecting to login');
+                window.location.href = 'index.html';
+            }
+        } catch (error) {
+            console.error('Error loading user information:', error);
+            // On error, show default values or redirect to login
+            const nombreElement = document.getElementById('nombre-usuario-header');
+            if (nombreElement) {
+                nombreElement.textContent = 'Error al cargar usuario';
+            }
+        }
+    }
+
+    // Load user info on page load
+    loadUserInfo();
+
     // Mostrar solo los módulos del año seleccionado
     function mostrarModulosPorAno(ano) {
         document.querySelectorAll('.elemento-modulo').forEach(function (modulo) {
@@ -125,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function () {
     async function cargarModulosYMostrar() {
         try {
             const res = await fetch('https://sgma-66ec41075156.herokuapp.com/api/getAllModules', {
-// La URL termina aquí 👆
+                // La URL termina aquí 👆
     credentials: 'include'
 });
 // El error debería desaparecer.
