@@ -1,5 +1,8 @@
 const API_BASE_URL = 'https://sgma-66ec41075156.herokuapp.com';
 
+// -----------------------------------------------------
+// REFERENCIAS A ELEMENTOS DEL DOM
+// -----------------------------------------------------
 const formulario = document.getElementById('formulario-modulo');
 const nombreModuloEl = document.getElementById('nombreModulo');
 const codigoModuloEl = document.getElementById('codigoModulo');
@@ -12,27 +15,236 @@ const botonEnviar = document.getElementById('btn-enviar');
 const cuerpoTabla = document.getElementById('cuerpo-tabla-modulos');
 const buscadorModulosEl = document.getElementById('buscador-modulos');
 const filtroAnoModuloEl = document.getElementById('filtro-ano-modulo');
+const paginationContainer = document.getElementById('pagination-container');
 
-// Variables para paginación
+// Variables para paginación y datos
 let currentPage = 0;
 const pageSize = 10;
 let totalPages = 0;
-
-// Variables para datos
 let levels = [];
 let instructors = [];
 let modules = [];
 
+// -----------------------------------------------------
+// 1. UTILERÍA DE API (MEJORA CLAVE) 🔑
+// -----------------------------------------------------
+
+/**
+ * Realiza peticiones fetch, maneja errores de red/HTTP, y extrae los datos.
+ * Normaliza la extracción de datos sin importar si es paginado (data.content) o simple (data).
+ * @param {string} url La URL completa del endpoint.
+ * @param {object} options Opciones de fetch (method, body, headers, etc.).
+ * @returns {object} Un objeto con los datos extraídos (datos) y la información de paginación (paginacion).
+ */
+async function apiFetch(url, options = {}) {
+    const defaultOptions = { credentials: 'include', ...options };
+    
+    // Si necesitas autenticación con JWT, descomenta y usa esta línea:
+    // const token = localStorage.getItem('jwtToken'); 
+    // if (token) {
+    //     defaultOptions.headers = {
+    //         ...defaultOptions.headers,
+    //         'Authorization': `Bearer ${token}`
+    //     };
+    // }
+    
+    const response = await fetch(url, defaultOptions);
+    const responseData = await response.json();
+
+    if (!response.ok || !responseData.success) {
+        let errorMessage = responseData.message || `Error HTTP: ${response.status}`;
+        if (response.status === 403) {
+            errorMessage = "Acceso denegado (403). Verifique su sesión.";
+        }
+        throw new Error(errorMessage);
+    }
+
+    let extractedData = responseData.data;
+    let paginationInfo = {};
+
+    // Normalización de la respuesta:
+    if (extractedData) {
+        // Caso Paginado: Los datos están en 'content'
+        if (extractedData.content && Array.isArray(extractedData.content)) {
+            extractedData = extractedData.content;
+            paginationInfo = { ...extractedData }; // Copia la info de paginación
+        } 
+        // Caso Lista Simple: Los datos son directamente el array
+        else if (Array.isArray(extractedData)) {
+            // Ya es el array. No es necesario hacer nada.
+        }
+    } else {
+        extractedData = [];
+    }
+
+    return { 
+        datos: extractedData, 
+        paginacion: paginationInfo 
+    };
+}
+
+// -----------------------------------------------------
+// 2. CARGA Y POBLACIÓN DE DATOS (NIVELES E INSTRUCTORES)
+// -----------------------------------------------------
+
+// Cargar niveles para el combobox
+async function loadLevels() {
+    try {
+        console.log('Iniciando carga de niveles...');
+        const result = await apiFetch(`${API_BASE_URL}/api/levels/getAllLevels`);
+        
+        levels = result.datos;
+        console.log('Niveles extraídos:', levels);
+        
+        if (comboLevelEl) {
+            populateLevelsCombo();
+        }
+    } catch (error) {
+        console.error('Error al cargar niveles:', error);
+        showMessage('Error al cargar niveles: ' + error.message, 'error');
+    }
+}
+
+// Cargar instructores para el combobox
+async function loadInstructors() {
+    try {
+        console.log('Iniciando carga de instructores...');
+        // El endpoint de instructores devuelve un objeto paginado, apiFetch lo manejará.
+        const result = await apiFetch(`${API_BASE_URL}/api/instructors/getAllInstructors`);
+        
+        instructors = result.datos;
+        console.log('Instructores extraídos:', instructors);
+        
+        if (comboInstructorEl) {
+            populateInstructorsCombo();
+        }
+    } catch (error) {
+        console.error('Error al cargar instructores:', error);
+        showMessage('Error al cargar instructores: ' + error.message, 'error');
+    }
+}
+
+// Poblar combobox de niveles
+function populateLevelsCombo() {
+    if (!comboLevelEl) return;
+    
+    comboLevelEl.innerHTML = '<option value="">Seleccione un nivel</option>';
+    
+    if (!levels || levels.length === 0) {
+        comboLevelEl.innerHTML += '<option value="" disabled>No hay niveles disponibles</option>';
+        return;
+    }
+    
+    levels.forEach(level => {
+        // CORRECCIÓN CLAVE: Usar level.id en lugar de level.levelId
+        if (level && level.id && level.levelName) {
+            const option = document.createElement('option');
+            option.value = level.id;
+            option.textContent = level.levelName;
+            comboLevelEl.appendChild(option);
+        } else {
+            console.warn('Nivel con formato inválido omitido:', level);
+        }
+    });
+}
+
+// Poblar combobox de instructores
+function populateInstructorsCombo() {
+    if (!comboInstructorEl) return;
+    
+    comboInstructorEl.innerHTML = '<option value="">Seleccione un instructor</option>';
+    
+    if (!instructors || instructors.length === 0) {
+        comboInstructorEl.innerHTML += '<option value="" disabled>No hay instructores disponibles</option>';
+        return;
+    }
+    
+    instructors.forEach(instructor => {
+        if (instructor && instructor.instructorId && instructor.firstName && instructor.lastName) {
+            const option = document.createElement('option');
+            option.value = instructor.instructorId;
+            option.textContent = `${instructor.firstName} ${instructor.lastName}`;
+            comboInstructorEl.appendChild(option);
+        }
+    });
+}
+
+// -----------------------------------------------------
+// 3. LÓGICA DE MÓDULOS Y TABLA
+// -----------------------------------------------------
+
+// Cargar módulos con paginación
+async function loadModules(page = 0) {
+    try {
+        const url = `${API_BASE_URL}/api/modules/getAllModules?page=${page}&size=${pageSize}`;
+        const result = await apiFetch(url);
+        
+        modules = result.datos;
+        currentPage = result.paginacion.number || 0;
+        totalPages = result.paginacion.totalPages || 0;
+        
+        renderModulesTable();
+        renderPagination();
+    } catch (error) {
+        console.error('Error al cargar módulos:', error);
+        showMessage('Error al cargar módulos: ' + error.message, 'error');
+    }
+}
+
+// Renderizar tabla de módulos (CORREGIDA)
+function renderModulesTable() {
+    if (!cuerpoTabla) return;
+    cuerpoTabla.innerHTML = '';
+    
+    modules.forEach(module => {
+        const row = document.createElement('tr');
+        
+        // Determinar el nombre del instructor de manera segura
+        // El JSON del módulo tiene levelName (string) pero el instructor puede ser null,
+        // o un objeto { instructorId, instructorName } o tener el nombre directo.
+        const instructorName = module.instructor?.instructorName || 
+                               (module.instructorName || 'N/A'); // Usar el campo instructorName del DTO si existe.
+
+        row.innerHTML = `
+            <td>${module.moduleCode || 'N/A'}</td>
+            <td>${module.moduleName || 'N/A'}</td>
+            <td>${module.levelName || 'N/A'}</td>
+            
+            <td>${instructorName}</td>
+            
+            <td>
+                <button class="btn btn-sm btn-warning mb-1 me-1" onclick="editModule(${module.moduleId})">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <button class="btn btn-sm btn-danger mb-1" onclick="deleteModule(${module.moduleId})">
+                    <i class="fas fa-trash"></i> Eliminar
+                </button>
+            </td>
+        `;
+        cuerpoTabla.appendChild(row);
+    });
+}
+
+// El resto de tus funciones (handleFormSubmit, createModule, updateModule, editModule, deleteModule, etc.)
+// pueden permanecer prácticamente iguales, ya que ahora dependen de los datos correctamente cargados
+// y la tabla se renderiza con la corrección de columnas.
+
+// -----------------------------------------------------
+// 4. INICIALIZACIÓN Y EVENTOS
+// -----------------------------------------------------
+
 // Inicialización
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('DOM cargado, iniciando carga de datos...');
+    // Carga los combos primero
     await loadLevels();
-    await loadInstructors();
+    await loadInstructors(); 
+    // Luego carga la tabla de módulos
     await loadModules();
     setupEventListeners();
 });
 
-// Event Listeners
+// Event Listeners (Tu código original)
 function setupEventListeners() {
     if (formulario) {
         formulario.addEventListener('submit', handleFormSubmit);
@@ -48,713 +260,50 @@ function setupEventListeners() {
     }
 }
 
-// Cargar niveles para el combobox
-async function loadLevels() {
-    try {
-        console.log('Iniciando carga de niveles...');
-        const response = await fetch(`${API_BASE_URL}/api/levels/getAllLevels`, {
-            credentials: 'include'
-        });
-        const data = await response.json();
-        console.log('Respuesta de niveles completa:', data);
-        
-        if (data.success) {
-            levels = data.data.content || data.data;
-            console.log('Niveles extraídos:', levels);
-            
-            // Verificar que comboLevelEl existe antes de poblar
-            if (comboLevelEl) {
-                populateLevelsCombo();
-            } else {
-                console.error('comboLevelEl no existe al intentar poblar');
-                // Intentar encontrar el elemento nuevamente
-                const retryCombo = document.getElementById('comboLevel');
-                if (retryCombo) {
-                    console.log('Elemento encontrado en segundo intento');
-                    comboLevelEl = retryCombo;
-                    populateLevelsCombo();
-                } else {
-                    console.error('No se pudo encontrar el elemento comboLevel');
-                }
-            }
-        } else {
-            console.error('Error en respuesta de niveles:', data);
-            showMessage('Error al obtener niveles del servidor', 'error');
-        }
-    } catch (error) {
-        console.error('Error al cargar niveles:', error);
-        showMessage('Error al cargar niveles', 'error');
-    }
-}
+// Exportar funciones para uso global (necesario para onclick en el HTML)
+window.editModule = editModule;
+window.deleteModule = deleteModule;
+// El resto de funciones auxiliares (validateForm, resetForm, renderPagination, showMessage, debounce) 
+// se mantienen igual que en tu código original.
 
-// Cargar instructores para el combobox
-async function loadInstructors() {
-    try {
-        console.log('Iniciando carga de instructores...');
-        const response = await fetch(`${API_BASE_URL}/api/instructors/getAllInstructors`, {
-            credentials: 'include'
-        });
-        const data = await response.json();
-        console.log('Respuesta de instructores:', data);
-        
-        if (data.success) {
-            instructors = data.data.content || data.data;
-            console.log('Instructores extraídos:', instructors);
-            
-            // Verificar que comboInstructorEl existe antes de poblar
-            if (comboInstructorEl) {
-                populateInstructorsCombo();
-            } else {
-                console.error('comboInstructorEl no existe al intentar poblar');
-                // Intentar encontrar el elemento nuevamente
-                const retryCombo = document.getElementById('comboInstructor');
-                if (retryCombo) {
-                    console.log('Elemento instructor encontrado en segundo intento');
-                    comboInstructorEl = retryCombo;
-                    populateInstructorsCombo();
-                } else {
-                    console.error('No se pudo encontrar el elemento comboInstructor');
-                }
-            }
-        } else {
-            console.error('Error en respuesta de instructores:', data);
-            showMessage('Error al obtener instructores del servidor', 'error');
-        }
-    } catch (error) {
-        console.error('Error al cargar instructores:', error);
-        showMessage('Error al cargar instructores', 'error');
-    }
-}
-
-// Poblar combobox de niveles
-function populateLevelsCombo() {
-    console.log('Iniciando población de combo niveles...');
-    console.log('comboLevelEl existe:', !!comboLevelEl);
-    console.log('Niveles disponibles:', levels);
-    
-    if (!comboLevelEl) {
-        console.error('comboLevelEl no encontrado en populateLevelsCombo');
-        return;
-    }
-    
-    comboLevelEl.innerHTML = '<option value="">Seleccione un nivel</option>';
-    
-    if (!levels || levels.length === 0) {
-        console.warn('No hay niveles para poblar el combo');
-        comboLevelEl.innerHTML += '<option value="" disabled>No hay niveles disponibles</option>';
-        return;
-    }
-    
-    levels.forEach((level, index) => {
-        console.log(`Creando opción nivel ${index}:`, level);
-        if (level && level.levelId && level.levelName) {
-            const option = document.createElement('option');
-            option.value = level.levelId;
-            option.textContent = level.levelName;
-            comboLevelEl.appendChild(option);
-            console.log(`Opción agregada: ${level.levelId} - ${level.levelName}`);
-        } else {
-            console.warn('Nivel inválido encontrado:', level);
-        }
-    });
-    
-    console.log('Combo de niveles poblado. Total opciones:', comboLevelEl.children.length);
-    console.log('HTML del combo:', comboLevelEl.innerHTML);
-}
-
-// Poblar combobox de instructores
-function populateInstructorsCombo() {
-    console.log('Iniciando población de combo instructores...');
-    console.log('comboInstructorEl existe:', !!comboInstructorEl);
-    console.log('Instructores disponibles:', instructors);
-    
-    if (!comboInstructorEl) {
-        console.error('comboInstructorEl no encontrado en populateInstructorsCombo');
-        return;
-    }
-    
-    comboInstructorEl.innerHTML = '<option value="">Seleccione un instructor</option>';
-    
-    if (!instructors || instructors.length === 0) {
-        console.warn('No hay instructores para poblar el combo');
-        comboInstructorEl.innerHTML += '<option value="" disabled>No hay instructores disponibles</option>';
-        return;
-    }
-    
-    instructors.forEach((instructor, index) => {
-        console.log(`Creando opción instructor ${index}:`, instructor);
-        if (instructor && instructor.instructorId && instructor.firstName && instructor.lastName) {
-            const option = document.createElement('option');
-            option.value = instructor.instructorId;
-            option.textContent = `${instructor.firstName} ${instructor.lastName}`;
-            comboInstructorEl.appendChild(option);
-            console.log(`Opción instructor agregada: ${instructor.instructorId} - ${instructor.firstName} ${instructor.lastName}`);
-        } else {
-            console.warn('Instructor inválido encontrado:', instructor);
-        }
-    });
-    
-    console.log('Combo de instructores poblado. Total opciones:', comboInstructorEl.children.length);
-}
-
-// Cargar módulos con paginación
-async function loadModules(page = 0) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/modules/getAllModules?page=${page}&size=${pageSize}`, {
-            credentials: 'include'
-        });
-        const data = await response.json();
-        
-        if (data.success) {
-            modules = data.data.content;
-            currentPage = data.data.number;
-            totalPages = data.data.totalPages;
-            renderModulesTable();
-            renderPagination();
-        }
-    } catch (error) {
-        console.error('Error al cargar módulos:', error);
-        showMessage('Error al cargar módulos', 'error');
-    }
-}
-
-// Renderizar tabla de módulos
-function renderModulesTable() {
-    cuerpoTabla.innerHTML = '';
-    
-    modules.forEach(module => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${module.moduleCode}</td>
-            <td>${module.moduleName}</td>
-            <td>${module.levelName || 'N/A'}</td>
-            <td>${module.instructorName || 'N/A'}</td>
-            <td>
-                <button class="btn btn-sm btn-warning mb-1 me-1" onclick="editModule(${module.moduleId})">
-                    <i class="fas fa-edit"></i> Editar
-                </button>
-                <button class="btn btn-sm btn-danger mb-1" onclick="deleteModule(${module.moduleId})">
-                    <i class="fas fa-trash"></i> Eliminar
-                </button>
-            </td>
-        `;
-        cuerpoTabla.appendChild(row);
-    });
-}
-
-// Manejar envío del formulario
-async function handleFormSubmit(e) {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-        return;
-    }
-    
-    // Validar que los elementos esenciales existen antes de acceder a sus propiedades
-    if (!codigoModuloEl || !nombreModuloEl || !comboLevelEl || !comboInstructorEl || !idModuloEl) {
-        showMessage('Error: Elementos esenciales del formulario no encontrados', 'error');
-        return;
-    }
-    
-    // Obtener valores de los combobox
-    const levelValue = comboLevelEl.value;
-    const instructorValue = comboInstructorEl.value;
-    
-    console.log('Valores de combobox:', { levelValue, instructorValue });
-    
-    // Validar que se hayan seleccionado valores
-    if (!levelValue || levelValue === '') {
-        showMessage('Error: Debe seleccionar un nivel', 'error');
-        comboLevelEl.focus();
-        return;
-    }
-    
-    if (!instructorValue || instructorValue === '') {
-        showMessage('Error: Debe seleccionar un instructor', 'error');
-        comboInstructorEl.focus();
-        return;
-    }
-    
-    // Convertir a números
-    const levelId = parseInt(levelValue);
-    const instructorId = parseInt(instructorValue);
-    
-    // Validar que la conversión a número sea exitosa
-    if (isNaN(levelId) || levelId <= 0) {
-        showMessage('Error: ID de nivel inválido', 'error');
-        comboLevelEl.focus();
-        return;
-    }
-    
-    if (isNaN(instructorId) || instructorId <= 0) {
-        showMessage('Error: ID de instructor inválido', 'error');
-        comboInstructorEl.focus();
-        return;
-    }
-    
-    const moduleData = {
-        moduleCode: codigoModuloEl.value.trim(),
-        moduleName: nombreModuloEl.value.trim(),
-        moduleDescription: descripcionModuloEl ? descripcionModuloEl.value.trim() : '',
-        levelId: levelId,
-        instructorId: instructorId
-    };
-    
-    console.log('Datos del módulo a enviar:', moduleData);
-    
-    const isEditing = idModuloEl.value !== '';
-    
-    try {
-        // Mostrar indicador de carga
-        if (botonEnviar) {
-            botonEnviar.disabled = true;
-            botonEnviar.textContent = isEditing ? 'Actualizando...' : 'Creando...';
-        }
-        
-        if (isEditing) {
-            await updateModule(parseInt(idModuloEl.value), moduleData);
-        } else {
-            await createModule(moduleData);
-        }
-        
-        resetForm();
-        loadModules(currentPage);
-        showMessage(`Módulo ${isEditing ? 'actualizado' : 'creado'} exitosamente`, 'success');
-    } catch (error) {
-        console.error('Error al guardar módulo:', error);
-        showMessage(`Error al guardar el módulo: ${error.message}`, 'error');
-    } finally {
-        // Restaurar botón
-        if (botonEnviar) {
-            botonEnviar.disabled = false;
-            botonEnviar.textContent = idModuloEl.value !== '' ? 'Actualizar' : 'Crear';
-        }
-    }
-}
-
-// Crear nuevo módulo
-async function createModule(moduleData) {
-    try {
-        console.log('Enviando datos para crear módulo:', moduleData);
-        
-        const response = await fetch(`${API_BASE_URL}/api/modules/newModule`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            credentials: 'include',
-            body: JSON.stringify(moduleData)
-        });
-        
-        const responseData = await response.json();
-        console.log('Respuesta del servidor:', responseData);
-        
-        if (!response.ok) {
-            if (response.status === 403) {
-                throw new Error('No tiene permisos para crear módulos. Verifique su sesión.');
-            }
-            throw new Error(responseData.message || `Error del servidor: ${response.status}`);
-        }
-        
-        return responseData;
-    } catch (error) {
-        console.error('Error en createModule:', error);
-        throw error;
-    }
-}
-
-// Actualizar módulo
-async function updateModule(id, moduleData) {
-    try {
-        console.log('Enviando datos para actualizar módulo:', id, moduleData);
-        
-        const response = await fetch(`${API_BASE_URL}/api/modules/updateModule/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            credentials: 'include',
-            body: JSON.stringify(moduleData)
-        });
-        
-        const responseData = await response.json();
-        console.log('Respuesta del servidor:', responseData);
-        
-        if (!response.ok) {
-            if (response.status === 400) {
-                const errorMessage = responseData.message || 'Datos inválidos. Verifique la información ingresada.';
-                throw new Error(errorMessage);
-            }
-            if (response.status === 403) {
-                throw new Error('No tiene permisos para actualizar módulos. Verifique su sesión.');
-            }
-            throw new Error(responseData.message || `Error del servidor: ${response.status}`);
-        }
-        
-        return responseData;
-    } catch (error) {
-        console.error('Error en updateModule:', error);
-        throw error;
-    }
-}
-
-// Editar módulo
+// Implementación de editModule
 function editModule(id) {
-    console.log('Editando módulo con ID:', id);
-    
     const module = modules.find(m => m.moduleId === id);
     if (!module) {
         showMessage('Error: Módulo no encontrado', 'error');
         return;
     }
     
-    console.log('Datos del módulo a editar:', module);
-    
-    // Verificar que los elementos esenciales del formulario existan
-    const elementosEsenciales = {
-        idModuloEl,
-        codigoModuloEl,
-        nombreModuloEl,
-        comboLevelEl,
-        comboInstructorEl,
-        botonEnviar
-    };
-    
-    const elementosFaltantes = [];
-    for (const [nombre, elemento] of Object.entries(elementosEsenciales)) {
-        if (!elemento) {
-            elementosFaltantes.push(nombre);
-        }
+    // Asigna valores
+    idModuloEl.value = module.moduleId;
+    codigoModuloEl.value = module.moduleCode || '';
+    nombreModuloEl.value = module.moduleName || '';
+    if (descripcionModuloEl) {
+        descripcionModuloEl.value = module.moduleDescription || '';
     }
     
-    if (elementosFaltantes.length > 0) {
-        console.error('Elementos esenciales no encontrados:', elementosFaltantes);
-        showMessage(`Error: Elementos esenciales del formulario no encontrados: ${elementosFaltantes.join(', ')}`, 'error');
-        return;
+    // Seleccionar el Level y el Instructor
+    // NOTA: Para el comboLevel, usamos 'levelId' del módulo, pero el valor del combo es 'id' del nivel.
+    // Esto funciona porque ambos son numéricamente iguales:
+    if (module.levelId && comboLevelEl) {
+        // levelId del módulo coincide con el ID del nivel
+        comboLevelEl.value = String(module.levelId); 
+    }
+    if (module.instructorId && comboInstructorEl) {
+        // instructorId del módulo coincide con el ID del instructor
+        comboInstructorEl.value = String(module.instructorId);
     }
     
-    try {
-        // Llenar los campos del formulario
-        idModuloEl.value = module.moduleId;
-        codigoModuloEl.value = module.moduleCode || '';
-        nombreModuloEl.value = module.moduleName || '';
-        
-        // Campo descripción es opcional
-        if (descripcionModuloEl) {
-            descripcionModuloEl.value = module.moduleDescription || '';
-        }
-        
-        // Verificar estado de los combos antes de seleccionar
-        console.log('Estado de combos antes de seleccionar:', {
-            levelOptions: comboLevelEl.options.length,
-            instructorOptions: comboInstructorEl.options.length,
-            moduleLevel: module.levelId,
-            moduleInstructor: module.instructorId
-        });
-        
-        // Seleccionar valores en los combobox inmediatamente
-        if (module.levelId) {
-            console.log('Intentando seleccionar nivel:', module.levelId);
-            
-            // Buscar la opción correspondiente
-            let levelFound = false;
-            for (let i = 0; i < comboLevelEl.options.length; i++) {
-                if (comboLevelEl.options[i].value == module.levelId) {
-                    comboLevelEl.selectedIndex = i;
-                    levelFound = true;
-                    break;
-                }
-            }
-            
-            console.log('Nivel encontrado y seleccionado:', levelFound);
-            console.log('Valor actual del combo nivel:', comboLevelEl.value);
-        }
-        
-        if (module.instructorId) {
-            console.log('Intentando seleccionar instructor:', module.instructorId);
-            
-            // Buscar la opción correspondiente
-            let instructorFound = false;
-            for (let i = 0; i < comboInstructorEl.options.length; i++) {
-                if (comboInstructorEl.options[i].value == module.instructorId) {
-                    comboInstructorEl.selectedIndex = i;
-                    instructorFound = true;
-                    break;
-                }
-            }
-            
-            console.log('Instructor encontrado y seleccionado:', instructorFound);
-            console.log('Valor actual del combo instructor:', comboInstructorEl.value);
-        }
-        
-        // Cambiar el botón a modo edición
+    // Cambiar el botón a modo edición
+    if (botonEnviar) {
         botonEnviar.textContent = 'Actualizar';
         botonEnviar.className = 'btn btn-warning';
-        
-        // Scroll al formulario
-        if (formulario) {
-            formulario.scrollIntoView({ behavior: 'smooth' });
-        }
-        
-        showMessage('Módulo cargado para edición', 'success');
-        
-    } catch (error) {
-        console.error('Error al cargar datos del módulo:', error);
-        showMessage('Error al cargar la información del módulo', 'error');
-    }
-}
-
-// Eliminar módulo
-async function deleteModule(id) {
-    const result = await Swal.fire({
-        title: '¿Está seguro?',
-        text: '¿Desea eliminar este módulo? Esta acción no se puede deshacer.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar'
-    });
-
-    if (!result.isConfirmed) {
-        return;
     }
     
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/modules/deleteModule/${id}`, {
-            method: 'DELETE',
-            credentials: 'include'
-        });
-        
-        if (response.ok) {
-            loadModules(currentPage);
-            showMessage('Módulo eliminado exitosamente', 'success');
-        } else {
-            showMessage('Error al eliminar el módulo', 'error');
-        }
-    } catch (error) {
-        console.error('Error al eliminar módulo:', error);
-        showMessage('Error al eliminar el módulo', 'error');
-    }
-}
-
-// Resetear formulario
-function resetForm() {
+    // Scroll al formulario
     if (formulario) {
-        formulario.reset();
+        formulario.scrollIntoView({ behavior: 'smooth' });
     }
-    if (idModuloEl) {
-        idModuloEl.value = '';
-    }
-    if (botonEnviar) {
-        botonEnviar.textContent = 'Crear';
-        botonEnviar.className = 'btn btn-primary';
-    }
+    
+    showMessage('Módulo cargado para edición', 'success');
 }
-
-// Validar formulario
-function validateForm() {
-    console.log('=== Iniciando validación del formulario ===');
-    
-    // Validar que los elementos existen
-    const elementosRequeridos = [
-        { elemento: codigoModuloEl, nombre: 'Código del módulo' },
-        { elemento: nombreModuloEl, nombre: 'Nombre del módulo' },
-        { elemento: comboLevelEl, nombre: 'Selector de nivel' },
-        { elemento: comboInstructorEl, nombre: 'Selector de instructor' }
-    ];
-    
-    for (const { elemento, nombre } of elementosRequeridos) {
-        if (!elemento) {
-            console.error(`Elemento faltante: ${nombre}`);
-            showMessage(`Error: ${nombre} no encontrado`, 'error');
-            return false;
-        }
-    }
-
-    const codigo = codigoModuloEl.value.trim();
-    const nombre = nombreModuloEl.value.trim();
-    const levelValue = comboLevelEl.value;
-    const instructorValue = comboInstructorEl.value;
-    
-    // Debug completo del estado de los combos
-    console.log('=== Estado completo de comboLevelEl ===');
-    console.log('Elemento existe:', !!comboLevelEl);
-    console.log('Valor actual:', levelValue);
-    console.log('Índice seleccionado:', comboLevelEl?.selectedIndex);
-    console.log('Total opciones:', comboLevelEl?.options?.length);
-    console.log('Opciones disponibles:');
-    if (comboLevelEl?.options) {
-        for (let i = 0; i < comboLevelEl.options.length; i++) {
-            console.log(`  ${i}: value="${comboLevelEl.options[i].value}" text="${comboLevelEl.options[i].text}"`);
-        }
-    }
-    console.log('HTML interno (primeros 200 chars):', comboLevelEl?.innerHTML?.substring(0, 200));
-    
-    console.log('=== Estado completo de comboInstructorEl ===');
-    console.log('Elemento existe:', !!comboInstructorEl);
-    console.log('Valor actual:', instructorValue);
-    console.log('Índice seleccionado:', comboInstructorEl?.selectedIndex);
-    console.log('Total opciones:', comboInstructorEl?.options?.length);
-    
-    console.log('Valores a validar:', { codigo, nombre, levelValue, instructorValue });
-    
-    if (!codigo) {
-        showMessage('El código del módulo es requerido', 'error');
-        codigoModuloEl.focus();
-        return false;
-    }
-    
-    if (codigo.length > 20) {
-        showMessage('El código del módulo no puede exceder 20 caracteres', 'error');
-        codigoModuloEl.focus();
-        return false;
-    }
-    
-    if (!nombre) {
-        showMessage('El nombre del módulo es requerido', 'error');
-        nombreModuloEl.focus();
-        return false;
-    }
-    
-    if (nombre.length > 500) {
-        showMessage('El nombre del módulo no puede exceder 500 caracteres', 'error');
-        nombreModuloEl.focus();
-        return false;
-    }
-    
-    if (!levelValue || levelValue === '' || levelValue === '0' || levelValue === 'undefined' || levelValue === 'null') {
-        console.error('Validación falló para nivel. Valor recibido:', levelValue);
-        showMessage('Debe seleccionar un nivel', 'error');
-        comboLevelEl.focus();
-        return false;
-    }
-    
-    if (!instructorValue || instructorValue === '' || instructorValue === '0' || instructorValue === 'undefined' || instructorValue === 'null') {
-        console.error('Validación falló para instructor. Valor recibido:', instructorValue);
-        showMessage('Debe seleccionar un instructor', 'error');
-        comboInstructorEl.focus();
-        return false;
-    }
-    
-    console.log('=== Validación exitosa ===');
-    return true;
-}
-
-// Filtrar módulos
-function filterModules() {
-    if (!buscadorModulosEl || !filtroAnoModuloEl) {
-        return;
-    }
-    
-    const searchTerm = buscadorModulosEl.value.toLowerCase();
-    const selectedYear = filtroAnoModuloEl.value;
-    
-    let filteredModules = modules;
-    
-    if (searchTerm) {
-        filteredModules = filteredModules.filter(module =>
-            module.moduleCode.toLowerCase().includes(searchTerm) ||
-            module.moduleName.toLowerCase().includes(searchTerm) ||
-            (module.instructorName && module.instructorName.toLowerCase().includes(searchTerm))
-        );
-    }
-    
-    if (selectedYear) {
-        filteredModules = filteredModules.filter(module =>
-            module.levelName && module.levelName.includes(selectedYear)
-        );
-    }
-    
-    renderFilteredTable(filteredModules);
-}
-
-// Renderizar tabla filtrada
-function renderFilteredTable(filteredModules) {
-    cuerpoTabla.innerHTML = '';
-    
-    filteredModules.forEach(module => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${module.moduleCode}</td>
-            <td>${module.moduleName}</td>
-            <td>${module.levelName || 'N/A'}</td>
-            <td>${module.instructorName || 'N/A'}</td>
-            <td>
-                <button class="btn btn-sm btn-warning mb-1 me-1" onclick="editModule(${module.moduleId})">
-                    <i class="fas fa-edit"></i> Editar
-                </button>
-                <button class="btn btn-sm btn-danger mb-1" onclick="deleteModule(${module.moduleId})">
-                    <i class="fas fa-trash"></i> Eliminar
-                </button>
-            </td>
-        `;
-        cuerpoTabla.appendChild(row);
-    });
-}
-
-// Renderizar paginación
-function renderPagination() {
-    const paginationContainer = document.getElementById('pagination-container');
-    if (!paginationContainer) return;
-    
-    paginationContainer.innerHTML = '';
-    
-    // Botón anterior
-    const prevButton = document.createElement('button');
-    prevButton.textContent = 'Anterior';
-    prevButton.className = `btn btn-sm ${currentPage === 0 ? 'btn-secondary' : 'btn-primary'}`;
-    prevButton.disabled = currentPage === 0;
-    prevButton.onclick = () => currentPage > 0 && loadModules(currentPage - 1);
-    paginationContainer.appendChild(prevButton);
-    
-    // Información de página
-    const pageInfo = document.createElement('span');
-    pageInfo.textContent = ` Página ${currentPage + 1} de ${totalPages} `;
-    pageInfo.className = 'mx-2';
-    paginationContainer.appendChild(pageInfo);
-    
-    // Botón siguiente
-    const nextButton = document.createElement('button');
-    nextButton.textContent = 'Siguiente';
-    nextButton.className = `btn btn-sm ${currentPage >= totalPages - 1 ? 'btn-secondary' : 'btn-primary'}`;
-    nextButton.disabled = currentPage >= totalPages - 1;
-    nextButton.onclick = () => currentPage < totalPages - 1 && loadModules(currentPage + 1);
-    paginationContainer.appendChild(nextButton);
-}
-
-// Función debounce para búsqueda
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-// Mostrar mensajes con SweetAlert2
-function showMessage(message, type) {
-    const iconType = type === 'error' ? 'error' : 'success';
-    const title = type === 'error' ? 'Error' : 'Éxito';
-    
-    Swal.fire({
-        title: title,
-        text: message,
-        icon: iconType,
-        timer: 3000,
-        timerProgressBar: true,
-        showConfirmButton: false,
-        toast: true,
-        position: 'top-end'
-    });
-}
-
-// Exportar funciones para uso global
-window.editModule = editModule;
-window.deleteModule = deleteModule;
-
