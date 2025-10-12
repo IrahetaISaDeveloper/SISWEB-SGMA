@@ -26,7 +26,7 @@ let instructors = [];
 let modules = [];
 
 // -----------------------------------------------------
-// 1. UTILERÍA DE API (MEJORA CLAVE) 🔑
+// 1. UTILERÍA DE API (FUNCIÓN UNIFICADA Y MEJORADA)
 // -----------------------------------------------------
 
 /**
@@ -39,7 +39,7 @@ let modules = [];
 async function apiFetch(url, options = {}) {
     const defaultOptions = { credentials: 'include', ...options };
     
-    // Si necesitas autenticación con JWT, descomenta y usa esta línea:
+    // Aquí puedes incluir tu token JWT si lo tienes almacenado:
     // const token = localStorage.getItem('jwtToken'); 
     // if (token) {
     //     defaultOptions.headers = {
@@ -52,7 +52,7 @@ async function apiFetch(url, options = {}) {
     const responseData = await response.json();
 
     if (!response.ok || !responseData.success) {
-        let errorMessage = responseData.message || `Error HTTP: ${response.status}`;
+        let errorMessage = responseData.message || `Error HTTP: ${response.status} - ${response.statusText}`;
         if (response.status === 403) {
             errorMessage = "Acceso denegado (403). Verifique su sesión.";
         }
@@ -62,16 +62,17 @@ async function apiFetch(url, options = {}) {
     let extractedData = responseData.data;
     let paginationInfo = {};
 
-    // Normalización de la respuesta:
+    // Normalización de la respuesta
     if (extractedData) {
-        // Caso Paginado: Los datos están en 'content'
+        // Caso Paginado (ej. /instructors, /modules): Los datos están en 'content'
         if (extractedData.content && Array.isArray(extractedData.content)) {
             extractedData = extractedData.content;
-            paginationInfo = { ...extractedData }; // Copia la info de paginación
+            // Guardamos la info de paginación
+            paginationInfo = { number: extractedData.number, totalPages: extractedData.totalPages }; 
         } 
-        // Caso Lista Simple: Los datos son directamente el array
+        // Caso Lista Simple (ej. /levels): Los datos son directamente el array
         else if (Array.isArray(extractedData)) {
-            // Ya es el array. No es necesario hacer nada.
+            // Ya es el array
         }
     } else {
         extractedData = [];
@@ -84,7 +85,7 @@ async function apiFetch(url, options = {}) {
 }
 
 // -----------------------------------------------------
-// 2. CARGA Y POBLACIÓN DE DATOS (NIVELES E INSTRUCTORES)
+// 2. CARGA DE DATOS Y POBLACIÓN DE COMBOS
 // -----------------------------------------------------
 
 // Cargar niveles para el combobox
@@ -109,7 +110,6 @@ async function loadLevels() {
 async function loadInstructors() {
     try {
         console.log('Iniciando carga de instructores...');
-        // El endpoint de instructores devuelve un objeto paginado, apiFetch lo manejará.
         const result = await apiFetch(`${API_BASE_URL}/api/instructors/getAllInstructors`);
         
         instructors = result.datos;
@@ -124,7 +124,7 @@ async function loadInstructors() {
     }
 }
 
-// Poblar combobox de niveles
+// Poblar combobox de niveles (CORREGIDO: usa level.id)
 function populateLevelsCombo() {
     if (!comboLevelEl) return;
     
@@ -136,8 +136,8 @@ function populateLevelsCombo() {
     }
     
     levels.forEach(level => {
-        // CORRECCIÓN CLAVE: Usar level.id en lugar de level.levelId
-        if (level && level.id && level.levelName) {
+        // CORRECCIÓN CLAVE: Usar level.id (según el JSON)
+        if (level && level.id && level.levelName) { 
             const option = document.createElement('option');
             option.value = level.id;
             option.textContent = level.levelName;
@@ -170,7 +170,7 @@ function populateInstructorsCombo() {
 }
 
 // -----------------------------------------------------
-// 3. LÓGICA DE MÓDULOS Y TABLA
+// 3. LÓGICA DE MÓDULOS (CRUD)
 // -----------------------------------------------------
 
 // Cargar módulos con paginación
@@ -180,8 +180,11 @@ async function loadModules(page = 0) {
         const result = await apiFetch(url);
         
         modules = result.datos;
-        currentPage = result.paginacion.number || 0;
-        totalPages = result.paginacion.totalPages || 0;
+        // La info de paginación debe ser consistente con la estructura del JSON
+        if (result.paginacion.number !== undefined) {
+             currentPage = result.paginacion.number;
+             totalPages = result.paginacion.totalPages;
+        }
         
         renderModulesTable();
         renderPagination();
@@ -191,7 +194,138 @@ async function loadModules(page = 0) {
     }
 }
 
-// Renderizar tabla de módulos (CORREGIDA)
+/**
+ * Crea un nuevo módulo enviando los datos al servidor.
+ */
+async function createModule(moduleData) {
+    try {
+        console.log('Enviando datos para crear módulo:', moduleData);
+
+        // Uso de apiFetch para manejo robusto de la petición
+        await apiFetch(`${API_BASE_URL}/api/modules/newModule`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(moduleData)
+        });
+
+    } catch (error) {
+        // Relanza el error para que handleFormSubmit lo maneje
+        throw new Error(error.message || 'Error desconocido al crear módulo.');
+    }
+}
+
+/**
+ * Actualiza un módulo existente.
+ */
+async function updateModule(id, moduleData) {
+    try {
+        console.log('Enviando datos para actualizar módulo:', id, moduleData);
+
+        // Uso de apiFetch para manejo robusto de la petición
+        await apiFetch(`${API_BASE_URL}/api/modules/updateModule/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(moduleData)
+        });
+
+    } catch (error) {
+        // Relanza el error para que handleFormSubmit lo maneje
+        throw new Error(error.message || 'Error desconocido al actualizar módulo.');
+    }
+}
+
+/**
+ * Elimina un módulo.
+ */
+async function deleteModule(id) {
+    const result = await Swal.fire({
+        title: '¿Está seguro?',
+        text: '¿Desea eliminar este módulo? Esta acción no se puede deshacer.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (!result.isConfirmed) {
+        return;
+    }
+    
+    try {
+        await apiFetch(`${API_BASE_URL}/api/modules/deleteModule/${id}`, {
+            method: 'DELETE'
+        });
+        
+        loadModules(currentPage);
+        showMessage('Módulo eliminado exitosamente', 'success');
+    } catch (error) {
+        console.error('Error al eliminar módulo:', error);
+        showMessage('Error al eliminar el módulo: ' + error.message, 'error');
+    }
+}
+
+// Manejar envío del formulario (Crear/Actualizar)
+async function handleFormSubmit(e) {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+        return;
+    }
+    
+    // Obtener y validar IDs (ya se validan en validateForm, pero convertimos a int aquí)
+    const levelId = parseInt(comboLevelEl.value);
+    const instructorId = parseInt(comboInstructorEl.value);
+
+    const moduleData = {
+        moduleCode: codigoModuloEl.value.trim(),
+        moduleName: nombreModuloEl.value.trim(),
+        moduleDescription: descripcionModuloEl ? descripcionModuloEl.value.trim() : '',
+        levelId: levelId,
+        instructorId: instructorId
+    };
+    
+    const isEditing = idModuloEl.value !== '';
+    
+    try {
+        if (botonEnviar) {
+            botonEnviar.disabled = true;
+            botonEnviar.textContent = isEditing ? 'Actualizando...' : 'Creando...';
+        }
+        
+        if (isEditing) {
+            await updateModule(parseInt(idModuloEl.value), moduleData);
+        } else {
+            await createModule(moduleData);
+        }
+        
+        resetForm();
+        // Recargar la tabla (al inicio si es nuevo, o en la página actual si se editó)
+        loadModules(isEditing ? currentPage : 0); 
+        showMessage(`Módulo ${isEditing ? 'actualizado' : 'creado'} exitosamente`, 'success');
+        
+    } catch (error) {
+        console.error('Error al guardar módulo:', error);
+        showMessage(`Error al guardar el módulo: ${error.message}`, 'error');
+        
+    } finally {
+        if (botonEnviar) {
+            botonEnviar.disabled = false;
+            botonEnviar.textContent = isEditing ? 'Actualizar' : 'Crear';
+        }
+    }
+}
+
+// -----------------------------------------------------
+// 4. RENDERING Y AUXILIARES
+// -----------------------------------------------------
+
+// Renderizar tabla de módulos (CORREGIDA la estructura de las columnas)
 function renderModulesTable() {
     if (!cuerpoTabla) return;
     cuerpoTabla.innerHTML = '';
@@ -200,16 +334,13 @@ function renderModulesTable() {
         const row = document.createElement('tr');
         
         // Determinar el nombre del instructor de manera segura
-        // El JSON del módulo tiene levelName (string) pero el instructor puede ser null,
-        // o un objeto { instructorId, instructorName } o tener el nombre directo.
         const instructorName = module.instructor?.instructorName || 
-                               (module.instructorName || 'N/A'); // Usar el campo instructorName del DTO si existe.
+                               (module.instructorName || 'N/A');
 
         row.innerHTML = `
             <td>${module.moduleCode || 'N/A'}</td>
             <td>${module.moduleName || 'N/A'}</td>
             <td>${module.levelName || 'N/A'}</td>
-            
             <td>${instructorName}</td>
             
             <td>
@@ -225,26 +356,226 @@ function renderModulesTable() {
     });
 }
 
-// El resto de tus funciones (handleFormSubmit, createModule, updateModule, editModule, deleteModule, etc.)
-// pueden permanecer prácticamente iguales, ya que ahora dependen de los datos correctamente cargados
-// y la tabla se renderiza con la corrección de columnas.
+// Editar módulo
+function editModule(id) {
+    const module = modules.find(m => m.moduleId === id);
+    if (!module) {
+        showMessage('Error: Módulo no encontrado', 'error');
+        return;
+    }
+    
+    idModuloEl.value = module.moduleId;
+    codigoModuloEl.value = module.moduleCode || '';
+    nombreModuloEl.value = module.moduleName || '';
+    if (descripcionModuloEl) {
+        descripcionModuloEl.value = module.moduleDescription || '';
+    }
+    
+    // Seleccionar valores en los combos
+    // Level ID: El ID del módulo (levelId) es el valor correcto (level.id)
+    if (module.levelId && comboLevelEl) {
+        comboLevelEl.value = String(module.levelId); 
+    }
+    // Instructor ID
+    if (module.instructorId && comboInstructorEl) {
+        comboInstructorEl.value = String(module.instructorId);
+    }
+    
+    // Cambiar el botón a modo edición
+    if (botonEnviar) {
+        botonEnviar.textContent = 'Actualizar';
+        botonEnviar.className = 'botones';
+    }
+    
+    if (formulario) {
+        formulario.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    showMessage('Módulo cargado para edición', 'success');
+}
+
+// Eliminar módulo (la función ya está definida arriba)
+// deleteModule(id)
+
+// Resetear formulario
+function resetForm() {
+    if (formulario) {
+        formulario.reset();
+    }
+    if (idModuloEl) {
+        idModuloEl.value = '';
+    }
+    if (botonEnviar) {
+        botonEnviar.textContent = 'Crear';
+        botonEnviar.className = 'botones secundario';
+    }
+}
+
+// Validar formulario (simplificada, asume que los elementos existen)
+function validateForm() {
+    const codigo = codigoModuloEl.value.trim();
+    const nombre = nombreModuloEl.value.trim();
+    const levelValue = comboLevelEl.value;
+    const instructorValue = comboInstructorEl.value;
+    
+    if (!codigo) {
+        showMessage('El código del módulo es requerido', 'error');
+        codigoModuloEl.focus();
+        return false;
+    }
+    
+    if (!nombre) {
+        showMessage('El nombre del módulo es requerido', 'error');
+        nombreModuloEl.focus();
+        return false;
+    }
+    
+    // Validación clave para los combos
+    if (!levelValue) {
+        showMessage('Debe seleccionar un nivel', 'error');
+        comboLevelEl.focus();
+        return false;
+    }
+    
+    if (!instructorValue) {
+        showMessage('Debe seleccionar un instructor', 'error');
+        comboInstructorEl.focus();
+        return false;
+    }
+    
+    return true;
+}
+
+// Filtrar módulos (se mantiene el original)
+function filterModules() {
+    if (!buscadorModulosEl || !filtroAnoModuloEl) return;
+    
+    const searchTerm = buscadorModulosEl.value.toLowerCase();
+    const selectedYear = filtroAnoModuloEl.value;
+    
+    let filteredModules = modules;
+    
+    if (searchTerm) {
+        filteredModules = filteredModules.filter(module =>
+            module.moduleCode.toLowerCase().includes(searchTerm) ||
+            module.moduleName.toLowerCase().includes(searchTerm) ||
+            (module.instructorName && module.instructorName.toLowerCase().includes(searchTerm))
+        );
+    }
+    
+    if (selectedYear) {
+        filteredModules = filteredModules.filter(module =>
+            module.levelName && module.levelName.includes(selectedYear)
+        );
+    }
+    
+    renderFilteredTable(filteredModules);
+}
+
+// Renderizar tabla filtrada
+function renderFilteredTable(filteredModules) {
+    // Puedes copiar el código de renderModulesTable aquí o refactorizar para que renderice cualquier array de módulos
+    if (!cuerpoTabla) return;
+    cuerpoTabla.innerHTML = '';
+    
+    filteredModules.forEach(module => {
+        const row = document.createElement('tr');
+        const instructorName = module.instructor?.instructorName || (module.instructorName || 'N/A');
+
+        row.innerHTML = `
+            <td>${module.moduleCode || 'N/A'}</td>
+            <td>${module.moduleName || 'N/A'}</td>
+            <td>${module.levelName || 'N/A'}</td>
+            <td>${instructorName}</td>
+            <td>
+                <button class="btn btn-sm btn-warning mb-1 me-1" onclick="editModule(${module.moduleId})">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <button class="btn btn-sm btn-danger mb-1" onclick="deleteModule(${module.moduleId})">
+                    <i class="fas fa-trash"></i> Eliminar
+                </button>
+            </td>
+        `;
+        cuerpoTabla.appendChild(row);
+    });
+}
+
+// Renderizar paginación (Se mantiene tu código original)
+function renderPagination() {
+    const paginationContainer = document.getElementById('pagination-container');
+    if (!paginationContainer) return;
+    
+    paginationContainer.innerHTML = '';
+    
+    const prevButton = document.createElement('button');
+    prevButton.textContent = 'Anterior';
+    prevButton.className = `btn btn-sm ${currentPage === 0 ? 'btn-secondary' : 'btn-primary'}`;
+    prevButton.disabled = currentPage === 0;
+    prevButton.onclick = () => currentPage > 0 && loadModules(currentPage - 1);
+    paginationContainer.appendChild(prevButton);
+    
+    const pageInfo = document.createElement('span');
+    pageInfo.textContent = ` Página ${currentPage + 1} de ${totalPages} `;
+    pageInfo.className = 'mx-2';
+    paginationContainer.appendChild(pageInfo);
+    
+    const nextButton = document.createElement('button');
+    nextButton.textContent = 'Siguiente';
+    nextButton.className = `btn btn-sm ${currentPage >= totalPages - 1 ? 'btn-secondary' : 'btn-primary'}`;
+    nextButton.disabled = currentPage >= totalPages - 1;
+    nextButton.onclick = () => currentPage < totalPages - 1 && loadModules(currentPage + 1);
+    paginationContainer.appendChild(nextButton);
+}
+
+// Función debounce para búsqueda (Se mantiene tu código original)
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Mostrar mensajes con SweetAlert2 (Se mantiene tu código original)
+function showMessage(message, type) {
+    const iconType = type === 'error' ? 'error' : 'success';
+    const title = type === 'error' ? 'Error' : 'Éxito';
+    
+    Swal.fire({
+        title: title,
+        text: message,
+        icon: iconType,
+        timer: 3000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end'
+    });
+}
+
 
 // -----------------------------------------------------
-// 4. INICIALIZACIÓN Y EVENTOS
+// 5. INICIALIZACIÓN Y EVENT LISTENERS
 // -----------------------------------------------------
 
 // Inicialización
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('DOM cargado, iniciando carga de datos...');
-    // Carga los combos primero
-    await loadLevels();
-    await loadInstructors(); 
-    // Luego carga la tabla de módulos
+    // Carga paralela de datos de combos
+    await Promise.all([
+        loadLevels(),
+        loadInstructors() 
+    ]);
+    // Carga de la tabla principal
     await loadModules();
     setupEventListeners();
 });
 
-// Event Listeners (Tu código original)
+// Event Listeners
 function setupEventListeners() {
     if (formulario) {
         formulario.addEventListener('submit', handleFormSubmit);
@@ -263,47 +594,3 @@ function setupEventListeners() {
 // Exportar funciones para uso global (necesario para onclick en el HTML)
 window.editModule = editModule;
 window.deleteModule = deleteModule;
-// El resto de funciones auxiliares (validateForm, resetForm, renderPagination, showMessage, debounce) 
-// se mantienen igual que en tu código original.
-
-// Implementación de editModule
-function editModule(id) {
-    const module = modules.find(m => m.moduleId === id);
-    if (!module) {
-        showMessage('Error: Módulo no encontrado', 'error');
-        return;
-    }
-    
-    // Asigna valores
-    idModuloEl.value = module.moduleId;
-    codigoModuloEl.value = module.moduleCode || '';
-    nombreModuloEl.value = module.moduleName || '';
-    if (descripcionModuloEl) {
-        descripcionModuloEl.value = module.moduleDescription || '';
-    }
-    
-    // Seleccionar el Level y el Instructor
-    // NOTA: Para el comboLevel, usamos 'levelId' del módulo, pero el valor del combo es 'id' del nivel.
-    // Esto funciona porque ambos son numéricamente iguales:
-    if (module.levelId && comboLevelEl) {
-        // levelId del módulo coincide con el ID del nivel
-        comboLevelEl.value = String(module.levelId); 
-    }
-    if (module.instructorId && comboInstructorEl) {
-        // instructorId del módulo coincide con el ID del instructor
-        comboInstructorEl.value = String(module.instructorId);
-    }
-    
-    // Cambiar el botón a modo edición
-    if (botonEnviar) {
-        botonEnviar.textContent = 'Actualizar';
-        botonEnviar.className = 'btn btn-warning';
-    }
-    
-    // Scroll al formulario
-    if (formulario) {
-        formulario.scrollIntoView({ behavior: 'smooth' });
-    }
-    
-    showMessage('Módulo cargado para edición', 'success');
-}
