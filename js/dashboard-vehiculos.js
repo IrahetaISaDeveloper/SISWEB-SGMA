@@ -108,13 +108,13 @@ function renderVehiclesTable(vehicles) {
             </td>
             <td>
                 <div class="acciones-vehiculo" style="display:flex;gap:8px;">
-                    <button class="btn-opciones" title="Ver detalles" onclick="showVehicleModal(${vehicle.vehicleId})">
+                    <button class="btn-accion" title="Ver detalles" onclick="showVehicleModal(${vehicle.vehicleId})">
                         <i class="fas fa-eye"></i>
                     </button>
-                    <button class="btn-opciones" title="Editar">
+                    <button class="btn-accion" title="Editar">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn-opciones" title="Eliminar">
+                    <button class="btn-accion" title="Eliminar">
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 </div>
@@ -240,23 +240,30 @@ document.getElementById('buscarRegistro').addEventListener('input', function(e) 
 let selectedVehicleId = null;
 
 window.showVehicleModal = function(vehicleId) {
-    document.getElementById('modalVehiculo').style.display = 'block';
+    const modal = document.getElementById('modalVehiculo');
+    modal.classList.add('activo'); // Use class instead of style.display
     selectedVehicleId = vehicleId;
     const vehicle = allVehicles.find(v => v.vehicleId === vehicleId);
     const tabVehiculo = document.getElementById('tab-vehiculo');
     if (vehicle && tabVehiculo) {
+        const imageSrc = vehicle.vehicleImage && vehicle.vehicleImage !== 'null' ? vehicle.vehicleImage : 'imgs/default-car.png';
         tabVehiculo.innerHTML = `
-            <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
-                <img src="${vehicle.vehicleImage && vehicle.vehicleImage !== 'null' ? vehicle.vehicleImage : 'imgs/default-car.png'}" style="width:80px;height:80px;border-radius:8px;border:1px solid #ccc;object-fit:cover;" alt="Imagen">
+            <div class="modal-vehiculo-imagen-container">
+                <h4>Imagen del Vehículo</h4>
+                <img src="${imageSrc}" class="modal-vehiculo-imagen" alt="Imagen del vehículo">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px;">
                 <div>
-                    <div><strong>Placa:</strong> ${vehicle.plateNumber || '-'}</div>
-                    <div><strong>Marca:</strong> ${vehicle.brand || '-'}</div>
-                    <div><strong>Modelo:</strong> ${vehicle.model || '-'}</div>
-                    <div><strong>Tipo:</strong> ${vehicle.typeName || '-'}</div>
-                    <div><strong>Estado:</strong> ${vehicle.idStatus != null ? vehicle.idStatus : '-'}</div>
-                    <div><strong>Estudiante:</strong> ${(vehicle.studentName || '-') + ' ' + (vehicle.studentLastName || '')}</div>
-                    <div><strong>Propietario:</strong> ${vehicle.ownerName || '-'}</div>
-                    <div><strong>Tel. Propietario:</strong> ${vehicle.ownerPhone || '-'}</div>
+                    <div style="margin-bottom:12px;"><strong>Placa:</strong> ${vehicle.plateNumber || '-'}</div>
+                    <div style="margin-bottom:12px;"><strong>Marca:</strong> ${vehicle.brand || '-'}</div>
+                    <div style="margin-bottom:12px;"><strong>Modelo:</strong> ${vehicle.model || '-'}</div>
+                    <div style="margin-bottom:12px;"><strong>Tipo:</strong> ${vehicle.typeName || '-'}</div>
+                </div>
+                <div>
+                    <div style="margin-bottom:12px;"><strong>Estado:</strong> ${vehicle.idStatus != null ? vehicle.idStatus : '-'}</div>
+                    <div style="margin-bottom:12px;"><strong>Estudiante:</strong> ${(vehicle.studentName || '-') + ' ' + (vehicle.studentLastName || '')}</div>
+                    <div style="margin-bottom:12px;"><strong>Propietario:</strong> ${vehicle.ownerName || '-'}</div>
+                    <div style="margin-bottom:12px;"><strong>Tel. Propietario:</strong> ${vehicle.ownerPhone || '-'}</div>
                 </div>
             </div>
         `;
@@ -335,7 +342,8 @@ if (btnAprobar) {
 }
 
 document.querySelector('.btn-cerrar-modal').addEventListener('click', function() {
-    document.getElementById('modalVehiculo').style.display = 'none';
+    const modal = document.getElementById('modalVehiculo');
+    modal.classList.remove('activo'); // Use class instead of style.display
 });
 
 document.addEventListener('DOMContentLoaded', async function() {
