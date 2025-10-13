@@ -1,4 +1,75 @@
 let allVehicles = [];
+let userRole = null;
+
+// Import the auth service
+import { me } from './service/authService.js';
+
+// Obtiene información del usuario autenticado usando el servicio de auth
+async function getUserInfo() {
+    try {
+        const userInfo = await me();
+        console.log('User info received:', userInfo); // Debug log
+        
+        if (userInfo.authenticated && userInfo.instructor && userInfo.instructor.role) {
+            userRole = userInfo.instructor.role;
+            console.log('User role set to:', userRole); // Debug log
+            handleSidebarVisibility();
+            updateSidebarTitle();
+            return userInfo.instructor;
+        }
+        return null;
+    } catch (error) {
+        console.error('Error al obtener información del usuario:', error);
+        return null;
+    }
+}
+
+// Actualiza el título del sidebar según el rol
+function updateSidebarTitle() {
+    const sidebarTitle = document.getElementById('sidebar-title');
+    if (sidebarTitle && userRole) {
+        if (userRole === 'Animador') {
+            sidebarTitle.textContent = 'Pendientes de Revisión';
+        } else if (userRole === 'Coordinador') {
+            sidebarTitle.textContent = 'En Revisión';
+        }
+    }
+}
+
+// Controla la visibilidad del sidebar según el rol
+function handleSidebarVisibility() {
+    const sidebar = document.querySelector('.panel-lateral');
+    const mainContent = document.querySelector('.contenido-principal');
+    const contenidoLayout = document.querySelector('.contenido-layout');
+    
+    console.log('Handling sidebar visibility for role:', userRole); // Debug log
+    
+    if (userRole === 'Docente') {
+        if (sidebar) {
+            sidebar.style.display = 'none';
+            console.log('Sidebar hidden for Docente'); // Debug log
+        }
+        if (contenidoLayout) {
+            contenidoLayout.style.gridTemplateColumns = '1fr';
+        }
+        if (mainContent) {
+            mainContent.style.width = '100%';
+            mainContent.style.maxWidth = '100%';
+        }
+    } else {
+        if (sidebar) {
+            sidebar.style.display = 'block';
+            console.log('Sidebar shown for role:', userRole); // Debug log
+        }
+        if (contenidoLayout) {
+            contenidoLayout.style.gridTemplateColumns = '';
+        }
+        if (mainContent) {
+            mainContent.style.width = '';
+            mainContent.style.maxWidth = '';
+        }
+    }
+}
 
 // Renderiza la tabla de vehículos
 function renderVehiclesTable(vehicles) {
@@ -58,13 +129,28 @@ function renderSidebarPendingVehicles(vehicles) {
     const lista = document.querySelector('.tarjeta-sidebar .lista-registros');
     const badge = document.querySelector('.tarjeta-sidebar .badge-contador');
     if (!lista) return;
-    const pendientes = vehicles.filter(v => v.idStatus === 1);
+    
+    console.log('Rendering sidebar for role:', userRole, 'with vehicles:', vehicles.length); // Debug log
+    
+    // Filtra vehículos según el rol del usuario
+    let pendientes = [];
+    if (userRole === 'Animador') {
+        pendientes = vehicles.filter(v => v.idStatus === 1);
+        console.log('Animador - vehicles with status 1:', pendientes.length); // Debug log
+    } else if (userRole === 'Coordinador') {
+        pendientes = vehicles.filter(v => v.idStatus === 2);
+        console.log('Coordinador - vehicles with status 2:', pendientes.length); // Debug log
+    }
+    // Para 'Docente' no se muestran vehículos pendientes (sidebar oculto)
+    
     if (badge) badge.textContent = pendientes.length;
     lista.innerHTML = '';
+    
     if (pendientes.length === 0) {
         lista.innerHTML = '<div style="text-align:center;color:#888;">No hay vehículos pendientes.</div>';
         return;
     }
+    
     pendientes.forEach(vehicle => {
         const div = document.createElement('div');
         div.className = 'item-registro';
@@ -181,11 +267,32 @@ window.showVehicleModal = function(vehicleId) {
 
 // Evento para el botón Aprobar
 const btnAprobar = document.querySelector('.btn-modal.primario');
-const NEW_STATUS_VALUE = 2;
 if (btnAprobar) {
     btnAprobar.addEventListener('click', function() {
-        if (selectedVehicleId) {
-            fetch(`https://sgma-66ec41075156.herokuapp.com/api/vehicles/updateStatusVehicle/${selectedVehicleId}?newStatus=${NEW_STATUS_VALUE}`, {
+        if (selectedVehicleId && userRole) {
+            // Determina el nuevo estado según el rol del usuario
+            let newStatusValue;
+            if (userRole === 'Animador') {
+                newStatusValue = 2;
+            } else if (userRole === 'Coordinador') {
+                newStatusValue = 3;
+            } else {
+                // Si no es Animador ni Coordinador, no debería poder aprobar
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Sin permisos',
+                        text: 'No tienes permisos para aprobar vehículos.'
+                    });
+                } else {
+                    alert('No tienes permisos para aprobar vehículos');
+                }
+                return;
+            }
+
+            console.log(`Updating vehicle ${selectedVehicleId} to status ${newStatusValue} for role ${userRole}`);
+
+            fetch(`https://sgma-66ec41075156.herokuapp.com/api/vehicles/updateStatusVehicle/${selectedVehicleId}?newStatus=${newStatusValue}`, {
                 method: 'PUT',
                 credentials: 'include',
                 headers: {
@@ -195,19 +302,24 @@ if (btnAprobar) {
             .then(res => res.json())
             .then(data => {
                 // Mostrar SweetAlert de éxito
+                const successMessage = userRole === 'Animador' 
+                    ? 'El vehículo ha sido enviado a revisión del coordinador.' 
+                    : 'El vehículo ha sido aprobado completamente.';
+                
                 if (typeof Swal !== 'undefined') {
                     Swal.fire({
                         icon: 'success',
                         title: 'Aprobado',
-                        text: 'El vehículo ha sido aprobado correctamente.'
+                        text: successMessage
                     });
                 } else {
-                    alert('Vehículo aprobado: ' + selectedVehicleId);
+                    alert(successMessage);
                 }
                 document.getElementById('modalVehiculo').style.display = 'none';
                 fetchAllVehicles();
             })
             .catch(err => {
+                console.error('Error al aprobar vehículo:', err);
                 if (typeof Swal !== 'undefined') {
                     Swal.fire({
                         icon: 'error',
@@ -226,4 +338,9 @@ document.querySelector('.btn-cerrar-modal').addEventListener('click', function()
     document.getElementById('modalVehiculo').style.display = 'none';
 });
 
-document.addEventListener('DOMContentLoaded', fetchAllVehicles);
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('DOM loaded, getting user info...'); // Debug log
+    await getUserInfo();
+    console.log('User info obtained, fetching vehicles...'); // Debug log
+    fetchAllVehicles();
+});

@@ -67,78 +67,15 @@
     </aside>
 
     <div class="contenedor-principal">
-
         <div class="contenido-layout">
             <aside class="panel-lateral">
                 <div class="tarjeta-sidebar">
                     <div class="header-sidebar">
-                        <h3>Pendientes de Revisión</h3>
-                        <span class="badge-contador">4</span>
+                        <h3 id="sidebar-title">Pendientes de Revisión</h3>
+                        <span class="badge-contador">0</span>
                     </div>
                     <div class="lista-registros">
-                        <div class="item-registro">
-                            <div class="icono-vehiculo">
-                                <i class="fas fa-car"></i>
-                            </div>
-                            <div class="info-vehiculo">
-                                <span class="placa-vehiculo">P894-562</span>
-                                <span class="servicio-vehiculo">Revisión de inyectores</span>
-                                <span class="fecha-vehiculo">Hace 2 horas</span>
-                            </div>
-                            <div class="acciones-vehiculo">
-                                <button class="btn-opciones" title="Más opciones">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="item-registro">
-                            <div class="icono-vehiculo">
-                                <i class="fas fa-car"></i>
-                            </div>
-                            <div class="info-vehiculo">
-                                <span class="placa-vehiculo">P123-789</span>
-                                <span class="servicio-vehiculo">Cambio de aceite</span>
-                                <span class="fecha-vehiculo">Hace 4 horas</span>
-                            </div>
-                            <div class="acciones-vehiculo">
-                                <button class="btn-opciones" title="Más opciones">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="item-registro">
-                            <div class="icono-vehiculo">
-                                <i class="fas fa-car"></i>
-                            </div>
-                            <div class="info-vehiculo">
-                                <span class="placa-vehiculo">P456-123</span>
-                                <span class="servicio-vehiculo">Revisión de frenos</span>
-                                <span class="fecha-vehiculo">Hace 6 horas</span>
-                            </div>
-                            <div class="acciones-vehiculo">
-                                <button class="btn-opciones" title="Más opciones">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="item-registro">
-                            <div class="icono-vehiculo">
-                                <i class="fas fa-car"></i>
-                            </div>
-                            <div class="info-vehiculo">
-                                <span class="placa-vehiculo">P789-456</span>
-                                <span class="servicio-vehiculo">Diagnóstico eléctrico</span>
-                                <span class="fecha-vehiculo">Hace 1 día</span>
-                            </div>
-                            <div class="acciones-vehiculo">
-                                <button class="btn-opciones" title="Más opciones">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                            </div>
-                        </div>
+                        <!-- El contenido se llena dinámicamente con JS -->
                     </div>
                 </div>
             </aside>
@@ -234,7 +171,6 @@
                 <div class="modal-tabs">
                     <button class="tab-btn activo" data-tab="vehiculo">Vehículo</button>
                     <button class="tab-btn" data-tab="orden">Orden de Trabajo</button>
-                    <button class="tab-btn" data-tab="terminos">Términos</button>
                 </div>
                 
                 <div class="tab-content activo" id="tab-vehiculo">
@@ -256,7 +192,7 @@
         </div>
     </div>
 
-    <script src="js/dashboard-vehiculos.js"></script>
+    <script type="module" src="js/dashboard-vehiculos.js"></script>
 </body>
 
 </html>
