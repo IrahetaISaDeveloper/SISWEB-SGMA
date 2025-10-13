@@ -19,6 +19,8 @@ async function cargarPerfil() {
         }
 
         const instructor = data.instructor;
+        console.log('Datos del instructor:', instructor); // Debug log
+        
         // Guardar el ID del instructor para el cambio de contraseña
         window.instructorId = instructor.id;
         
@@ -28,11 +30,30 @@ async function cargarPerfil() {
         document.getElementById('nombreCompletoUsuario').textContent = `${instructor.names} ${instructor.lastNames}`;
         document.getElementById('anioImpartidoUsuario').textContent = instructor.level || '';
         
+        // Manejar la imagen del avatar
+        const avatarElement = document.getElementById('avatarUsuario');
+        console.log('instructorImage data:', instructor.instructorImage); // Debug log
+        
+        if (instructor.instructorImage && instructor.instructorImage.trim() !== '') {
+            avatarElement.src = instructor.instructorImage;
+            console.log('Avatar src set to:', instructor.instructorImage);
+        } else {
+            avatarElement.src = 'imgs/defaul-user.webp';
+            console.log('Using default avatar');
+        }
+        
+        // Error handler para la imagen
+        avatarElement.onerror = function() {
+            console.log('Error loading avatar, using default');
+            this.src = 'imgs/defaul-user.webp';
+        };
+        
         // Mapear campos adicionales si están disponibles en la respuesta
         if (instructor.phone) {
             document.getElementById('telefonoUsuario').textContent = instructor.phone;
         }
     } catch (error) {
+        console.error('Error cargando perfil:', error);
         Swal.fire('Error', 'No se pudo cargar el perfil.', 'error');
     }
 }
