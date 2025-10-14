@@ -111,12 +111,6 @@ function renderVehiclesTable(vehicles) {
                     <button class="btn-accion" title="Ver detalles" onclick="showVehicleModal(${vehicle.vehicleId})">
                         <i class="fas fa-eye"></i>
                     </button>
-                    <button class="btn-accion" title="Editar">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn-accion" title="Eliminar">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
                 </div>
             </td>
         `;
@@ -239,9 +233,332 @@ document.getElementById('buscarRegistro').addEventListener('input', function(e) 
 
 let selectedVehicleId = null;
 
+// Add print function for vehicle report
+window.imprimirReporteVehiculo = function() {
+    // Get current date for the report
+    const currentDate = new Date().toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+    
+    // Get the vehicle data
+    const vehicle = allVehicles.find(v => v.vehicleId === selectedVehicleId);
+    if (!vehicle) {
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudo obtener la información del vehículo para imprimir.'
+            });
+        } else {
+            alert('Error: No se pudo obtener la información del vehículo');
+        }
+        return;
+    }
+    
+    // Get image source
+    const imageSrc = vehicle.vehicleImage && vehicle.vehicleImage !== 'null' ? vehicle.vehicleImage : 'imgs/default-car.png';
+    
+    // Determine status text based on idStatus
+    let statusText = 'Desconocido';
+    switch(vehicle.idStatus) {
+        case 1:
+            statusText = 'Pendiente de Revisión';
+            break;
+        case 2:
+            statusText = 'En Proceso de Revisión';
+            break;
+        case 3:
+            statusText = 'Completado';
+            break;
+        default:
+            statusText = vehicle.idStatus || 'No definido';
+    }
+    
+    // Create print content
+    const printContent = `
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Reporte de Vehículo - ${vehicle.plateNumber}</title>
+            <style>
+                * {
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }
+                
+                body {
+                    font-family: 'Arial', sans-serif;
+                    margin: 0;
+                    padding: 20px;
+                    color: #333;
+                    line-height: 1.6;
+                    background: white;
+                }
+                
+                .container {
+                    max-width: 800px;
+                    margin: 0 auto;
+                    padding: 20px;
+                }
+                
+                .header {
+                    text-align: center;
+                    margin-bottom: 30px;
+                    border-bottom: 3px solid #e74c3c;
+                    padding-bottom: 20px;
+                }
+                
+                .header h1 {
+                    color: #e74c3c;
+                    margin: 0;
+                    font-size: 28px;
+                    font-weight: 700;
+                }
+                
+                .header p {
+                    color: #666;
+                    margin: 10px 0 0 0;
+                    font-size: 16px;
+                }
+                
+                .header .date {
+                    color: #888;
+                    margin: 5px 0 0 0;
+                    font-size: 14px;
+                }
+                
+                .content {
+                    display: grid;
+                    grid-template-columns: 1fr 300px;
+                    gap: 30px;
+                    margin-bottom: 30px;
+                }
+                
+                .vehicle-info h2 {
+                    color: #2d3748;
+                    margin-bottom: 20px;
+                    font-size: 20px;
+                    border-bottom: 2px solid #e2e8f0;
+                    padding-bottom: 10px;
+                }
+                
+                .info-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 15px;
+                }
+                
+                .info-item {
+                    margin-bottom: 15px;
+                    padding: 10px;
+                    background: #f7fafc;
+                    border-left: 4px solid #e74c3c;
+                    border-radius: 4px;
+                }
+                
+                .info-item strong {
+                    color: #2d3748;
+                    display: block;
+                    margin-bottom: 5px;
+                }
+                
+                .info-item span {
+                    color: #4a5568;
+                    font-size: 16px;
+                }
+                
+                .image-section {
+                    text-align: center;
+                }
+                
+                .image-section h3 {
+                    color: #2d3748;
+                    margin-bottom: 15px;
+                    font-size: 18px;
+                }
+                
+                .vehicle-image {
+                    width: 100%;
+                    max-width: 280px;
+                    height: auto;
+                    border: 2px solid #e2e8f0;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                }
+                
+                .owner-info {
+                    margin-bottom: 30px;
+                }
+                
+                .owner-info h2 {
+                    color: #2d3748;
+                    margin-bottom: 20px;
+                    font-size: 20px;
+                    border-bottom: 2px solid #e2e8f0;
+                    padding-bottom: 10px;
+                }
+                
+                .owner-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 15px;
+                }
+                
+                .owner-item {
+                    margin-bottom: 15px;
+                    padding: 10px;
+                    background: #f7fafc;
+                    border-left: 4px solid #48bb78;
+                    border-radius: 4px;
+                }
+                
+                .status-item {
+                    border-left-color: #4299e1 !important;
+                }
+                
+                .owner-item strong {
+                    color: #2d3748;
+                    display: block;
+                    margin-bottom: 5px;
+                }
+                
+                .owner-item span {
+                    color: #4a5568;
+                    font-size: 16px;
+                }
+                
+                .status-item span {
+                    font-weight: 600;
+                }
+                
+                .footer {
+                    border-top: 2px solid #e2e8f0;
+                    padding-top: 20px;
+                    text-align: center;
+                    color: #718096;
+                    font-size: 12px;
+                }
+                
+                .footer p {
+                    margin: 0;
+                }
+                
+                .footer .contact {
+                    margin: 5px 0 0 0;
+                }
+                
+                @media print {
+                    body {
+                        margin: 0;
+                        padding: 15px;
+                    }
+                    
+                    .container {
+                        padding: 0;
+                    }
+                    
+                    @page {
+                        margin: 1cm;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>REPORTE DE VEHÍCULO</h1>
+                    <p>Sistema de Gestión de Mantenimiento Automotriz</p>
+                    <p class="date">Fecha de generación: ${currentDate}</p>
+                </div>
+                
+                <div class="content">
+                    <div class="vehicle-info">
+                        <h2>Información del Vehículo</h2>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <strong>Placa:</strong>
+                                <span>${vehicle.plateNumber || 'No especificada'}</span>
+                            </div>
+                            <div class="info-item">
+                                <strong>Marca:</strong>
+                                <span>${vehicle.brand || 'No especificada'}</span>
+                            </div>
+                            <div class="info-item">
+                                <strong>Modelo:</strong>
+                                <span>${vehicle.model || 'No especificado'}</span>
+                            </div>
+                            <div class="info-item">
+                                <strong>Tipo:</strong>
+                                <span>${vehicle.typeName || 'No especificado'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="image-section">
+                        <h3>Imagen del Vehículo</h3>
+                        <img src="${imageSrc}" class="vehicle-image" alt="Imagen del vehículo" onerror="this.style.display='none'">
+                    </div>
+                </div>
+                
+                <div class="owner-info">
+                    <h2>Información del Propietario y Estado</h2>
+                    <div class="owner-grid">
+                        <div class="owner-item">
+                            <strong>Estudiante:</strong>
+                            <span>${((vehicle.studentName || '') + ' ' + (vehicle.studentLastName || '')).trim() || 'No asignado'}</span>
+                        </div>
+                        <div class="owner-item">
+                            <strong>Propietario:</strong>
+                            <span>${vehicle.ownerName || 'No especificado'}</span>
+                        </div>
+                        <div class="owner-item">
+                            <strong>Teléfono del Propietario:</strong>
+                            <span>${vehicle.ownerPhone || 'No especificado'}</span>
+                        </div>
+                        <div class="owner-item status-item">
+                            <strong>Estado:</strong>
+                            <span>${statusText}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="footer">
+                    <p>Este reporte fue generado automáticamente por el Sistema de Gestión de Mantenimiento Automotriz</p>
+                    <p class="contact">Para más información, contacte al administrador del sistema</p>
+                </div>
+            </div>
+            
+            <script>
+                window.onload = function() {
+                    setTimeout(function() {
+                        window.print();
+                        setTimeout(function() {
+                            window.close();
+                        }, 100);
+                    }, 500);
+                };
+            </script>
+        </body>
+        </html>
+    `;
+    
+    // Open new window and write content
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    if (printWindow) {
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+    } else {
+        alert('Por favor, permita ventanas emergentes para imprimir el reporte.');
+    }
+};
+
 window.showVehicleModal = function(vehicleId) {
     const modal = document.getElementById('modalVehiculo');
-    modal.classList.add('activo'); // Use class instead of style.display
+    modal.classList.add('activo');
     selectedVehicleId = vehicleId;
     const vehicle = allVehicles.find(v => v.vehicleId === vehicleId);
     const tabVehiculo = document.getElementById('tab-vehiculo');
@@ -250,20 +567,44 @@ window.showVehicleModal = function(vehicleId) {
         tabVehiculo.innerHTML = `
             <div class="modal-vehiculo-imagen-container">
                 <h4>Imagen del Vehículo</h4>
-                <img src="${imageSrc}" class="modal-vehiculo-imagen" alt="Imagen del vehículo">
+                <img src="${imageSrc}" class="modal-vehiculo-imagen imagen-vehiculo" alt="Imagen del vehículo">
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px;">
                 <div>
-                    <div style="margin-bottom:12px;"><strong>Placa:</strong> ${vehicle.plateNumber || '-'}</div>
-                    <div style="margin-bottom:12px;"><strong>Marca:</strong> ${vehicle.brand || '-'}</div>
-                    <div style="margin-bottom:12px;"><strong>Modelo:</strong> ${vehicle.model || '-'}</div>
-                    <div style="margin-bottom:12px;"><strong>Tipo:</strong> ${vehicle.typeName || '-'}</div>
+                    <div class="detalle-item">
+                        <strong>Placa:</strong>
+                        <div class="detalle-valor">${vehicle.plateNumber || '-'}</div>
+                    </div>
+                    <div class="detalle-item">
+                        <strong>Marca:</strong>
+                        <div class="detalle-valor">${vehicle.brand || '-'}</div>
+                    </div>
+                    <div class="detalle-item">
+                        <strong>Modelo:</strong>
+                        <div class="detalle-valor">${vehicle.model || '-'}</div>
+                    </div>
+                    <div class="detalle-item">
+                        <strong>Tipo:</strong>
+                        <div class="detalle-valor">${vehicle.typeName || '-'}</div>
+                    </div>
                 </div>
                 <div>
-                    <div style="margin-bottom:12px;"><strong>Estado:</strong> ${vehicle.idStatus != null ? vehicle.idStatus : '-'}</div>
-                    <div style="margin-bottom:12px;"><strong>Estudiante:</strong> ${(vehicle.studentName || '-') + ' ' + (vehicle.studentLastName || '')}</div>
-                    <div style="margin-bottom:12px;"><strong>Propietario:</strong> ${vehicle.ownerName || '-'}</div>
-                    <div style="margin-bottom:12px;"><strong>Tel. Propietario:</strong> ${vehicle.ownerPhone || '-'}</div>
+                    <div class="detalle-item">
+                        <strong>Estado:</strong>
+                        <div class="detalle-valor">${vehicle.idStatus != null ? vehicle.idStatus : '-'}</div>
+                    </div>
+                    <div class="detalle-item">
+                        <strong>Estudiante:</strong>
+                        <div class="detalle-valor">${(vehicle.studentName || '-') + ' ' + (vehicle.studentLastName || '')}</div>
+                    </div>
+                    <div class="detalle-item">
+                        <strong>Propietario:</strong>
+                        <div class="detalle-valor">${vehicle.ownerName || '-'}</div>
+                    </div>
+                    <div class="detalle-item">
+                        <strong>Tel. Propietario:</strong>
+                        <div class="detalle-valor">${vehicle.ownerPhone || '-'}</div>
+                    </div>
                 </div>
             </div>
         `;
@@ -322,7 +663,7 @@ if (btnAprobar) {
                 } else {
                     alert(successMessage);
                 }
-                document.getElementById('modalVehiculo').style.display = 'none';
+                document.getElementById('modalVehiculo').classList.remove('activo');
                 fetchAllVehicles();
             })
             .catch(err => {
@@ -343,7 +684,118 @@ if (btnAprobar) {
 
 document.querySelector('.btn-cerrar-modal').addEventListener('click', function() {
     const modal = document.getElementById('modalVehiculo');
-    modal.classList.remove('activo'); // Use class instead of style.display
+    modal.classList.remove('activo');
+});
+
+// Function to rebind event listeners after DOM replacement
+function bindEventListeners() {
+    // Rebind close modal event
+    const btnCerrarModal = document.querySelector('.btn-cerrar-modal');
+    if (btnCerrarModal) {
+        btnCerrarModal.addEventListener('click', function() {
+            const modal = document.getElementById('modalVehiculo');
+            modal.classList.remove('activo');
+        });
+    }
+    
+    // Rebind print button event
+    const btnImprimir = document.getElementById('btn-imprimir-reporte');
+    if (btnImprimir) {
+        btnImprimir.addEventListener('click', function() {
+            if (selectedVehicleId) {
+                imprimirReporteVehiculo();
+            } else {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Sin selección',
+                        text: 'No hay un vehículo seleccionado para imprimir.'
+                    });
+                } else {
+                    alert('No hay un vehículo seleccionado para imprimir');
+                }
+            }
+        });
+    }
+    
+    // Rebind modal outside click event
+    const modalVehiculo = document.getElementById('modalVehiculo');
+    if (modalVehiculo) {
+        modalVehiculo.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('activo');
+            }
+        });
+    }
+
+    // Rebind approve button event
+    const btnAprobar = document.querySelector('.btn-modal.primario');
+    if (btnAprobar) {
+        btnAprobar.addEventListener('click', function() {
+            if (selectedVehicleId && userRole) {
+                let newStatusValue;
+                if (userRole === 'Animador') {
+                    newStatusValue = 2;
+                } else if (userRole === 'Coordinador') {
+                    newStatusValue = 3;
+                } else {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Sin permisos',
+                            text: 'No tienes permisos para aprobar vehículos.'
+                        });
+                    } else {
+                        alert('No tienes permisos para aprobar vehículos');
+                    }
+                    return;
+                }
+
+                fetch(`https://sgma-66ec41075156.herokuapp.com/api/vehicles/updateStatusVehicle/${selectedVehicleId}?newStatus=${newStatusValue}`, {
+                    method: 'PUT',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    const successMessage = userRole === 'Animador' 
+                        ? 'El vehículo ha sido enviado a revisión del coordinador.' 
+                        : 'El vehículo ha sido aprobado completamente.';
+                    
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Aprobado',
+                            text: successMessage
+                        });
+                    } else {
+                        alert(successMessage);
+                    }
+                    document.getElementById('modalVehiculo').classList.remove('activo');
+                    fetchAllVehicles();
+                })
+                .catch(err => {
+                    console.error('Error al aprobar vehículo:', err);
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'No se pudo aprobar el vehículo.'
+                        });
+                    } else {
+                        alert('Error al aprobar vehículo');
+                    }
+                });
+            }
+        });
+    }
+}
+
+// Add event listener for print button
+document.addEventListener('DOMContentLoaded', function() {
+    bindEventListeners();
 });
 
 document.addEventListener('DOMContentLoaded', async function() {

@@ -769,3 +769,201 @@ body {
     font-size: 1.3rem;
   }
 }
+
+/* Estilos para impresión */
+@media print {
+  /* Ocultar elementos no necesarios en impresión */
+  .sidebar,
+  .btn-exportar,
+  .btn-actualizar,
+  .btn-descargar,
+  .controles-grafico,
+  .btn-imprimir-todo {
+    display: none !important;
+  }
+
+  /* Ajustar contenido principal */
+  .contenido-principal {
+    margin-left: 0 !important;
+    padding: 20px !important;
+    max-width: 100% !important;
+  }
+
+  /* Título de impresión */
+  .titulo-impresion {
+    text-align: center;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #333;
+    padding-bottom: 20px;
+    page-break-after: avoid;
+  }
+
+  .titulo-impresion h1 {
+    margin: 0;
+    color: #333;
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  .titulo-impresion p {
+    margin: 10px 0 0 0;
+    color: #666;
+    font-size: 14px;
+  }
+
+  /* Ajustar gráficos para impresión */
+  .tarjeta-grafico {
+    page-break-inside: avoid;
+    margin-bottom: 30px;
+    border: 1px solid #ddd;
+    padding: 20px;
+    box-shadow: none;
+  }
+
+  .header-grafico {
+    background: #f8f9fa !important;
+    border-bottom: 1px solid #ddd;
+    padding: 15px 20px;
+  }
+
+  .header-grafico h2 {
+    font-size: 18px;
+    color: #333;
+  }
+
+  .contenido-grafico {
+    padding: 20px;
+  }
+
+  /* Ajustar estadísticas */
+  .estadisticas-resumen {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+    page-break-inside: avoid;
+  }
+
+  .tarjeta-estadistica {
+    border: 1px solid #ddd;
+    margin: 5px;
+    padding: 15px;
+    flex: 1;
+    min-width: 200px;
+    box-shadow: none;
+    background: white !important;
+  }
+
+  .icono-estadistica {
+    background: #666 !important;
+  }
+
+  /* Ocultar reportes adicionales en impresión */
+  .reportes-adicionales {
+    display: none !important;
+  }
+
+  /* Forzar colores para impresión */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    -color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Asegurar que el texto sea legible */
+  body {
+    color: #000 !important;
+    background: white !important;
+  }
+
+  /* Configuración de página */
+  @page {
+    margin: 2cm;
+    size: A4;
+  }
+
+  /* Evitar saltos de página en elementos importantes */
+  .titulo-pagina,
+  .estadisticas-resumen {
+    page-break-after: avoid;
+  }
+
+  .tarjeta-grafico {
+    page-break-before: auto;
+    page-break-after: auto;
+  }
+}
+
+/* Estilos para el botón de imprimir */
+.btn-imprimir-todo {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: var(--radio-borde);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaciado-s);
+  transition: all 0.3s ease;
+  box-shadow: var(--sombra-suave);
+  margin-top: var(--espaciado-m);
+}
+
+.btn-imprimir-todo:hover {
+  background: linear-gradient(135deg, #0056b3, #004085);
+  transform: translateY(-2px);
+  box-shadow: var(--sombra-media);
+}
+
+.btn-imprimir-todo:active {
+  transform: translateY(0);
+  box-shadow: var(--sombra-suave);
+}
+
+.btn-imprimir-todo i {
+  font-size: 16px;
+}
+
+/* Estilos adicionales para botones de exportar y actualizar */
+.btn-exportar:hover,
+.btn-actualizar:hover {
+  background: var(--acento-azul);
+  color: white;
+  border-color: var(--acento-azul);
+  transform: translateY(-1px);
+  box-shadow: var(--sombra-suave);
+}
+
+.btn-exportar:active,
+.btn-actualizar:active {
+  transform: translateY(0);
+}
+
+.btn-descargar:hover {
+  background: #3182ce;
+  transform: translateY(-1px);
+  box-shadow: var(--sombra-suave);
+}
+
+.btn-descargar:active {
+  transform: translateY(0);
+}
+
+/* Animaciones para mejorar la experiencia */
+.tarjeta-estadistica:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sombra-fuerte);
+}
+
+.tarjeta-grafico:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--sombra-fuerte);
+}
+
+.item-reporte:hover {
+  background: #e9ecef;
+  transform: translateY(-1px);
+  box-shadow: var(--sombra-suave);
+}

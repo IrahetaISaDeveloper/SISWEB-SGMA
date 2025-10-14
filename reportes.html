@@ -78,9 +78,9 @@
           <i class="fas fa-users"></i>
         </div>
         <div class="info-estadistica">
-          <h3>370</h3>
+          <h3>...</h3>
           <p>Total Estudiantes</p>
-          <span class="cambio positivo">+12% vs mes anterior</span>
+          <span class="cambio positivo">...% vs mes anterior</span>
         </div>
       </div>
 
@@ -89,9 +89,9 @@
           <i class="fas fa-car"></i>
         </div>
         <div class="info-estadistica">
-          <h3>243</h3>
+          <h3>...</h3>
           <p>Vehículos Registrados</p>
-          <span class="cambio positivo">+8% vs mes anterior</span>
+          <span class="cambio positivo">...% vs mes anterior</span>
         </div>
       </div>
 
@@ -149,6 +149,37 @@
           <div id="grafico-vehiculos-tipo"></div>
         </div>
       </div>
+
+      <div class="tarjeta-grafico">
+        <div class="header-grafico">
+          <h2><i class="fas fa-chalkboard-teacher"></i> Instructores por Año</h2>
+          <div class="controles-grafico">
+            <button class="btn-exportar" title="Exportar datos">
+              <i class="fas fa-download"></i>
+            </button>
+            <button class="btn-actualizar" title="Actualizar datos">
+              <i class="fas fa-sync-alt"></i>
+            </button>
+          </div>
+        </div>
+        <div class="contenido-grafico">
+          <div id="grafico-instructores-level"></div>
+        </div>
+      </div>
+
+      <div class="tarjeta-grafico">
+        <div class="header-grafico">
+          <h2><i class="fas fa-user-tie"></i> Instructores por Rol</h2>
+          <div class="controles-grafico">
+            <button class="btn-exportar" title="Exportar datos">
+              <i class="fas fa-download"></i>
+            </button>
+          </div>
+        </div>
+        <div class="contenido-grafico">
+          <div id="grafico-instructores-rol"></div>
+        </div>
+      </div>
     </section>
 
     <section class="reportes-adicionales">
@@ -199,8 +230,8 @@
 
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-  <script src="js/reportes.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts@latest"></script>
+  <script type="module" src="js/reportes.js"></script>
 </body>
 
 </html>
