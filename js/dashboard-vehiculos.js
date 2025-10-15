@@ -104,7 +104,17 @@ function getStatusClass(statusId) {
 
 // Renderiza la tabla de vehículos
 function renderVehiclesTable(vehicles) {
-    allVehicles = vehicles;
+    // Update allVehicles only if we're rendering all vehicles (not filtered results)
+    const searchInput = document.getElementById('buscarRegistro');
+    const statusFilter = document.getElementById('filtroEstado');
+    const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
+    const statusValue = statusFilter ? statusFilter.value : 'all';
+    
+    // Only update allVehicles if no filters are active (showing complete dataset)
+    if (searchTerm === '' && statusValue === 'all') {
+        allVehicles = vehicles;
+    }
+    
     const tbody = document.querySelector('.tabla-moderna tbody');
     if (!tbody) {
         console.error('No se encontró el tbody de la tabla de vehículos. Verifica que exista .tabla-moderna y su <tbody>.');
@@ -232,11 +242,18 @@ function fetchAllVehicles() {
         if (data && data.data && Array.isArray(data.data.content)) {
             vehicles = data.data.content;
         }
-        renderVehiclesTable(vehicles);
+        
+        // Always update allVehicles with fresh data
+        allVehicles = vehicles;
+        
+        // Apply current filters after updating data
+        applyFilters();
+        
         renderSidebarPendingVehicles(vehicles);
     })
     .catch(err => {
         console.error('Error al obtener vehículos:', err);
+        allVehicles = [];
         renderVehiclesTable([]);
         renderSidebarPendingVehicles([]);
     });
@@ -802,31 +819,15 @@ function bindEventListeners() {
     const searchInput = document.getElementById('buscarRegistro');
     if (searchInput) {
         searchInput.addEventListener('input', function(e) {
-            const searchTerm = e.target.value.trim().toLowerCase();
-            if (searchTerm.length === 0) {
-                // Refresh all data when search is cleared
-                fetchAllVehicles();
-                return;
-            }
-            
-            // Filter vehicles locally by multiple fields
-            const filteredVehicles = allVehicles.filter(vehicle => {
-                const plateMatch = (vehicle.plateNumber || '').toLowerCase().includes(searchTerm);
-                const brandMatch = (vehicle.brand || '').toLowerCase().includes(searchTerm);
-                const modelMatch = (vehicle.model || '').toLowerCase().includes(searchTerm);
-                const typeMatch = (vehicle.typeName || '').toLowerCase().includes(searchTerm);
-                const studentNameMatch = (vehicle.studentName || '').toLowerCase().includes(searchTerm);
-                const studentLastNameMatch = (vehicle.studentLastName || '').toLowerCase().includes(searchTerm);
-                const ownerMatch = (vehicle.ownerName || '').toLowerCase().includes(searchTerm);
-                const phoneMatch = (vehicle.ownerPhone || '').toLowerCase().includes(searchTerm);
-                const statusMatch = getStatusText(vehicle.idStatus).toLowerCase().includes(searchTerm);
-                
-                return plateMatch || brandMatch || modelMatch || typeMatch || 
-                       studentNameMatch || studentLastNameMatch || ownerMatch || 
-                       phoneMatch || statusMatch;
-            });
-            
-            renderVehiclesTable(filteredVehicles);
+            applyFilters();
+        });
+    }
+    
+    // Rebind status filter event
+    const statusFilter = document.getElementById('filtroEstado');
+    if (statusFilter) {
+        statusFilter.addEventListener('change', function(e) {
+            applyFilters();
         });
     }
     
@@ -983,6 +984,94 @@ function bindEventListeners() {
     }
 }
 
+// Function to apply all active filters
+function applyFilters() {
+    const searchInput = document.getElementById('buscarRegistro');
+    const statusFilter = document.getElementById('filtroEstado');
+    
+    const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
+    const statusValue = statusFilter ? statusFilter.value : 'all';
+    
+    let filteredVehicles = [...allVehicles]; // Create a copy to avoid modifying original
+    
+    // Apply search filter
+    if (searchTerm.length > 0) {
+        filteredVehicles = filteredVehicles.filter(vehicle => {
+            const plateMatch = (vehicle.plateNumber || '').toLowerCase().includes(searchTerm);
+            const brandMatch = (vehicle.brand || '').toLowerCase().includes(searchTerm);
+            const modelMatch = (vehicle.model || '').toLowerCase().includes(searchTerm);
+            const typeMatch = (vehicle.typeName || '').toLowerCase().includes(searchTerm);
+            const studentNameMatch = (vehicle.studentName || '').toLowerCase().includes(searchTerm);
+            const studentLastNameMatch = (vehicle.studentLastName || '').toLowerCase().includes(searchTerm);
+            const ownerMatch = (vehicle.ownerName || '').toLowerCase().includes(searchTerm);
+            const phoneMatch = (vehicle.ownerPhone || '').toLowerCase().includes(searchTerm);
+            const statusMatch = getStatusText(vehicle.idStatus).toLowerCase().includes(searchTerm);
+            
+            return plateMatch || brandMatch || modelMatch || typeMatch || 
+                   studentNameMatch || studentLastNameMatch || ownerMatch || 
+                   phoneMatch || statusMatch;
+        });
+    }
+    
+    // Apply status filter
+    if (statusValue !== 'all') {
+        const allowedStatuses = statusValue.split(',').map(s => parseInt(s.trim()));
+        filteredVehicles = filteredVehicles.filter(vehicle => {
+            return allowedStatuses.includes(vehicle.idStatus);
+        });
+    }
+    
+    // Render the filtered results
+    const tbody = document.querySelector('.tabla-moderna tbody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    if (!Array.isArray(filteredVehicles) || filteredVehicles.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;">No se encontraron vehículos.</td></tr>`;
+        return;
+    }
+    
+    filteredVehicles.forEach(vehicle => {
+        const estudiante = (vehicle.studentName || '-') + ' ' + (vehicle.studentLastName || '');
+        let imgSrc = vehicle.vehicleImage;
+        if (!imgSrc || imgSrc === 'null' || imgSrc === null) {
+            imgSrc = 'imgs/default-car.png';
+        }
+        
+        // Convert status to readable text
+        const statusText = getStatusText(vehicle.idStatus);
+        const statusClass = getStatusClass(vehicle.idStatus);
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>
+                <input type="checkbox" class="checkbox-row">
+            </td>
+            <td>${vehicle.plateNumber || '-'}</td>
+            <td>${vehicle.brand || '-'}</td>
+            <td>${vehicle.model || '-'}</td>
+            <td>${vehicle.typeName || '-'}</td>
+            <td>
+                <span class="estado-badge ${statusClass}">${statusText}</span>
+            </td>
+            <td>${estudiante.trim() || '-'}</td>
+            <td>${vehicle.ownerName || '-'}</td>
+            <td>${vehicle.ownerPhone || '-'}</td>
+            <td>
+                <img src="${imgSrc}" alt="Imagen" class="vehiculo-img" style="width:40px;height:40px;border-radius:6px;border:1px solid #ccc;">
+            </td>
+            <td>
+                <div class="acciones-vehiculo" style="display:flex;gap:8px;">
+                    <button class="btn-accion" title="Ver detalles" onclick="showVehicleModal(${vehicle.vehicleId})">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
 // Add event listener for print button
 document.addEventListener('DOMContentLoaded', function() {
     bindEventListeners();
@@ -991,31 +1080,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('buscarRegistro');
     if (searchInput) {
         searchInput.addEventListener('input', function(e) {
-            const searchTerm = e.target.value.trim().toLowerCase();
-            if (searchTerm.length === 0) {
-                // Refresh all data when search is cleared
-                fetchAllVehicles();
-                return;
-            }
-            
-            // Filter vehicles locally by multiple fields
-            const filteredVehicles = allVehicles.filter(vehicle => {
-                const plateMatch = (vehicle.plateNumber || '').toLowerCase().includes(searchTerm);
-                const brandMatch = (vehicle.brand || '').toLowerCase().includes(searchTerm);
-                const modelMatch = (vehicle.model || '').toLowerCase().includes(searchTerm);
-                const typeMatch = (vehicle.typeName || '').toLowerCase().includes(searchTerm);
-                const studentNameMatch = (vehicle.studentName || '').toLowerCase().includes(searchTerm);
-                const studentLastNameMatch = (vehicle.studentLastName || '').toLowerCase().includes(searchTerm);
-                const ownerMatch = (vehicle.ownerName || '').toLowerCase().includes(searchTerm);
-                const phoneMatch = (vehicle.ownerPhone || '').toLowerCase().includes(searchTerm);
-                const statusMatch = getStatusText(vehicle.idStatus).toLowerCase().includes(searchTerm);
-                
-                return plateMatch || brandMatch || modelMatch || typeMatch || 
-                       studentNameMatch || studentLastNameMatch || ownerMatch || 
-                       phoneMatch || statusMatch;
-            });
-            
-            renderVehiclesTable(filteredVehicles);
+            applyFilters();
+        });
+    }
+    
+    // Initialize status filter functionality
+    const statusFilter = document.getElementById('filtroEstado');
+    if (statusFilter) {
+        statusFilter.addEventListener('change', function(e) {
+            applyFilters();
         });
     }
 });

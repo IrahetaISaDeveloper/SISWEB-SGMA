@@ -85,10 +85,10 @@
                     <div class="header-tarjeta">
                         <h2><i class="fas fa-clipboard-list"></i> Registro de Vehículos</h2>
                         <div class="controles-header">
-                            <button class="btn-exportar">
+                            <!--<button class="btn-exportar">
                                 <i class="fas fa-download"></i>
                                 Exportar
-                            </button>
+                            </button>-->
                         </div>
                     </div>
                     
@@ -98,17 +98,11 @@
                             <input type="text" id="buscarRegistro" placeholder="Buscar por placa, marca, modelo, estudiante, propietario o estado...">
                         </div>
                         <div class="filtros">
-                            <select id="filtroAnio" class="select-filtro">
-                                <option value="all">Todos los años</option>
-                                <option value="1er">Primer Año</option>
-                                <option value="2do">Segundo Año</option>
-                                <option value="3er">Tercer Año</option>
-                            </select>
                             <select id="filtroEstado" class="select-filtro">
                                 <option value="all">Todos los estados</option>
-                                <option value="pendiente">Pendiente</option>
-                                <option value="proceso">En proceso</option>
-                                <option value="completado">Completado</option>
+                                <option value="1,2">En aprobación</option>
+                                <option value="3">Aprobado</option>
+                                <option value="4">Rechazado</option>
                             </select>
                         </div>
                     </div>
