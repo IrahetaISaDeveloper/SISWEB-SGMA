@@ -68,82 +68,158 @@
   </aside>
 
   <main class="contenedor-principal">
-    <h1>Administración de Docentes</h1>
+    <!-- Hero Header -->
+    <div class="hero-header">
+      <h1 class="hero-title">
+        <i class="fas fa-users-cog"></i>
+        Gestión de Docentes
+      </h1>
+      <p class="hero-subtitle">
+        Administra y gestiona el equipo docente de forma moderna y eficiente
+      </p>
+    </div>
     
-    <div class="form-container">
-      <form id="formulario-usuario" class="formulario-usuario">
-        <div class="grupo-formulario">
-          <label for="nombreCompleto">Nombres:</label>
-          <input type="text" id="nombreCompleto" required />
+    <!-- Form Card -->
+    <div class="glass-card">
+      <form id="formulario-usuario" class="formulario-moderno">
+        <div class="campo-moderno">
+          <label class="etiqueta-moderna" for="nombreCompleto">
+            <i class="fas fa-user"></i>
+            Nombres
+          </label>
+          <input type="text" id="nombreCompleto" class="input-moderno" placeholder="Ingrese los nombres completos" required />
         </div>
-        <div class="grupo-formulario">
-          <label for="apellidos">Apellidos:</label>
-          <input type="text" id="apellidos" required />
+        
+        <div class="campo-moderno">
+          <label class="etiqueta-moderna" for="apellidos">
+            <i class="fas fa-user-tag"></i>
+            Apellidos
+          </label>
+          <input type="text" id="apellidos" class="input-moderno" placeholder="Ingrese los apellidos" required />
         </div>
-        <div class="grupo-formulario">
-          <label for="correo">Email:</label>
-          <input type="email" id="correo" required />
+        
+        <div class="campo-moderno">
+          <label class="etiqueta-moderna" for="correo">
+            <i class="fas fa-envelope"></i>
+            Email
+          </label>
+          <input type="email" id="correo" class="input-moderno" placeholder="usuario@ejemplo.com" required />
         </div>
-        <div class="grupo-formulario">
-          <label for="contrasena">Contraseña:</label>
-          <input type="password" id="contrasena" required />
+        
+        <div class="campo-moderno">
+          <label class="etiqueta-moderna" for="contrasena">
+            <i class="fas fa-lock"></i>
+            Contraseña
+          </label>
+          <input type="password" id="contrasena" class="input-moderno" placeholder="Contraseña segura" required />
         </div>
-        <div class="grupo-formulario seleccion-contenedor">
-          <label for="idRol">Rol:</label>
-          <select id="idRol" required>
+        
+        <div class="campo-moderno select-moderno">
+          <label class="etiqueta-moderna" for="idRol">
+            <i class="fas fa-id-badge"></i>
+            Rol
+          </label>
+          <select id="idRol" class="input-moderno" required>
+            <option value=""> Seleccione un rol</option>
           </select>
         </div>
-        <div class="grupo-formulario seleccion-contenedor">
-          <label for="idLevel">Año academico:</label>
-          <select id="idLevel" required>
+        
+        <div class="campo-moderno select-moderno">
+          <label class="etiqueta-moderna" for="idLevel">
+            <i class="fas fa-graduation-cap"></i>
+            Año Académico
+          </label>
+          <select id="idLevel" class="input-moderno" required>
+            <option value=""> Seleccione el año</option>
           </select>
         </div>
-        <div class="grupo-formulario">
-          <label for="fotoPerfil-archivo">Foto de Perfil:</label>
-          <input type="file" id="fotoPerfil-archivo" accept="image/*" class="entrada-foto" />
+        
+        <div class="campo-moderno campo-completo">
+          <label class="etiqueta-moderna" for="fotoPerfil-archivo">
+            <i class="fas fa-camera"></i>
+            Foto de Perfil
+          </label>
+          <div class="upload-zone" onclick="document.getElementById('fotoPerfil-archivo').click()">
+            <div class="upload-icon">
+              <i class="fas fa-cloud-upload-alt"></i>
+            </div>
+            <h3>Arrastra tu imagen aquí</h3>
+            <p>o haz clic para seleccionar</p>
+            <input type="file" id="fotoPerfil-archivo" accept="image/*" style="display: none;" />
+          </div>
+          <div class="preview-container" id="preview-container" style="display: none;">
+            <img id="previsualizacion-foto-perfil" class="preview-image" alt="Vista previa" />
+          </div>
         </div>
-        <div class="contenedor-previsualizacion-foto">
-          <img id="previsualizacion-foto-perfil" class="previsualizacion-foto" alt="Previsualización de Foto de Perfil" />
-        </div>
+        
         <input type="hidden" id="url-foto-perfil" />
         <input type="hidden" id="idUsuario" />
-        <button type="submit" id="btn-enviar" class="botones">Agregar Usuario</button>
-        <button type="button" id="btn-cancelar" class="botones secundario" hidden>Cancelar</button>
+        
+        <div class="grupo-botones">
+          <button type="submit" id="btn-enviar" class="boton-moderno boton-primario">
+            <i class="fas fa-user-plus"></i>
+            <span>Agregar Usuario</span>
+          </button>
+          <button type="button" id="btn-cancelar" class="boton-moderno boton-secundario" style="display: none;">
+            <i class="fas fa-times"></i>
+            <span>Cancelar</span>
+          </button>
+        </div>
       </form>
     </div>
     
-    <hr class="separador-seccion" />
-    <div class="filtros-usuarios">
-      <input type="text" id="buscador-usuarios" placeholder="Buscar estudiante/docente..." />
-      <select id="filtro-ano">
-        <option value="">Todos los años</option>
-        <option value="1">Primer Año</option>
-        <option value="2">Segundo Año</option>
-        <option value="3">Tercer Año</option>
-      </select>
-      <select id="filtro-grupo">
-        <option value="">Todos los grupos</option>
-        <option value="1">Grupo 1</option>
-        <option value="2">Grupo 2</option>
-      </select>
+    <!-- Filters Section -->
+    <div class="seccion-filtros">
+      <div class="filtros-grid">
+        <div class="buscador-container">
+          <i class="fas fa-search buscador-icon"></i>
+          <input type="text" id="buscador-usuarios" class="buscador-moderno" placeholder=" Buscar por nombre, email o rol..." />
+        </div>
+        <div class="select-moderno">
+          <select id="filtro-ano" class="input-moderno">
+            <option value=""> Todos los años</option>
+            <option value="1">Primer Año</option>
+            <option value="2">Segundo Año</option>
+            <option value="3">Tercer Año</option>
+          </select>
+        </div>
+        <div class="select-moderno">
+          <select id="filtro-grupo" class="input-moderno">
+            <option value=""> Todos los grupos</option>
+            <option value="1">Grupo 1</option>
+            <option value="2">Grupo 2</option>
+          </select>
+        </div>
+      </div>
     </div>
-    <div class="tabla-responsiva">
-      <table>
-        <thead>
-          <tr>
-            <th>Foto</th>
-            <th>Nombre Completo</th>
-            <th>Email</th>
-            <th>Rol</th>
-            <th>Año académico</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="cuerpo-tabla-usuarios">
-        </tbody>
-      </table>
+    
+    <!-- Revolutionary Table -->
+    <div class="tabla-revolucionaria">
+      <div class="tabla-scroll">
+        <table class="tabla-futurista">
+          <thead>
+            <tr>
+              <th><i class="fas fa-image"></i> Foto</th>
+              <th><i class="fas fa-user"></i> Nombre Completo</th>
+              <th><i class="fas fa-envelope"></i> Email</th>
+              <th><i class="fas fa-id-badge"></i> Rol</th>
+              <th><i class="fas fa-graduation-cap"></i> Año</th>
+              <th><i class="fas fa-cogs"></i> Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="cuerpo-tabla-usuarios">
+            <tr>
+              <td colspan="6" class="loading-futurista">
+                <div class="spinner-futurista"></div>
+                <p>Cargando datos...</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </main>
+  
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script type="module" src="js/admin-users.js"></script>
   <script src="js/menu-hamburguesa.js"></script>

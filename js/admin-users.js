@@ -269,30 +269,54 @@ function cargarTabla(instructores) {
     let actionButtons = '';
     if (userRole === 'Docente') {
       actionButtons = `
-        <div style="display:flex;gap:8px;">
-          <button disabled style="background-color: #666; cursor: not-allowed;" title="Sin permisos para editar">Ver</button>
+        <div class="acciones-futuristas">
+          <button class="btn-futurista btn-ver-futurista" disabled style="opacity: 0.5; cursor: not-allowed;" title="Sin permisos para ver detalles">
+            <i class="fas fa-eye"></i>
+          </button>
         </div>
       `;
     } else {
       actionButtons = `
-        <div style="display:flex;gap:8px;">
-          <button onclick="cargarParaEditarUsuario('${instructor.instructorId}')">Editar</button>
-          <button onclick="borrarUsuario('${instructor.instructorId}')">Eliminar</button>
+        <div class="acciones-futuristas">
+          <button class="btn-futurista btn-editar-futurista" onclick="cargarParaEditarUsuario('${instructor.instructorId}')" title="Editar usuario">
+            <i class="fas fa-edit"></i>
+            <span>Editar</span>
+          </button>
+          <button class="btn-futurista btn-eliminar-futurista" onclick="borrarUsuario('${instructor.instructorId}')" title="Eliminar usuario">
+            <i class="fas fa-trash"></i>
+            <span>Eliminar</span>
+          </button>
         </div>
       `;
     }
 
     cuerpoTablaUsuarios.innerHTML += `
         <tr>
-            <td><img src="${instructor.instructorImage || 'https://i.ibb.co/N6fL89pF/yo.jpg'}" alt="Foto de ${instructor.firstName} ${instructor.lastName}" class="miniatura-perfil" /></td>
+            <td>
+              <img src="${instructor.instructorImage || 'imgs/defaul-user.webp'}" 
+                   alt="Avatar de ${instructor.firstName} ${instructor.lastName}" 
+                   class="avatar-futurista" />
+            </td>
             <td>${instructor.firstName} ${instructor.lastName}</td>
             <td>${instructor.email}</td>
-            <td>${instructor.roleName}</td>
-            <td>${instructor.levelName}</td>
+            <td>${instructor.roleName || 'N/A'}</td>
+            <td>${instructor.levelName || 'N/A'}</td>
             <td>${actionButtons}</td>
         </tr>
     `;
   });
+
+  // Si no hay instructores, mostrar mensaje vacío
+  if (instructores.length === 0) {
+    cuerpoTablaUsuarios.innerHTML = `
+      <tr>
+        <td colspan="6" class="tabla-vacia">
+          <i class="fas fa-users"></i>
+          <p>No se encontraron docentes que coincidan con los filtros aplicados.</p>
+        </td>
+      </tr>
+    `;
+  }
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
@@ -311,14 +335,19 @@ window.addEventListener('DOMContentLoaded', async () => {
 
 fotoPerfilArchivoEl.addEventListener('change', function() {
   const archivo = this.files[0];
+  const previewContainer = document.getElementById('preview-container');
+  
   if (archivo) {
     const lector = new FileReader();
     lector.onload = function(e) {
       previsualizacionFotoPerfilEl.src = e.target.result;
+      // Show the preview container
+      previewContainer.style.display = 'block';
     };
     lector.readAsDataURL(archivo);
   } else {
-    // If no file is selected, revert to the current stored URL or default
+    // If no file is selected, hide the preview and revert to stored URL or default
+    previewContainer.style.display = 'none';
     previsualizacionFotoPerfilEl.src = urlFotoPerfilEl.value || '';
   }
 });
@@ -330,6 +359,8 @@ btnCancelar.addEventListener('click', () => {
   btnCancelar.hidden = true;
   fotoPerfilArchivoEl.value = ''; // Clear file input
   previsualizacionFotoPerfilEl.src = ''; // Clear image preview
+  // Hide preview container
+  document.getElementById('preview-container').style.display = 'none';
   contrasenaEl.disabled = false;
   contrasenaEl.placeholder = ''; // Reset placeholder
   const contrasenaGroup = document.getElementById('contrasena').closest('.grupo-formulario');
@@ -604,7 +635,16 @@ async function cargarParaEditarUsuario(id) {
     }, 0);
 
     urlFotoPerfilEl.value = instructor.instructorImage || '';
-    previsualizacionFotoPerfilEl.src = instructor.instructorImage || '';
+    
+    // Show existing image in preview if available
+    const previewContainer = document.getElementById('preview-container');
+    if (instructor.instructorImage) {
+      previsualizacionFotoPerfilEl.src = instructor.instructorImage;
+      previewContainer.style.display = 'block';
+    } else {
+      previewContainer.style.display = 'none';
+    }
+    
     fotoPerfilArchivoEl.value = '';
     idUsuarioEl.value = instructor.instructorId || '';
 
