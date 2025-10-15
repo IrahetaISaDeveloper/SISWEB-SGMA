@@ -462,18 +462,161 @@ body {
 }
 
 .badge-contador {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
+    background: rgb(255, 255, 255);
+    color: rgb(0, 0, 0);
     padding: var(--espaciado-xs) var(--espaciado-s);
     border-radius: 12px;
-    font-size: 0.8rem;
-    font-weight: 600;
+    font-size: 0.9rem;
+    font-weight: 1000;
 }
 
 .lista-registros {
     padding: var(--espaciado-m);
     max-height: 400px;
     overflow-y: auto;
+}
+
+/* Styling for individual registry items */
+.item-registro {
+    background: var(--fondo-tarjeta);
+    border-radius: var(--radio-borde);
+    padding: var(--espaciado-m);
+    margin-bottom: var(--espaciado-m);
+    box-shadow: var(--sombra-suave);
+    border: 1px solid var(--color-borde);
+    display: flex;
+    align-items: center;
+    gap: var(--espaciado-m);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.item-registro:hover {
+    box-shadow: var(--sombra-media);
+    transform: translateY(-2px);
+    border-color: var(--acento-rojo);
+}
+
+.item-registro:last-child {
+    margin-bottom: 0;
+}
+
+.item-registro::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--acento-rojo);
+    transform: scaleY(0);
+    transition: transform 0.3s ease;
+}
+
+.item-registro:hover::before {
+    transform: scaleY(1);
+}
+
+.vehiculo-imagen {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radio-borde);
+    object-fit: cover;
+    border: 2px solid var(--color-borde);
+    box-shadow: var(--sombra-suave);
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.item-registro:hover .vehiculo-imagen {
+    border-color: var(--acento-rojo);
+    transform: scale(1.05);
+}
+
+.info-vehiculo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--espaciado-xs);
+    min-width: 0;
+}
+
+.placa-vehiculo {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--texto-oscuro);
+    line-height: 1.2;
+}
+
+.servicio-vehiculo {
+    font-size: 0.9rem;
+    color: var(--texto-secundario);
+    font-weight: 500;
+}
+
+.fecha-vehiculo {
+    font-size: 0.8rem;
+    color: var(--texto-muted);
+}
+
+.acciones-vehiculo {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+.btn-opciones {
+    background: rgba(113, 128, 150, 0.1);
+    border: none;
+    border-radius: var(--radio-borde-pequeno);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--texto-secundario);
+    transition: all 0.3s ease;
+}
+
+.btn-opciones:hover {
+    background: var(--acento-rojo);
+    color: white;
+    transform: scale(1.1);
+}
+
+.btn-opciones i {
+    font-size: 0.9rem;
+}
+
+/* Empty state styling */
+.lista-registros > div[style*="text-align:center"] {
+    padding: var(--espaciado-xl);
+    background: var(--color-hover);
+    border-radius: var(--radio-borde);
+    border: 2px dashed var(--color-borde);
+    margin: var(--espaciado-m) 0;
+}
+
+/* Custom scrollbar for the list */
+.lista-registros::-webkit-scrollbar {
+    width: 6px;
+}
+
+.lista-registros::-webkit-scrollbar-track {
+    background: var(--color-hover);
+    border-radius: 3px;
+}
+
+.lista-registros::-webkit-scrollbar-thumb {
+    background: var(--color-borde);
+    border-radius: 3px;
+}
+
+.lista-registros::-webkit-scrollbar-thumb:hover {
+    background: var(--acento-rojo);
 }
 
 .header-tarjeta {
@@ -646,6 +789,11 @@ body {
 .estado-completado {
     background: rgba(72, 187, 120, 0.1);
     color: var(--acento-verde);
+}
+
+.estado-rechazado {
+    background: rgba(231, 76, 60, 0.1);
+    color: var(--acento-rojo);
 }
 
 .acciones-tabla {

@@ -71,6 +71,37 @@ function handleSidebarVisibility() {
     }
 }
 
+// Function to convert status ID to readable text
+function getStatusText(statusId) {
+    switch(statusId) {
+        case 1:
+            return 'En espera de aprobación del animador';
+        case 2:
+            return 'En espera de aprobación del coordinador';
+        case 3:
+            return 'Vehículo aprobado';
+        case 4:
+            return 'Vehículo rechazado';
+        default:
+            return 'Estado desconocido';
+    }
+}
+
+// Function to get status class for styling
+function getStatusClass(statusId) {
+    switch(statusId) {
+        case 1:
+        case 2:
+            return 'estado-pendiente';
+        case 3:
+            return 'estado-completado';
+        case 4:
+            return 'estado-rechazado';
+        default:
+            return 'estado-pendiente';
+    }
+}
+
 // Renderiza la tabla de vehículos
 function renderVehiclesTable(vehicles) {
     allVehicles = vehicles;
@@ -90,6 +121,11 @@ function renderVehiclesTable(vehicles) {
         if (!imgSrc || imgSrc === 'null' || imgSrc === null) {
             imgSrc = 'imgs/default-car.png';
         }
+        
+        // Convert status to readable text
+        const statusText = getStatusText(vehicle.idStatus);
+        const statusClass = getStatusClass(vehicle.idStatus);
+        
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>
@@ -99,7 +135,9 @@ function renderVehiclesTable(vehicles) {
             <td>${vehicle.brand || '-'}</td>
             <td>${vehicle.model || '-'}</td>
             <td>${vehicle.typeName || '-'}</td>
-            <td>${vehicle.idStatus != null ? vehicle.idStatus : '-'}</td>
+            <td>
+                <span class="estado-badge ${statusClass}">${statusText}</span>
+            </td>
             <td>${estudiante.trim() || '-'}</td>
             <td>${vehicle.ownerName || '-'}</td>
             <td>${vehicle.ownerPhone || '-'}</td>
@@ -146,16 +184,20 @@ function renderSidebarPendingVehicles(vehicles) {
     }
     
     pendientes.forEach(vehicle => {
+        // Get vehicle image or default
+        let imgSrc = vehicle.vehicleImage;
+        if (!imgSrc || imgSrc === 'null' || imgSrc === null) {
+            imgSrc = 'imgs/default-car.png';
+        }
+        
         const div = document.createElement('div');
         div.className = 'item-registro';
         div.innerHTML = `
-            <div class="icono-vehiculo">
-                <i class="fas fa-car"></i>
-            </div>
+            <img src="${imgSrc}" alt="Vehículo" class="vehiculo-imagen" onerror="this.src='imgs/default-car.png'">
             <div class="info-vehiculo">
-                <span class="placa-vehiculo">${vehicle.plateNumber || '-'}</span>
-                <span class="servicio-vehiculo">${vehicle.model || '-'}</span>
-                <span class="fecha-vehiculo">${vehicle.brand || ''}</span>
+                <span class="placa-vehiculo">${vehicle.plateNumber || 'Sin placa'}</span>
+                <span class="servicio-vehiculo">${vehicle.model || 'Modelo no especificado'}</span>
+                <span class="fecha-vehiculo">${vehicle.brand || 'Marca no especificada'}</span>
             </div>
             <div class="acciones-vehiculo">
                 <button class="btn-opciones" title="Más opciones">
@@ -163,12 +205,14 @@ function renderSidebarPendingVehicles(vehicles) {
                 </button>
             </div>
         `;
+        
         // Abrir modal al hacer clic en el div, excepto si se hace clic en el botón de opciones
         div.addEventListener('click', function(e) {
             if (!e.target.closest('.btn-opciones')) {
                 showVehicleModal(vehicle.vehicleId);
             }
         });
+        
         lista.appendChild(div);
     });
 }
@@ -197,39 +241,6 @@ function fetchAllVehicles() {
         renderSidebarPendingVehicles([]);
     });
 }
-
-// Buscador por placa
-document.getElementById('buscarRegistro').addEventListener('input', function(e) {
-    const plate = e.target.value.trim();
-    if (plate.length === 0) {
-        fetchAllVehicles();
-        return;
-    }
-    
-    fetch(`https://sgma-66ec41075156.herokuapp.com/api/vehicles/plate/${plate}`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(res => res.json())
-    .then(data => {
-        let vehicles = [];
-        if (Array.isArray(data)) {
-            vehicles = data;
-        } else if (data && data.data && Array.isArray(data.data.content)) {
-            vehicles = data.data.content;
-        } else if (data) {
-            vehicles = [data];
-        }
-        renderVehiclesTable(vehicles);
-    })
-    .catch(err => {
-        console.error('Error en búsqueda por placa:', err);
-        renderVehiclesTable([]);
-    });
-});
 
 let selectedVehicleId = null;
 
@@ -260,21 +271,8 @@ window.imprimirReporteVehiculo = function() {
     // Get image source
     const imageSrc = vehicle.vehicleImage && vehicle.vehicleImage !== 'null' ? vehicle.vehicleImage : 'imgs/default-car.png';
     
-    // Determine status text based on idStatus
-    let statusText = 'Desconocido';
-    switch(vehicle.idStatus) {
-        case 1:
-            statusText = 'Pendiente de Revisión';
-            break;
-        case 2:
-            statusText = 'En Proceso de Revisión';
-            break;
-        case 3:
-            statusText = 'Completado';
-            break;
-        default:
-            statusText = vehicle.idStatus || 'No definido';
-    }
+    // Convert status to readable text for print
+    const statusText = getStatusText(vehicle.idStatus);
     
     // Create print content
     const printContent = `
@@ -564,6 +562,10 @@ window.showVehicleModal = function(vehicleId) {
     const tabVehiculo = document.getElementById('tab-vehiculo');
     if (vehicle && tabVehiculo) {
         const imageSrc = vehicle.vehicleImage && vehicle.vehicleImage !== 'null' ? vehicle.vehicleImage : 'imgs/default-car.png';
+        
+        // Convert status to readable text for modal
+        const statusText = getStatusText(vehicle.idStatus);
+        
         tabVehiculo.innerHTML = `
             <div class="modal-vehiculo-imagen-container">
                 <h4>Imagen del Vehículo</h4>
@@ -591,7 +593,7 @@ window.showVehicleModal = function(vehicleId) {
                 <div>
                     <div class="detalle-item">
                         <strong>Estado:</strong>
-                        <div class="detalle-valor">${vehicle.idStatus != null ? vehicle.idStatus : '-'}</div>
+                        <div class="detalle-valor">${statusText}</div>
                     </div>
                     <div class="detalle-item">
                         <strong>Estudiante:</strong>
@@ -682,10 +684,88 @@ if (btnAprobar) {
     });
 }
 
-document.querySelector('.btn-cerrar-modal').addEventListener('click', function() {
-    const modal = document.getElementById('modalVehiculo');
-    modal.classList.remove('activo');
-});
+// Evento para el botón Rechazar
+const btnRechazar = document.querySelector('.btn-modal.secundario');
+if (btnRechazar) {
+    btnRechazar.addEventListener('click', function() {
+        if (selectedVehicleId && userRole) {
+            // Solo Animador y Coordinador pueden rechazar vehículos
+            if (userRole !== 'Animador' && userRole !== 'Coordinador') {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Sin permisos',
+                        text: 'No tienes permisos para rechazar vehículos.'
+                    });
+                } else {
+                    alert('No tienes permisos para rechazar vehículos');
+                }
+                return;
+            }
+
+            // Confirmar la acción de rechazo
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: 'Esta acción rechazará permanentemente el vehículo.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#e74c3c',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Sí, rechazar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        executeReject();
+                    }
+                });
+            } else {
+                if (confirm('¿Estás seguro de que quieres rechazar este vehículo?')) {
+                    executeReject();
+                }
+            }
+
+            function executeReject() {
+                console.log(`Rejecting vehicle ${selectedVehicleId} by ${userRole}`);
+
+                fetch(`https://sgma-66ec41075156.herokuapp.com/api/vehicles/updateStatusVehicle/${selectedVehicleId}?newStatus=4`, {
+                    method: 'PUT',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    // Mostrar SweetAlert de éxito
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Vehículo Rechazado',
+                            text: 'El vehículo ha sido rechazado exitosamente.'
+                        });
+                    } else {
+                        alert('El vehículo ha sido rechazado exitosamente');
+                    }
+                    document.getElementById('modalVehiculo').classList.remove('activo');
+                    fetchAllVehicles();
+                })
+                .catch(err => {
+                    console.error('Error al rechazar vehículo:', err);
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'No se pudo rechazar el vehículo.'
+                        });
+                    } else {
+                        alert('Error al rechazar vehículo');
+                    }
+                });
+            }
+        }
+    });
+}
 
 // Function to rebind event listeners after DOM replacement
 function bindEventListeners() {
@@ -715,6 +795,38 @@ function bindEventListeners() {
                     alert('No hay un vehículo seleccionado para imprimir');
                 }
             }
+        });
+    }
+    
+    // Rebind search input event
+    const searchInput = document.getElementById('buscarRegistro');
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.trim().toLowerCase();
+            if (searchTerm.length === 0) {
+                // Refresh all data when search is cleared
+                fetchAllVehicles();
+                return;
+            }
+            
+            // Filter vehicles locally by multiple fields
+            const filteredVehicles = allVehicles.filter(vehicle => {
+                const plateMatch = (vehicle.plateNumber || '').toLowerCase().includes(searchTerm);
+                const brandMatch = (vehicle.brand || '').toLowerCase().includes(searchTerm);
+                const modelMatch = (vehicle.model || '').toLowerCase().includes(searchTerm);
+                const typeMatch = (vehicle.typeName || '').toLowerCase().includes(searchTerm);
+                const studentNameMatch = (vehicle.studentName || '').toLowerCase().includes(searchTerm);
+                const studentLastNameMatch = (vehicle.studentLastName || '').toLowerCase().includes(searchTerm);
+                const ownerMatch = (vehicle.ownerName || '').toLowerCase().includes(searchTerm);
+                const phoneMatch = (vehicle.ownerPhone || '').toLowerCase().includes(searchTerm);
+                const statusMatch = getStatusText(vehicle.idStatus).toLowerCase().includes(searchTerm);
+                
+                return plateMatch || brandMatch || modelMatch || typeMatch || 
+                       studentNameMatch || studentLastNameMatch || ownerMatch || 
+                       phoneMatch || statusMatch;
+            });
+            
+            renderVehiclesTable(filteredVehicles);
         });
     }
     
@@ -791,11 +903,121 @@ function bindEventListeners() {
             }
         });
     }
+
+    // Rebind reject button event
+    const btnRechazar = document.querySelector('.btn-modal.secundario');
+    if (btnRechazar) {
+        btnRechazar.addEventListener('click', function() {
+            if (selectedVehicleId && userRole) {
+                if (userRole !== 'Animador' && userRole !== 'Coordinador') {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Sin permisos',
+                            text: 'No tienes permisos para rechazar vehículos.'
+                        });
+                    } else {
+                        alert('No tienes permisos para rechazar vehículos');
+                    }
+                    return;
+                }
+
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: '¿Estás seguro?',
+                        text: 'Esta acción rechazará permanentemente el vehículo.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#e74c3c',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Sí, rechazar',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            executeRejectAfterRestore();
+                        }
+                    });
+                } else {
+                    if (confirm('¿Estás seguro de que quieres rechazar este vehículo?')) {
+                        executeRejectAfterRestore();
+                    }
+                }
+
+                function executeRejectAfterRestore() {
+                    fetch(`https://sgma-66ec41075156.herokuapp.com/api/vehicles/updateStatusVehicle/${selectedVehicleId}?newStatus=4`, {
+                        method: 'PUT',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Vehículo Rechazado',
+                                text: 'El vehículo ha sido rechazado exitosamente.'
+                            });
+                        } else {
+                            alert('El vehículo ha sido rechazado exitosamente');
+                        }
+                        document.getElementById('modalVehiculo').classList.remove('activo');
+                        fetchAllVehicles();
+                    })
+                    .catch(err => {
+                        console.error('Error al rechazar vehículo:', err);
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'No se pudo rechazar el vehículo.'
+                            });
+                        } else {
+                            alert('Error al rechazar vehículo');
+                        }
+                    });
+                }
+            }
+        });
+    }
 }
 
 // Add event listener for print button
 document.addEventListener('DOMContentLoaded', function() {
     bindEventListeners();
+    
+    // Initialize search functionality
+    const searchInput = document.getElementById('buscarRegistro');
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.trim().toLowerCase();
+            if (searchTerm.length === 0) {
+                // Refresh all data when search is cleared
+                fetchAllVehicles();
+                return;
+            }
+            
+            // Filter vehicles locally by multiple fields
+            const filteredVehicles = allVehicles.filter(vehicle => {
+                const plateMatch = (vehicle.plateNumber || '').toLowerCase().includes(searchTerm);
+                const brandMatch = (vehicle.brand || '').toLowerCase().includes(searchTerm);
+                const modelMatch = (vehicle.model || '').toLowerCase().includes(searchTerm);
+                const typeMatch = (vehicle.typeName || '').toLowerCase().includes(searchTerm);
+                const studentNameMatch = (vehicle.studentName || '').toLowerCase().includes(searchTerm);
+                const studentLastNameMatch = (vehicle.studentLastName || '').toLowerCase().includes(searchTerm);
+                const ownerMatch = (vehicle.ownerName || '').toLowerCase().includes(searchTerm);
+                const phoneMatch = (vehicle.ownerPhone || '').toLowerCase().includes(searchTerm);
+                const statusMatch = getStatusText(vehicle.idStatus).toLowerCase().includes(searchTerm);
+                
+                return plateMatch || brandMatch || modelMatch || typeMatch || 
+                       studentNameMatch || studentLastNameMatch || ownerMatch || 
+                       phoneMatch || statusMatch;
+            });
+            
+            renderVehiclesTable(filteredVehicles);
+        });
+    }
 });
 
 document.addEventListener('DOMContentLoaded', async function() {
