@@ -71,31 +71,33 @@
 
         <h1>Administración de Módulos</h1>
 
-        <form id="formulario-modulo" class="formulario-modulo">
-            <input type="hidden" id="idModulo" />
-            <div class="grupo-formulario">
-                <label for="codigoModulo">Código del Módulo:</label>
-                <input type="text" id="codigoModulo" required />
-            </div>
-            <div class="grupo-formulario">
-                <label for="nombreModulo">Nombre del Módulo:</label>
-                <input type="text" id="nombreModulo" required />
-            </div>
-            <div class="grupo-formulario seleccion-contenedor">
-                <label for="comboLevel">Año académico:</label>
-                <select id="comboLevel" required>
-                    <!-- Se llena dinámicamente desde JS -->
-                </select>
-            </div>
-            <div class="grupo-formulario seleccion-contenedor">
-                <label for="comboInstructor">Instructor:</label>
-                <select id="comboInstructor" required>
-                    <!-- Se llena dinámicamente desde JS -->
-                </select>
-            </div>
-            <button type="submit" id="btn-enviar" class="botones">Agregar Módulo</button>
-            <button type="button" id="btn-cancelar" class="botones secundario" hidden>Cancelar</button>
-        </form>
+        <div class="form-container">
+            <form id="formulario-modulo" class="formulario-modulo">
+                <input type="hidden" id="idModulo" />
+                <div class="grupo-formulario">
+                    <label for="codigoModulo">Código del Módulo:</label>
+                    <input type="text" id="codigoModulo" required />
+                </div>
+                <div class="grupo-formulario">
+                    <label for="nombreModulo">Nombre del Módulo:</label>
+                    <input type="text" id="nombreModulo" required />
+                </div>
+                <div class="grupo-formulario seleccion-contenedor">
+                    <label for="comboLevel">Año académico:</label>
+                    <select id="comboLevel" required>
+                        <!-- Se llena dinámicamente desde JS -->
+                    </select>
+                </div>
+                <div class="grupo-formulario seleccion-contenedor">
+                    <label for="comboInstructor">Instructor:</label>
+                    <select id="comboInstructor" required>
+                        <!-- Se llena dinámicamente desde JS -->
+                    </select>
+                </div>
+                <button type="submit" id="btn-enviar" class="botones">Agregar Módulo</button>
+                <button type="button" id="btn-cancelar" class="botones secundario" hidden>Cancelar</button>
+            </form>
+        </div>
 
         <hr class="separador-seccion" />
 
@@ -133,7 +135,7 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.12.0/dist/sweetalert2.all.min.js"></script>
-    <script src="js/admin-modules.js"></script>
+    <script type="module" src="js/admin-modules.js"></script>
 </body>
 
 </html>

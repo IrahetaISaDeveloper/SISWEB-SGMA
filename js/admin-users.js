@@ -1,3 +1,6 @@
+// Import the auth service
+import { me } from './service/authService.js';
+
 //Variable para la URL base de la API
 const API_BASE = "https://sgma-66ec41075156.herokuapp.com/api";
 
@@ -40,6 +43,96 @@ const buscadorUsuariosEl = getById('buscador-usuarios');
 let roles = [];
 let instructoresOriginal = [];
 let grades = [];
+let userRole = null; // Variable para almacenar el rol del usuario
+
+// -----------------------------------------------------
+// FUNCIÓN PARA OBTENER INFORMACIÓN DEL USUARIO
+// -----------------------------------------------------
+
+/**
+ * Obtiene la información del usuario autenticado y su rol
+ */
+async function getUserInfo() {
+    try {
+        const userInfo = await me();
+        console.log('User info received:', userInfo); // Debug log
+        
+        if (userInfo.authenticated && userInfo.instructor && userInfo.instructor.role) {
+            userRole = userInfo.instructor.role;
+            console.log('User role set to:', userRole); // Debug log
+            handleRoleBasedUI();
+            return userInfo.instructor;
+        }
+        return null;
+    } catch (error) {
+        console.error('Error al obtener información del usuario:', error);
+        return null;
+    }
+}
+
+/**
+ * Controla la visibilidad y funcionalidad de la UI según el rol del usuario
+ */
+function handleRoleBasedUI() {
+    const formContainer = document.querySelector('.form-container');
+    
+    console.log('Handling UI for role:', userRole); // Debug log
+    
+    if (userRole === 'Docente') {
+        // Ocultar el formulario para usuarios Docente
+        if (formContainer) {
+            formContainer.style.display = 'none';
+            console.log('Form hidden for Docente role'); // Debug log
+        }
+        
+        // Agregar mensaje informativo
+        addDocenteMessage();
+    } else {
+        // Mostrar el formulario para otros roles
+        if (formContainer) {
+            formContainer.style.display = 'block';
+            console.log('Form shown for role:', userRole); // Debug log
+        }
+    }
+}
+
+/**
+ * Agrega un mensaje informativo para usuarios Docente
+ */
+function addDocenteMessage() {
+    const mainContainer = document.querySelector('.contenedor-principal');
+    
+    // Verificar si ya existe el mensaje
+    if (document.querySelector('.docente-info-message')) {
+        return;
+    }
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'docente-info-message';
+    messageDiv.style.cssText = `
+        background: #e3f2fd;
+        border: 1px solid #2196f3;
+        border-radius: 8px;
+        padding: 16px;
+        margin: 20px 0;
+        color: #1976d2;
+        text-align: center;
+        font-weight: 500;
+    `;
+    messageDiv.innerHTML = `
+        <i class="fas fa-info-circle" style="margin-right: 8px;"></i>
+        Como usuario Docente, solo puede consultar la información de los docentes. 
+        Las funciones de creación, edición y eliminación están restringidas.
+    `;
+    
+    // Insertar el mensaje después del h1
+    const h1 = mainContainer.querySelector('h1');
+    if (h1 && h1.nextSibling) {
+        mainContainer.insertBefore(messageDiv, h1.nextSibling);
+    } else if (h1) {
+        h1.parentNode.insertBefore(messageDiv, h1.nextElementSibling);
+    }
+}
 
 async function cargarRoles() {
   try {
@@ -172,6 +265,23 @@ function filtrarYMostrarUsuarios() {
 function cargarTabla(instructores) {
   cuerpoTablaUsuarios.innerHTML = '';
   instructores.forEach(instructor => {
+    // Generar botones de acción según el rol
+    let actionButtons = '';
+    if (userRole === 'Docente') {
+      actionButtons = `
+        <div style="display:flex;gap:8px;">
+          <button disabled style="background-color: #666; cursor: not-allowed;" title="Sin permisos para editar">Ver</button>
+        </div>
+      `;
+    } else {
+      actionButtons = `
+        <div style="display:flex;gap:8px;">
+          <button onclick="cargarParaEditarUsuario('${instructor.instructorId}')">Editar</button>
+          <button onclick="borrarUsuario('${instructor.instructorId}')">Eliminar</button>
+        </div>
+      `;
+    }
+
     cuerpoTablaUsuarios.innerHTML += `
         <tr>
             <td><img src="${instructor.instructorImage || 'https://i.ibb.co/N6fL89pF/yo.jpg'}" alt="Foto de ${instructor.firstName} ${instructor.lastName}" class="miniatura-perfil" /></td>
@@ -179,18 +289,16 @@ function cargarTabla(instructores) {
             <td>${instructor.email}</td>
             <td>${instructor.roleName}</td>
             <td>${instructor.levelName}</td>
-            <td>
-                <div style="display:flex;gap:8px;">
-                  <button onclick="cargarParaEditarUsuario('${instructor.instructorId}')">Editar</button>
-                  <button onclick="borrarUsuario('${instructor.instructorId}')">Eliminar</button>
-                </div>
-            </td>
+            <td>${actionButtons}</td>
         </tr>
     `;
   });
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
+  // Primero obtener información del usuario
+  await getUserInfo();
+  
   await cargarRoles();
   await cargarLevels();
   await cargarGrupos();
@@ -264,6 +372,22 @@ async function subirImagen(archivo) {
 
 formulario.addEventListener('submit', async e => {
   e.preventDefault();
+
+  // Verificar permisos antes de permitir creación/actualización
+  if (userRole === 'Docente') {
+    Swal.fire({
+      icon: 'error',
+      title: 'Sin permisos',
+      text: 'No tiene permisos para crear o actualizar docentes',
+      customClass: {
+        popup: 'swal-custom-popup',
+        title: 'swal-custom-title',
+        content: 'swal-custom-content',
+        confirmButton: 'swal-custom-confirm-button'
+      }
+    });
+    return;
+  }
 
   const firstName = nombreCompletoEl.value.trim();
   const lastName = document.getElementById('apellidos').value.trim();
@@ -441,6 +565,22 @@ formulario.addEventListener('submit', async e => {
 });
 
 async function cargarParaEditarUsuario(id) {
+  // Verificar permisos antes de permitir edición
+  if (userRole === 'Docente') {
+    Swal.fire({
+      icon: 'error',
+      title: 'Sin permisos',
+      text: 'No tiene permisos para editar docentes',
+      customClass: {
+        popup: 'swal-custom-popup',
+        title: 'swal-custom-title',
+        content: 'swal-custom-content',
+        confirmButton: 'swal-custom-confirm-button'
+      }
+    });
+    return;
+  }
+
   try {
     const res = await fetch(`https://sgma-66ec41075156.herokuapp.com/api/instructors/getInstructorById/${id}`, {
       credentials: 'include'
@@ -487,6 +627,22 @@ async function cargarParaEditarUsuario(id) {
 }
 
 async function borrarUsuario(id) {
+  // Verificar permisos antes de permitir eliminación
+  if (userRole === 'Docente') {
+    Swal.fire({
+      icon: 'error',
+      title: 'Sin permisos',
+      text: 'No tiene permisos para eliminar docentes',
+      customClass: {
+        popup: 'swal-custom-popup',
+        title: 'swal-custom-title',
+        content: 'swal-custom-content',
+        confirmButton: 'swal-custom-confirm-button'
+      }
+    });
+    return;
+  }
+
   const result = await Swal.fire({
     title: '¿Estás seguro?',
     text: 'Esta acción eliminará el usuario de forma permanente.',
@@ -541,3 +697,7 @@ async function borrarUsuario(id) {
     }
   }
 }
+
+// Exportar funciones para uso global (necesario para onclick en el HTML)
+window.cargarParaEditarUsuario = cargarParaEditarUsuario;
+window.borrarUsuario = borrarUsuario;

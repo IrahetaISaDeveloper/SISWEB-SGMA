@@ -68,45 +68,49 @@
 
   <main class="contenedor-principal">
     <h1>Administración de Docentes</h1>
-    <form id="formulario-usuario" class="formulario-usuario">
-      <div class="grupo-formulario">
-        <label for="nombreCompleto">Nombres:</label>
-        <input type="text" id="nombreCompleto" required />
-      </div>
-      <div class="grupo-formulario">
-        <label for="apellidos">Apellidos:</label>
-        <input type="text" id="apellidos" required />
-      </div>
-      <div class="grupo-formulario">
-        <label for="correo">Email:</label>
-        <input type="email" id="correo" required />
-      </div>
-      <div class="grupo-formulario">
-        <label for="contrasena">Contraseña:</label>
-        <input type="password" id="contrasena" required />
-      </div>
-      <div class="grupo-formulario seleccion-contenedor">
-        <label for="idRol">Rol:</label>
-        <select id="idRol" required>
-        </select>
-      </div>
-      <div class="grupo-formulario seleccion-contenedor">
-        <label for="idLevel">Año academico:</label>
-        <select id="idLevel" required>
-        </select>
-      </div>
-      <div class="grupo-formulario">
-        <label for="fotoPerfil-archivo">Foto de Perfil:</label>
-        <input type="file" id="fotoPerfil-archivo" accept="image/*" class="entrada-foto" />
-      </div>
-      <div class="contenedor-previsualizacion-foto">
-        <img id="previsualizacion-foto-perfil" class="previsualizacion-foto" alt="Previsualización de Foto de Perfil" />
-      </div>
-      <input type="hidden" id="url-foto-perfil" />
-      <input type="hidden" id="idUsuario" />
-      <button type="submit" id="btn-enviar" class="botones">Agregar Usuario</button>
-      <button type="button" id="btn-cancelar" class="botones secundario" hidden>Cancelar</button>
-    </form>
+    
+    <div class="form-container">
+      <form id="formulario-usuario" class="formulario-usuario">
+        <div class="grupo-formulario">
+          <label for="nombreCompleto">Nombres:</label>
+          <input type="text" id="nombreCompleto" required />
+        </div>
+        <div class="grupo-formulario">
+          <label for="apellidos">Apellidos:</label>
+          <input type="text" id="apellidos" required />
+        </div>
+        <div class="grupo-formulario">
+          <label for="correo">Email:</label>
+          <input type="email" id="correo" required />
+        </div>
+        <div class="grupo-formulario">
+          <label for="contrasena">Contraseña:</label>
+          <input type="password" id="contrasena" required />
+        </div>
+        <div class="grupo-formulario seleccion-contenedor">
+          <label for="idRol">Rol:</label>
+          <select id="idRol" required>
+          </select>
+        </div>
+        <div class="grupo-formulario seleccion-contenedor">
+          <label for="idLevel">Año academico:</label>
+          <select id="idLevel" required>
+          </select>
+        </div>
+        <div class="grupo-formulario">
+          <label for="fotoPerfil-archivo">Foto de Perfil:</label>
+          <input type="file" id="fotoPerfil-archivo" accept="image/*" class="entrada-foto" />
+        </div>
+        <div class="contenedor-previsualizacion-foto">
+          <img id="previsualizacion-foto-perfil" class="previsualizacion-foto" alt="Previsualización de Foto de Perfil" />
+        </div>
+        <input type="hidden" id="url-foto-perfil" />
+        <input type="hidden" id="idUsuario" />
+        <button type="submit" id="btn-enviar" class="botones">Agregar Usuario</button>
+        <button type="button" id="btn-cancelar" class="botones secundario" hidden>Cancelar</button>
+      </form>
+    </div>
+    
     <hr class="separador-seccion" />
     <div class="filtros-usuarios">
       <input type="text" id="buscador-usuarios" placeholder="Buscar estudiante/docente..." />
@@ -140,7 +144,7 @@
     </div>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="js/admin-users.js"></script>
+  <script type="module" src="js/admin-users.js"></script>
 </body>
 
 </html>

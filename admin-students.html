@@ -68,36 +68,40 @@
 
   <main class="contenedor-principal">
     <h1>Administración de Estudiantes</h1>
-    <form id="user-form" class="formulario-usuario">
-      <div class="grupo-formulario">
-        <label for="fullName">Nombre:</label>
-        <input type="text" id="fullName" required />
-      </div>
-      <div class="grupo-formulario">
-        <label for="apellidos">Apellido:</label>
-        <input type="text" id="apellidos" required />
-      </div>
-      <div class="grupo-formulario">
-        <label for="email">Email:</label>
-        <input type="email" id="email" required />
-      </div>
-      <div class="grupo-formulario">
-        <label for="password">Contraseña:</label>
-        <input type="password" id="password" required />
-      </div>
-      <div class="grupo-formulario">
-        <label for="studentCard">Carnet:</label>
-        <input type="text" id="studentCard" required />
-      </div>
-      <div class="grupo-formulario seleccion-contenedor">
-        <label for="idGrade">Grupo:</label>
-        <select id="idGrade" required>
-        </select>
-      </div>
-      <input type="hidden" id="userId" />
-      <button type="submit" id="btn-submit" class="botones">Agregar Usuario</button>
-      <button type="button" id="btn-cancel" class="botones secundario" hidden>Cancelar</button>
-    </form>
+    
+    <div class="form-container">
+      <form id="user-form" class="formulario-usuario">
+        <div class="grupo-formulario">
+          <label for="fullName">Nombre:</label>
+          <input type="text" id="fullName" required />
+        </div>
+        <div class="grupo-formulario">
+          <label for="apellidos">Apellido:</label>
+          <input type="text" id="apellidos" required />
+        </div>
+        <div class="grupo-formulario">
+          <label for="email">Email:</label>
+          <input type="email" id="email" required />
+        </div>
+        <div class="grupo-formulario">
+          <label for="password">Contraseña:</label>
+          <input type="password" id="password" required />
+        </div>
+        <div class="grupo-formulario">
+          <label for="studentCard">Carnet:</label>
+          <input type="text" id="studentCard" required />
+        </div>
+        <div class="grupo-formulario seleccion-contenedor">
+          <label for="idGrade">Grupo:</label>
+          <select id="idGrade" required>
+          </select>
+        </div>
+        <input type="hidden" id="userId" />
+        <button type="submit" id="btn-submit" class="botones">Agregar Usuario</button>
+        <button type="button" id="btn-cancel" class="botones secundario" hidden>Cancelar</button>
+      </form>
+    </div>
+    
     <hr class="separador-seccion" />
     <div class="tabla-responsiva">
       <table>
@@ -117,7 +121,7 @@
     </div>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="js/admin-students.js"></script>
+  <script type="module" src="js/admin-students.js"></script>
 </body>
 
 </html>

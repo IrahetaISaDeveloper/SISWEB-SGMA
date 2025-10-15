@@ -1,3 +1,6 @@
+// Import the auth service
+import { me } from './service/authService.js';
+
 const API_BASE_URL = 'https://sgma-66ec41075156.herokuapp.com';
 
 // -----------------------------------------------------
@@ -24,6 +27,7 @@ let totalPages = 0;
 let levels = [];
 let instructors = [];
 let modules = [];
+let userRole = null; // Variable para almacenar el rol del usuario
 
 // -----------------------------------------------------
 // 1. UTILERÍA DE API (FUNCIÓN UNIFICADA Y MEJORADA)
@@ -242,6 +246,12 @@ async function updateModule(id, moduleData) {
  * Elimina un módulo.
  */
 async function deleteModule(id) {
+    // Verificar permisos antes de permitir eliminación
+    if (userRole === 'Docente') {
+        showMessage('No tiene permisos para eliminar módulos', 'error');
+        return;
+    }
+    
     const result = await Swal.fire({
         title: '¿Está seguro?',
         text: '¿Desea eliminar este módulo? Esta acción no se puede deshacer.',
@@ -273,6 +283,12 @@ async function deleteModule(id) {
 // Manejar envío del formulario (Crear/Actualizar)
 async function handleFormSubmit(e) {
     e.preventDefault();
+    
+    // Verificar permisos antes de permitir creación/actualización
+    if (userRole === 'Docente') {
+        showMessage('No tiene permisos para crear o actualizar módulos', 'error');
+        return;
+    }
     
     if (!validateForm()) {
         return;
@@ -325,7 +341,7 @@ async function handleFormSubmit(e) {
 // 4. RENDERING Y AUXILIARES
 // -----------------------------------------------------
 
-// Renderizar tabla de módulos (CORREGIDA la estructura de las columnas)
+// Renderizar tabla de módulos (ACTUALIZADA para deshabilitar botones según rol)
 function renderModulesTable() {
     if (!cuerpoTabla) return;
     cuerpoTabla.innerHTML = '';
@@ -337,27 +353,46 @@ function renderModulesTable() {
         const instructorName = module.instructor?.instructorName || 
                                (module.instructorName || 'N/A');
 
-        row.innerHTML = `
-            <td>${module.moduleCode || 'N/A'}</td>
-            <td>${module.moduleName || 'N/A'}</td>
-            <td>${module.levelName || 'N/A'}</td>
-            <td>${instructorName}</td>
-            
-            <td>
+        // Generar botones de acción según el rol
+        let actionButtons = '';
+        if (userRole === 'Docente') {
+            // Para Docente: solo botón de ver (deshabilitado o sin funcionalidad de edición)
+            actionButtons = `
+                <button class="btn btn-sm btn-secondary mb-1" disabled title="Sin permisos para editar">
+                    <i class="fas fa-eye"></i> Ver
+                </button>
+            `;
+        } else {
+            // Para otros roles: botones completos de edición y eliminación
+            actionButtons = `
                 <button class="btn btn-sm btn-warning mb-1 me-1" onclick="editModule(${module.moduleId})">
                     <i class="fas fa-edit"></i> Editar
                 </button>
                 <button class="btn btn-sm btn-danger mb-1" onclick="deleteModule(${module.moduleId})">
                     <i class="fas fa-trash"></i> Eliminar
                 </button>
-            </td>
+            `;
+        }
+
+        row.innerHTML = `
+            <td>${module.moduleCode || 'N/A'}</td>
+            <td>${module.moduleName || 'N/A'}</td>
+            <td>${module.levelName || 'N/A'}</td>
+            <td>${instructorName}</td>
+            <td>${actionButtons}</td>
         `;
         cuerpoTabla.appendChild(row);
     });
 }
 
-// Editar módulo
+// Editar módulo (ACTUALIZADA para verificar permisos)
 function editModule(id) {
+    // Verificar permisos antes de permitir edición
+    if (userRole === 'Docente') {
+        showMessage('No tiene permisos para editar módulos', 'error');
+        return;
+    }
+    
     const module = modules.find(m => m.moduleId === id);
     if (!module) {
         showMessage('Error: Módulo no encontrado', 'error');
@@ -472,9 +507,8 @@ function filterModules() {
     renderFilteredTable(filteredModules);
 }
 
-// Renderizar tabla filtrada
+// Renderizar tabla filtrada (ACTUALIZADA para deshabilitar botones según rol)
 function renderFilteredTable(filteredModules) {
-    // Puedes copiar el código de renderModulesTable aquí o refactorizar para que renderice cualquier array de módulos
     if (!cuerpoTabla) return;
     cuerpoTabla.innerHTML = '';
     
@@ -482,19 +516,31 @@ function renderFilteredTable(filteredModules) {
         const row = document.createElement('tr');
         const instructorName = module.instructor?.instructorName || (module.instructorName || 'N/A');
 
-        row.innerHTML = `
-            <td>${module.moduleCode || 'N/A'}</td>
-            <td>${module.moduleName || 'N/A'}</td>
-            <td>${module.levelName || 'N/A'}</td>
-            <td>${instructorName}</td>
-            <td>
+        // Generar botones de acción según el rol
+        let actionButtons = '';
+        if (userRole === 'Docente') {
+            actionButtons = `
+                <button class="btn btn-sm btn-secondary mb-1" disabled title="Sin permisos para editar">
+                    <i class="fas fa-eye"></i> Ver
+                </button>
+            `;
+        } else {
+            actionButtons = `
                 <button class="btn btn-sm btn-warning mb-1 me-1" onclick="editModule(${module.moduleId})">
                     <i class="fas fa-edit"></i> Editar
                 </button>
                 <button class="btn btn-sm btn-danger mb-1" onclick="deleteModule(${module.moduleId})">
                     <i class="fas fa-trash"></i> Eliminar
                 </button>
-            </td>
+            `;
+        }
+
+        row.innerHTML = `
+            <td>${module.moduleCode || 'N/A'}</td>
+            <td>${module.moduleName || 'N/A'}</td>
+            <td>${module.levelName || 'N/A'}</td>
+            <td>${instructorName}</td>
+            <td>${actionButtons}</td>
         `;
         cuerpoTabla.appendChild(row);
     });
@@ -565,6 +611,10 @@ function showMessage(message, type) {
 // Inicialización
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('DOM cargado, iniciando carga de datos...');
+    
+    // Primero obtener información del usuario
+    await getUserInfo();
+    
     // Carga paralela de datos de combos
     await Promise.all([
         loadLevels(),
@@ -588,6 +638,104 @@ function setupEventListeners() {
     }
     if (filtroAnoModuloEl) {
         filtroAnoModuloEl.addEventListener('change', filterModules);
+    }
+}
+
+// -----------------------------------------------------
+// FUNCIÓN PARA OBTENER INFORMACIÓN DEL USUARIO
+// -----------------------------------------------------
+
+/**
+ * Obtiene la información del usuario autenticado y su rol
+ */
+async function getUserInfo() {
+    try {
+        const userInfo = await me();
+        console.log('User info received:', userInfo); // Debug log
+        
+        if (userInfo.authenticated && userInfo.instructor && userInfo.instructor.role) {
+            userRole = userInfo.instructor.role;
+            console.log('User role set to:', userRole); // Debug log
+            handleRoleBasedUI();
+            return userInfo.instructor;
+        }
+        return null;
+    } catch (error) {
+        console.error('Error al obtener información del usuario:', error);
+        return null;
+    }
+}
+
+/**
+ * Controla la visibilidad y funcionalidad de la UI según el rol del usuario
+ */
+function handleRoleBasedUI() {
+    const formContainer = document.querySelector('.form-container');
+    const addNewButton = document.querySelector('.btn-add-new'); // Si tienes un botón para agregar nuevo
+    
+    console.log('Handling UI for role:', userRole); // Debug log
+    
+    if (userRole === 'Docente') {
+        // Ocultar el formulario para usuarios Docente
+        if (formContainer) {
+            formContainer.style.display = 'none';
+            console.log('Form hidden for Docente role'); // Debug log
+        }
+        
+        // Ocultar botón de agregar nuevo si existe
+        if (addNewButton) {
+            addNewButton.style.display = 'none';
+        }
+        
+        // Agregar mensaje informativo
+        addDocenteMessage();
+    } else {
+        // Mostrar el formulario para otros roles
+        if (formContainer) {
+            formContainer.style.display = 'block';
+            console.log('Form shown for role:', userRole); // Debug log
+        }
+        
+        if (addNewButton) {
+            addNewButton.style.display = 'block';
+        }
+    }
+}
+
+/**
+ * Agrega un mensaje informativo para usuarios Docente
+ */
+function addDocenteMessage() {
+    const mainContainer = document.querySelector('.container') || document.querySelector('main') || document.body;
+    
+    // Verificar si ya existe el mensaje
+    if (document.querySelector('.docente-info-message')) {
+        return;
+    }
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'docente-info-message';
+    messageDiv.style.cssText = `
+        background: #e3f2fd;
+        border: 1px solid #2196f3;
+        border-radius: 8px;
+        padding: 16px;
+        margin: 20px 0;
+        color: #1976d2;
+        text-align: center;
+        font-weight: 500;
+    `;
+    messageDiv.innerHTML = `
+        <i class="fas fa-info-circle" style="margin-right: 8px;"></i>
+        Como usuario Docente, solo puede consultar la información de los módulos. 
+        Las funciones de creación, edición y eliminación están restringidas.
+    `;
+    
+    // Insertar el mensaje al inicio del contenedor principal
+    if (mainContainer.firstChild) {
+        mainContainer.insertBefore(messageDiv, mainContainer.firstChild);
+    } else {
+        mainContainer.appendChild(messageDiv);
     }
 }
 
