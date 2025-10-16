@@ -75,6 +75,7 @@ async function getUserInfo() {
  */
 function handleRoleBasedUI() {
     const formContainer = document.querySelector('.form-container');
+    const glassCard = document.querySelector('.glass-card');
     
     console.log('Handling UI for role:', userRole); // Debug log
     
@@ -82,7 +83,14 @@ function handleRoleBasedUI() {
         // Ocultar el formulario para usuarios Docente
         if (formContainer) {
             formContainer.style.display = 'none';
+            formContainer.style.visibility = 'hidden';
             console.log('Form hidden for Docente role'); // Debug log
+        }
+        
+        // También ocultar la glass-card si es necesario
+        if (glassCard && glassCard.contains(document.getElementById('formulario-usuario'))) {
+            glassCard.style.display = 'none';
+            glassCard.style.visibility = 'hidden';
         }
         
         // Agregar mensaje informativo
@@ -91,7 +99,13 @@ function handleRoleBasedUI() {
         // Mostrar el formulario para otros roles
         if (formContainer) {
             formContainer.style.display = 'block';
+            formContainer.style.visibility = 'visible';
             console.log('Form shown for role:', userRole); // Debug log
+        }
+        
+        if (glassCard && glassCard.contains(document.getElementById('formulario-usuario'))) {
+            glassCard.style.display = 'block';
+            glassCard.style.visibility = 'visible';
         }
     }
 }
@@ -108,29 +122,32 @@ function addDocenteMessage() {
     }
     
     const messageDiv = document.createElement('div');
-    messageDiv.className = 'docente-info-message';
+    messageDiv.className = 'docente-info-message glass-card';
     messageDiv.style.cssText = `
-        background: #e3f2fd;
-        border: 1px solid #2196f3;
-        border-radius: 8px;
-        padding: 16px;
-        margin: 20px 0;
-        color: #1976d2;
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        border-radius: var(--radio-borde-principal);
+        padding: var(--espaciado-xl);
+        margin: var(--espaciado-xl) 0;
+        color: var(--acento-azul);
         text-align: center;
         font-weight: 500;
+        backdrop-filter: blur(20px);
     `;
     messageDiv.innerHTML = `
-        <i class="fas fa-info-circle" style="margin-right: 8px;"></i>
+        <i class="fas fa-info-circle" style="margin-right: 8px; font-size: 1.2rem;"></i>
         Como usuario Docente, solo puede consultar la información de los docentes. 
         Las funciones de creación, edición y eliminación están restringidas.
     `;
     
-    // Insertar el mensaje después del h1
-    const h1 = mainContainer.querySelector('h1');
-    if (h1 && h1.nextSibling) {
-        mainContainer.insertBefore(messageDiv, h1.nextSibling);
-    } else if (h1) {
-        h1.parentNode.insertBefore(messageDiv, h1.nextElementSibling);
+    // Insertar el mensaje después del hero-header
+    const heroHeader = mainContainer.querySelector('.hero-header');
+    if (heroHeader) {
+        // Insert after the hero-header element
+        heroHeader.insertAdjacentElement('afterend', messageDiv);
+    } else {
+        // Fallback: insert at the beginning of main container
+        mainContainer.insertBefore(messageDiv, mainContainer.firstChild);
     }
 }
 

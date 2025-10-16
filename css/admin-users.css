@@ -1218,3 +1218,13 @@ body.menu-open .contenedor-principal {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* Role-based visibility control */
+.form-container[style*="display: none"] {
+    display: none !important;
+}
+
+/* Ensure the glass card respects the display property */
+.glass-card[style*="display: none"] {
+    display: none !important;
+}

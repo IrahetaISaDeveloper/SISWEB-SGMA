@@ -1,17 +1,24 @@
 // Import the auth service
 import { me } from './service/authService.js';
 
-const STUDENTS_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/students/getAllStudents';
-const ADD_STUDENT_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/students/newStudent';
-const UPDATE_STUDENT_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/students/updateStudent/';
-const DELETE_STUDENT_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/students/deleteStudent/';
-const LEVELS_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/levels/getAllLevels';
-const GRADES_API_URL = 'https://sgma-66ec41075156.herokuapp.com/api/grades/getAllGrades';
+const API_BASE_URL = 'https://sgma-66ec41075156.herokuapp.com';
 
+// API URLs
+const STUDENTS_API_URL = `${API_BASE_URL}/api/students/getAllStudents`;
+const ADD_STUDENT_API_URL = `${API_BASE_URL}/api/students/newStudent`;
+const UPDATE_STUDENT_API_URL = `${API_BASE_URL}/api/students/updateStudent/`;
+const DELETE_STUDENT_API_URL = `${API_BASE_URL}/api/students/deleteStudent/`;
+const LEVELS_API_URL = `${API_BASE_URL}/api/levels/getAllLevels`;
+const GRADES_API_URL = `${API_BASE_URL}/api/grades/getAllGrades`;
+
+// DOM Elements
 const form = document.getElementById('user-form');
 const fullNameEl = document.getElementById('fullName');
+const apellidosEl = document.getElementById('apellidos');
 const emailEl = document.getElementById('email');
 const passwordEl = document.getElementById('password');
+const studentCardEl = document.getElementById('studentCard');
+const idGradeEl = document.getElementById('idGrade');
 const userIdEl = document.getElementById('userId');
 const cancelBtn = document.getElementById('btn-cancel');
 const submitBtn = document.getElementById('btn-submit');
@@ -19,28 +26,85 @@ const tbody = document.getElementById('users-tbody');
 const filtroAnoEl = document.getElementById('filtro-ano');
 const filtroGrupoEl = document.getElementById('filtro-grupo');
 const buscadorUsuariosEl = document.getElementById('buscador-usuarios');
-const idLevelEl = document.getElementById('idLevel');
-const idGradeEl = document.getElementById('idGrade'); // Usar este para el grupo
 
+// Data variables
 let studentsOriginal = [];
+let levels = [];
 let grades = [];
-let userRole = null; // Variable para almacenar el rol del usuario
+let userRole = null;
 
 // -----------------------------------------------------
-// FUNCIÓN PARA OBTENER INFORMACIÓN DEL USUARIO
+// API UTILITY FUNCTION
 // -----------------------------------------------------
 
-/**
- * Obtiene la información del usuario autenticado y su rol
- */
+async function apiFetch(url, options = {}) {
+    const defaultOptions = { credentials: 'include', ...options };
+    
+    const response = await fetch(url, defaultOptions);
+    
+    // Check if response is ok first
+    if (!response.ok) {
+        throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
+    }
+    
+    // Try to parse JSON, but handle cases where there might not be JSON
+    let responseData;
+    try {
+        const text = await response.text();
+        if (text) {
+            responseData = JSON.parse(text);
+        } else {
+            // Empty response but successful HTTP status
+            return { datos: [], paginacion: {} };
+        }
+    } catch (parseError) {
+        // If JSON parsing fails but HTTP was successful, treat as success
+        console.warn('Response was not valid JSON but HTTP was successful:', parseError);
+        return { datos: [], paginacion: {} };
+    }
+
+    // Handle different response structures
+    if (responseData.success === false) {
+        let errorMessage = responseData.message || 'Error en la operación';
+        if (response.status === 403) {
+            errorMessage = "Acceso denegado (403). Verifique su sesión.";
+        }
+        throw new Error(errorMessage);
+    }
+
+    // Extract data - handle both success: true and responses without success field
+    let extractedData = responseData.data || responseData;
+    let paginationInfo = {};
+
+    if (extractedData) {
+        if (extractedData.content && Array.isArray(extractedData.content)) {
+            extractedData = extractedData.content;
+            paginationInfo = { number: extractedData.number, totalPages: extractedData.totalPages }; 
+        } else if (Array.isArray(extractedData)) {
+            // Already an array
+        }
+    } else {
+        extractedData = [];
+    }
+
+    return { 
+        datos: extractedData, 
+        paginacion: paginationInfo 
+    };
+}
+
+// -----------------------------------------------------
+// USER ROLE MANAGEMENT
+// -----------------------------------------------------
+
 async function getUserInfo() {
     try {
         const userInfo = await me();
-        console.log('User info received:', userInfo); // Debug log
+        console.log('User info received:', userInfo);
         
         if (userInfo.authenticated && userInfo.instructor && userInfo.instructor.role) {
             userRole = userInfo.instructor.role;
-            console.log('User role set to:', userRole); // Debug log
+            console.log('User role set to:', userRole);
             handleRoleBasedUI();
             return userInfo.instructor;
         }
@@ -51,598 +115,564 @@ async function getUserInfo() {
     }
 }
 
-/**
- * Controla la visibilidad y funcionalidad de la UI según el rol del usuario
- */
 function handleRoleBasedUI() {
     const formContainer = document.querySelector('.form-container');
+    const glassCard = document.querySelector('.glass-card');
     
-    console.log('Handling UI for role:', userRole); // Debug log
+    console.log('Handling UI for role:', userRole);
     
     if (userRole === 'Docente') {
-        // Ocultar el formulario para usuarios Docente
         if (formContainer) {
             formContainer.style.display = 'none';
-            console.log('Form hidden for Docente role'); // Debug log
+            formContainer.style.visibility = 'hidden';
+            console.log('Form hidden for Docente role');
         }
         
-        // Agregar mensaje informativo
+        // También ocultar la glass-card si es necesario
+        if (glassCard && glassCard.contains(document.getElementById('user-form'))) {
+            glassCard.style.display = 'none';
+            glassCard.style.visibility = 'hidden';
+        }
+        
         addDocenteMessage();
     } else {
-        // Mostrar el formulario para otros roles
         if (formContainer) {
             formContainer.style.display = 'block';
-            console.log('Form shown for role:', userRole); // Debug log
+            formContainer.style.visibility = 'visible';
+            console.log('Form shown for role:', userRole);
+        }
+        
+        if (glassCard && glassCard.contains(document.getElementById('user-form'))) {
+            glassCard.style.display = 'block';
+            glassCard.style.visibility = 'visible';
         }
     }
 }
 
-/**
- * Agrega un mensaje informativo para usuarios Docente
- */
 function addDocenteMessage() {
     const mainContainer = document.querySelector('.contenedor-principal');
     
-    // Verificar si ya existe el mensaje
     if (document.querySelector('.docente-info-message')) {
         return;
     }
     
     const messageDiv = document.createElement('div');
-    messageDiv.className = 'docente-info-message';
+    messageDiv.className = 'docente-info-message glass-card';
     messageDiv.style.cssText = `
-        background: #e3f2fd;
-        border: 1px solid #2196f3;
-        border-radius: 8px;
-        padding: 16px;
-        margin: 20px 0;
-        color: #1976d2;
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        border-radius: var(--radio-borde-principal);
+        padding: var(--espaciado-xl);
+        margin: var(--espaciado-xl) 0;
+        color: var(--acento-azul);
         text-align: center;
         font-weight: 500;
+        backdrop-filter: blur(20px);
     `;
     messageDiv.innerHTML = `
-        <i class="fas fa-info-circle" style="margin-right: 8px;"></i>
+        <i class="fas fa-info-circle" style="margin-right: 8px; font-size: 1.2rem;"></i>
         Como usuario Docente, solo puede consultar la información de los estudiantes. 
         Las funciones de creación, edición y eliminación están restringidas.
     `;
     
-    // Insertar el mensaje después del h1
-    const h1 = mainContainer.querySelector('h1');
-    if (h1 && h1.nextSibling) {
-        mainContainer.insertBefore(messageDiv, h1.nextSibling);
-    } else if (h1) {
-        h1.parentNode.insertBefore(messageDiv, h1.nextElementSibling);
+    // Insertar el mensaje después del hero-header
+    const heroHeader = mainContainer.querySelector('.hero-header');
+    if (heroHeader) {
+        // Insert after the hero-header element
+        heroHeader.insertAdjacentElement('afterend', messageDiv);
+    } else {
+        // Fallback: insert at the beginning of main container
+        mainContainer.insertBefore(messageDiv, mainContainer.firstChild);
     }
 }
 
 // -----------------------------------------------------
-// CARGA INICIAL DE DATOS
+// DATA LOADING FUNCTIONS
 // -----------------------------------------------------
 
 async function cargarLevels() {
-  try {
-    const res = await fetch(LEVELS_API_URL, { credentials: 'include' });
-    const data = await res.json();
-    const levels = Array.isArray(data) ? data : (data.data || []);
-    if (filtroAnoEl) {
-      filtroAnoEl.innerHTML = '<option value="">Seleccione año</option>';
-      levels.forEach(level => {
-        filtroAnoEl.innerHTML += `<option value="${level.levelId}">${level.levelName}</option>`;
-      });
+    try {
+        const result = await apiFetch(LEVELS_API_URL);
+        levels = result.datos;
+        
+        if (filtroAnoEl) {
+            populateYearFilter();
+        }
+    } catch (error) {
+        console.error('Error al cargar niveles:', error);
+        showMessage('Error al cargar niveles: ' + error.message, 'error');
     }
-  } catch (error) {
-    console.error('Error al cargar niveles:', error);
-  }
+}
+
+function populateYearFilter() {
+    if (!filtroAnoEl) return;
+    
+    filtroAnoEl.innerHTML = '<option value="">Todos los años</option>';
+    
+    if (!levels || levels.length === 0) {
+        return;
+    }
+    
+    levels.forEach(level => {
+        if (level && level.id && level.levelName) { 
+            const option = document.createElement('option');
+            option.value = level.id;
+            option.textContent = level.levelName;
+            filtroAnoEl.appendChild(option);
+        }
+    });
 }
 
 async function cargarGrupos() {
-  try {
-    const res = await fetch(GRADES_API_URL, { credentials: 'include' });
-    const data = await res.json();
-    grades = Array.isArray(data) ? data : (data.data || []);
-    if (filtroGrupoEl) {
-      filtroGrupoEl.innerHTML = '<option value="">Seleccione grupo</option>';
-      grades.forEach(grade => {
-        filtroGrupoEl.innerHTML += `<option value="${grade.gradeGroup}">${grade.gradeGroup}</option>`;
-      });
+    try {
+        const result = await apiFetch(GRADES_API_URL);
+        grades = result.datos;
+        
+        if (filtroGrupoEl) {
+            filtroGrupoEl.innerHTML = '<option value="">Todos los grupos</option>';
+            grades.forEach(grade => {
+                const option = document.createElement('option');
+                option.value = grade.gradeGroup;
+                option.textContent = `Grupo ${grade.gradeGroup}`;
+                filtroGrupoEl.appendChild(option);
+            });
+        }
+        
+        if (idGradeEl) {
+            idGradeEl.innerHTML = '<option value="">Seleccione un grupo</option>';
+            grades.forEach(grade => {
+                const option = document.createElement('option');
+                option.value = grade.gradeId;
+                option.textContent = `Grupo ${grade.gradeGroup} - Nivel ${grade.levelId}`;
+                idGradeEl.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Error al cargar grupos:', error);
+        showMessage('Error al cargar grupos: ' + error.message, 'error');
     }
-    if (idGradeEl) {
-      idGradeEl.innerHTML = '<option value="">Seleccione grupo</option>';
-      grades.forEach(grade => {
-        idGradeEl.innerHTML += `<option value="${grade.gradeId}">Grupo ${grade.gradeGroup} - Nivel ${grade.levelId}</option>`;
-      });
-    }
-  } catch (error) {
-    console.error('Error al cargar grupos:', error);
-  }
 }
 
 async function cargarEstudiantes() {
-  try {
-    const res = await fetch(STUDENTS_API_URL, { credentials: 'include' });
-    const data = await res.json();
-    let students = [];
-    if (data && data.data && Array.isArray(data.data.content)) {
-      students = data.data.content;
+    try {
+        const result = await apiFetch(STUDENTS_API_URL);
+        studentsOriginal = result.datos;
+        filtrarYMostrarEstudiantes();
+    } catch (error) {
+        console.error('Error al cargar estudiantes:', error);
+        showMessage('Error al cargar estudiantes: ' + error.message, 'error');
     }
-    studentsOriginal = students;
-    filtrarYMostrarEstudiantes();
-  } catch (error) {
-    console.error('Error al cargar los estudiantes:', error);
-    Swal.fire({
-        title: 'Error',
-        text: 'No se pudieron cargar los estudiantes. Intenta de nuevo más tarde.',
-        icon: 'error',
-        customClass: {
-            popup: 'swal-custom-popup',
-            title: 'swal-custom-title',
-            content: 'swal-custom-content',
-            confirmButton: 'swal-custom-confirm-button'
-        },
-        buttonsStyling: false
-    });
-  }
 }
 
+// -----------------------------------------------------
+// FILTERING AND RENDERING
+// -----------------------------------------------------
+
 function filtrarYMostrarEstudiantes() {
-  let lista = studentsOriginal.slice();
-  if (filtroAnoEl) {
+    let lista = studentsOriginal.slice();
+    
+    // Filter by level
     const levelId = filtroAnoEl.value;
     if (levelId) {
-      lista = lista.filter(i => String(i.levelId) === levelId);
+        lista = lista.filter(i => String(i.levelId) === levelId);
     }
-  }
-  if (filtroGrupoEl) {
+    
+    // Filter by group
     const grupo = filtroGrupoEl.value;
     if (grupo) {
-      lista = lista.filter(i => String(i.gradeGroup) === grupo);
+        lista = lista.filter(i => String(i.gradeGroup) === grupo);
     }
-  }
-  if (buscadorUsuariosEl) {
+    
+    // Filter by search text
     const texto = buscadorUsuariosEl.value.trim().toLowerCase();
     if (texto) {
-      lista = lista.filter(i =>
-        `${i.firstName} ${i.lastName}`.toLowerCase().includes(texto) ||
-        (i.email && i.email.toLowerCase().includes(texto))
-      );
+        lista = lista.filter(i =>
+            `${i.firstName} ${i.lastName}`.toLowerCase().includes(texto) ||
+            (i.email && i.email.toLowerCase().includes(texto)) ||
+            (i.studentCard && i.studentCard.toLowerCase().includes(texto))
+        );
     }
-  }
-  cargarTablaEstudiantes(lista);
+    
+    cargarTablaEstudiantes(lista);
 }
 
 function cargarTablaEstudiantes(students) {
-  tbody.innerHTML = '';
-  students.forEach(student => {
-    // Generar botones de acción según el rol
-    let actionButtons = '';
-    if (userRole === 'Docente') {
-      actionButtons = `
-        <div style="display:flex;flex-direction:column;gap:6px;align-items:center;">
-          <button disabled style="width:120px; background-color: #666; cursor: not-allowed;" title="Sin permisos para editar">Ver</button>
-        </div>
-      `;
-    } else {
-      actionButtons = `
-        <div style="display:flex;flex-direction:column;gap:6px;align-items:center;">
-          <button onclick="cargarParaEditarEstudiante('${student.studentId}')" class="edit" style="width:120px;">Editar</button>
-          <button onclick="borrarEstudiante('${student.studentId}')" class="delete" style="width:120px;">Eliminar</button>
-        </div>
-      `;
-    }
+    tbody.innerHTML = '';
+    
+    students.forEach(student => {
+        const row = document.createElement('tr');
+        
+        // Generate action buttons based on role
+        let actionButtons = '';
+        if (userRole === 'Docente') {
+            actionButtons = `
+                <div class="acciones-futuristas">
+                    <button class="btn-futurista btn-ver-futurista" disabled style="opacity: 0.5; cursor: not-allowed;" title="Sin permisos para ver detalles">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+            `;
+        } else {
+            actionButtons = `
+                <div class="acciones-futuristas">
+                    <button class="btn-futurista btn-editar-futurista" onclick="cargarParaEditarEstudiante('${student.studentId}')" title="Editar estudiante">
+                        <i class="fas fa-edit"></i>
+                        <span>Editar</span>
+                    </button>
+                    <button class="btn-futurista btn-eliminar-futurista" onclick="borrarEstudiante('${student.studentId}')" title="Eliminar estudiante">
+                        <i class="fas fa-trash"></i>
+                        <span>Eliminar</span>
+                    </button>
+                </div>
+            `;
+        }
 
-    tbody.innerHTML += `
-      <tr>
-        <td>${student.studentCard}</td>
-        <td>${student.firstName}</td>
-        <td>${student.lastName}</td>
-        <td>${student.email}</td>
-        <td>${student.gradeGroup}</td>
-        <td>${actionButtons}</td>
-      </tr>
-    `;
-  });
+        row.innerHTML = `
+            <td>${student.studentCard || 'N/A'}</td>
+            <td>${student.firstName || 'N/A'}</td>
+            <td>${student.lastName || 'N/A'}</td>
+            <td>${student.email || 'N/A'}</td>
+            <td>Grupo ${student.gradeGroup || 'N/A'}</td>
+            <td>${actionButtons}</td>
+        `;
+        tbody.appendChild(row);
+    });
+
+    // Show empty state if no students
+    if (students.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="tabla-vacia">
+                    <i class="fas fa-graduation-cap"></i>
+                    <p>No se encontraron estudiantes que coincidan con los filtros aplicados.</p>
+                </td>
+            </tr>
+        `;
+    }
 }
 
-window.addEventListener('DOMContentLoaded', async () => {
-  // Primero obtener información del usuario
-  await getUserInfo();
-  
-  await cargarLevels();
-  await cargarGrupos();
-  await cargarEstudiantes();
-  if (filtroAnoEl) filtroAnoEl.addEventListener('change', filtrarYMostrarEstudiantes);
-  if (filtroGrupoEl) filtroGrupoEl.addEventListener('change', filtrarYMostrarEstudiantes);
-  if (buscadorUsuariosEl) buscadorUsuariosEl.addEventListener('input', filtrarYMostrarEstudiantes);
-});
+// -----------------------------------------------------
+// CRUD OPERATIONS
+// -----------------------------------------------------
 
-cancelBtn.addEventListener('click', () => {
-  form.reset();
-  userIdEl.value = '';
-  cancelBtn.hidden = true;
-  submitBtn.textContent = 'Agregar Estudiante';
-  passwordEl.disabled = false;
-});
+async function createStudent(studentData) {
+    try {
+        console.log('Enviando datos para crear estudiante:', studentData);
+        const response = await fetch(ADD_STUDENT_API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(studentData)
+        });
 
-form.addEventListener('submit', async e => {
-  e.preventDefault();
-  
-  // Verificar permisos antes de permitir creación/actualización
-  if (userRole === 'Docente') {
-    Swal.fire({
-      title: 'Sin permisos',
-      text: 'No tiene permisos para crear o actualizar estudiantes',
-      icon: 'error',
-      customClass: {
-        popup: 'swal-custom-popup',
-        title: 'swal-custom-title',
-        content: 'swal-custom-content',
-        confirmButton: 'swal-custom-confirm-button'
-      },
-      buttonsStyling: false
-    });
-    return;
-  }
-  
-  const fullName = fullNameEl.value.trim();
-  const email = emailEl.value.trim();
-  let password = passwordEl.value.trim();
-  const isEditing = !!userIdEl.value;
-  const gradeId = idGradeEl ? idGradeEl.value : '';
-  let lastName = '';
-  if (document.getElementById('apellidos')) {
-    lastName = document.getElementById('apellidos').value.trim();
-  }
-  let studentCard = '';
-  if (document.getElementById('studentCard')) {
-    studentCard = document.getElementById('studentCard').value.trim();
-  }
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
+        }
 
-  if (!studentCard || studentCard.length < 5) {
-    Swal.fire({
-        title: 'Error',
-        text: 'El carnet debe tener al menos 5 caracteres.',
-        icon: 'error',
-        customClass: {
-            popup: 'swal-custom-popup',
-            title: 'swal-custom-title',
-            content: 'swal-custom-content',
-            confirmButton: 'swal-custom-confirm-button'
-        },
-        buttonsStyling: false
-    });
-    return;
-  }
-  if (!fullName || fullName.length < 3) {
-    Swal.fire({
-        title: 'Error',
-        text: 'El nombre debe tener al menos 3 caracteres.',
-        icon: 'error',
-        customClass: {
-            popup: 'swal-custom-popup',
-            title: 'swal-custom-title',
-            content: 'swal-custom-content',
-            confirmButton: 'swal-custom-confirm-button'
-        },
-        buttonsStyling: false
-    });
-    return;
-  }
-  if (lastName !== undefined && lastName.length < 2) {
-    Swal.fire({
-        title: 'Error',
-        text: 'El apellido debe tener al menos 2 caracteres.',
-        icon: 'error',
-        customClass: {
-            popup: 'swal-custom-popup',
-            title: 'swal-custom-title',
-            content: 'swal-custom-content',
-            confirmButton: 'swal-custom-confirm-button'
-        },
-        buttonsStyling: false
-    });
-    return;
-  }
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    Swal.fire({
-        title: 'Error',
-        text: 'Por favor, introduce un formato de correo electrónico válido.',
-        icon: 'error',
-        customClass: {
-            popup: 'swal-custom-popup',
-            title: 'swal-custom-title',
-            content: 'swal-custom-content',
-            confirmButton: 'swal-custom-confirm-button'
-        },
-        buttonsStyling: false
-    });
-    return;
-  }
-  if (!isEditing && (!password || password.length < 6)) {
-    Swal.fire({
-        title: 'Error',
-        text: 'La contraseña debe tener al menos 6 caracteres.',
-        icon: 'error',
-        customClass: {
-            popup: 'swal-custom-popup',
-            title: 'swal-custom-title',
-            content: 'swal-custom-content',
-            confirmButton: 'swal-custom-confirm-button'
-        },
-        buttonsStyling: false
-    });
-    return;
-  }
-  if (!gradeId) {
-    Swal.fire({
-        title: 'Error',
-        text: 'Por favor, selecciona un grupo.',
-        icon: 'error',
-        customClass: {
-            popup: 'swal-custom-popup',
-            title: 'swal-custom-title',
-            content: 'swal-custom-content',
-            confirmButton: 'swal-custom-confirm-button'
-        },
-        buttonsStyling: false
-    });
-    return;
-  }
-
-  const cargaUtil = {
-    studentCard,
-    firstName: fullName,
-    lastName,
-    email,
-    gradeId: Number(gradeId)
-  };
-
-  if (!isEditing) {
-    if (!password || password.length < 6) {
-      Swal.fire({
-        title: 'Error',
-        text: 'La contraseña debe tener al menos 6 caracteres.',
-        icon: 'error',
-        customClass: {
-          popup: 'swal-custom-popup',
-          title: 'swal-custom-title',
-          content: 'swal-custom-content',
-          confirmButton: 'swal-custom-confirm-button'
-        },
-        buttonsStyling: false
-      });
-      return;
+        // For create operations, we don't need to parse response data
+        // Just check if it was successful
+        return true;
+    } catch (error) {
+        throw new Error(error.message || 'Error desconocido al crear estudiante.');
     }
-    cargaUtil.password = password; // Asegúrate de que la contraseña se incluya correctamente
-  }
+}
 
-  if (isEditing) {
-    cargaUtil.studentId = Number(userIdEl.value);
-  }
+async function updateStudent(id, studentData) {
+    try {
+        console.log('Enviando datos para actualizar estudiante:', id, studentData);
+        const response = await fetch(`${UPDATE_STUDENT_API_URL}${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(studentData)
+        });
 
-  try {
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
+        }
+
+        // For update operations, we don't need to parse response data
+        // Just check if it was successful
+        return true;
+    } catch (error) {
+        throw new Error(error.message || 'Error desconocido al actualizar estudiante.');
+    }
+}
+
+async function deleteStudent(id) {
+    if (userRole === 'Docente') {
+        showMessage('No tiene permisos para eliminar estudiantes', 'error');
+        return;
+    }
+    
+    const result = await Swal.fire({
+        title: '¿Está seguro?',
+        text: '¿Desea eliminar este estudiante? Esta acción no se puede deshacer.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (!result.isConfirmed) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${DELETE_STUDENT_API_URL}${id}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
+        }
+        
+        await cargarEstudiantes();
+        showMessage('Estudiante eliminado exitosamente', 'success');
+    } catch (error) {
+        console.error('Error al eliminar estudiante:', error);
+        showMessage('Error al eliminar el estudiante: ' + error.message, 'error');
+    }
+}
+
+// -----------------------------------------------------
+// FORM HANDLING
+// -----------------------------------------------------
+
+function validateForm() {
+    const fullName = fullNameEl.value.trim();
+    const lastName = apellidosEl.value.trim();
+    const email = emailEl.value.trim();
+    const password = passwordEl.value.trim();
+    const studentCard = studentCardEl.value.trim();
+    const gradeId = idGradeEl.value;
+    const isEditing = !!userIdEl.value;
+
+    if (!studentCard || studentCard.length < 5) {
+        showMessage('El carnet debe tener al menos 5 caracteres', 'error');
+        studentCardEl.focus();
+        return false;
+    }
+    
+    if (!fullName || fullName.length < 3) {
+        showMessage('El nombre debe tener al menos 3 caracteres', 'error');
+        fullNameEl.focus();
+        return false;
+    }
+    
+    if (!lastName || lastName.length < 2) {
+        showMessage('El apellido debe tener al menos 2 caracteres', 'error');
+        apellidosEl.focus();
+        return false;
+    }
+    
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showMessage('Ingrese un email válido', 'error');
+        emailEl.focus();
+        return false;
+    }
+    
+    if (!isEditing && (!password || password.length < 6)) {
+        showMessage('La contraseña debe tener al menos 6 caracteres', 'error');
+        passwordEl.focus();
+        return false;
+    }
+    
+    if (!gradeId) {
+        showMessage('Debe seleccionar un grupo', 'error');
+        idGradeEl.focus();
+        return false;
+    }
+    
+    return true;
+}
+
+async function handleFormSubmit(e) {
+    e.preventDefault();
+    
+    if (userRole === 'Docente') {
+        showMessage('No tiene permisos para crear o actualizar estudiantes', 'error');
+        return;
+    }
+    
+    if (!validateForm()) {
+        return;
+    }
+    
+    const isEditing = !!userIdEl.value;
+    
+    const studentData = {
+        studentCard: studentCardEl.value.trim(),
+        firstName: fullNameEl.value.trim(),
+        lastName: apellidosEl.value.trim(),
+        email: emailEl.value.trim(),
+        gradeId: Number(idGradeEl.value)
+    };
+    
+    if (!isEditing || (isEditing && passwordEl.value.trim())) {
+        studentData.password = passwordEl.value.trim();
+    }
+    
     if (isEditing) {
-      const res = await fetch(`${UPDATE_STUDENT_API_URL}${userIdEl.value}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(cargaUtil),
-        credentials: 'include'
-      });
-      if (res.ok) {
-        Swal.fire({
-            title: '¡Actualizado!',
-            text: 'Estudiante actualizado correctamente.',
-            icon: 'success',
-            customClass: {
-                popup: 'swal-custom-popup',
-                title: 'swal-custom-title',
-                content: 'swal-custom-content',
-                confirmButton: 'swal-custom-confirm-button'
-            },
-            buttonsStyling: false
-        });
-      } else {
-        Swal.fire({
-            title: 'Error',
-            text: 'No se pudo actualizar el estudiante.',
-            icon: 'error',
-            customClass: {
-                popup: 'swal-custom-popup',
-                title: 'swal-custom-title',
-                content: 'swal-custom-content',
-                confirmButton: 'swal-custom-confirm-button'
-            },
-            buttonsStyling: false
-        });
-      }
-    } else {
-      const res = await fetch(ADD_STUDENT_API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(cargaUtil),
-        credentials: 'include'
-      });
-      if (res.ok) {
-        Swal.fire({
-            title: '¡Agregado!',
-            text: 'Estudiante agregado correctamente.',
-            icon: 'success',
-            customClass: {
-                popup: 'swal-custom-popup',
-                title: 'swal-custom-title',
-                content: 'swal-custom-content',
-                confirmButton: 'swal-custom-confirm-button'
-            },
-            buttonsStyling: false
-        });
-      } else {
-        Swal.fire({
-            title: 'Error',
-            text: 'No se pudo guardar el estudiante.',
-            icon: 'error',
-            customClass: {
-                popup: 'swal-custom-popup',
-                title: 'swal-custom-title',
-                content: 'swal-custom-content',
-                confirmButton: 'swal-custom-confirm-button'
-            },
-            buttonsStyling: false
-        });
-      }
+        studentData.studentId = Number(userIdEl.value);
     }
-  } catch (error) {
-    Swal.fire({
-        title: 'Error',
-        text: 'No se pudo guardar el estudiante. Intenta de nuevo.',
-        icon: 'error',
-        customClass: {
-            popup: 'swal-custom-popup',
-            title: 'swal-custom-title',
-            content: 'swal-custom-content',
-            confirmButton: 'swal-custom-confirm-button'
-        },
-        buttonsStyling: false
-    });
-  }
+    
+    try {
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = isEditing ? '<i class="fas fa-sync-alt"></i><span>Actualizando...</span>' : '<i class="fas fa-spinner fa-spin"></i><span>Creando...</span>';
+        }
+        
+        if (isEditing) {
+            await updateStudent(userIdEl.value, studentData);
+        } else {
+            await createStudent(studentData);
+        }
+        
+        resetForm();
+        await cargarEstudiantes();
+        showMessage(`Estudiante ${isEditing ? 'actualizado' : 'creado'} exitosamente`, 'success');
+        
+    } catch (error) {
+        console.error('Error al guardar estudiante:', error);
+        showMessage(`Error al guardar el estudiante: ${error.message}`, 'error');
+        
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = isEditing ? '<i class="fas fa-sync-alt"></i><span>Actualizar Estudiante</span>' : '<i class="fas fa-user-plus"></i><span>Agregar Estudiante</span>';
+        }
+    }
+}
 
-  form.reset();
-  userIdEl.value = '';
-  cancelBtn.hidden = true;
-  submitBtn.textContent = 'Agregar Estudiante';
-  passwordEl.disabled = false;
-  cargarEstudiantes();
-});
+function resetForm() {
+    if (form) {
+        form.reset();
+    }
+    if (userIdEl) {
+        userIdEl.value = '';
+    }
+    if (submitBtn) {
+        submitBtn.innerHTML = '<i class="fas fa-user-plus"></i><span>Agregar Estudiante</span>';
+    }
+    if (cancelBtn) {
+        cancelBtn.style.display = 'none';
+    }
+}
 
 async function cargarParaEditarEstudiante(id) {
-  // Verificar permisos antes de permitir edición
-  if (userRole === 'Docente') {
-    Swal.fire({
-      title: 'Sin permisos',
-      text: 'No tiene permisos para editar estudiantes',
-      icon: 'error',
-      customClass: {
-        popup: 'swal-custom-popup',
-        title: 'swal-custom-title',
-        content: 'swal-custom-content',
-        confirmButton: 'swal-custom-confirm-button'
-      },
-      buttonsStyling: false
-    });
-    return;
-  }
-  
-  try {
-    const res = await fetch(`https://sgma-66ec41075156.herokuapp.com/api/students/getStudentById/${id}`, { credentials: 'include' });
-    const result = await res.json();
-    const student = result.data || {};
-    fullNameEl.value = student.firstName || '';
-    if (document.getElementById('apellidos')) {
-      document.getElementById('apellidos').value = student.lastName || '';
+    if (userRole === 'Docente') {
+        showMessage('No tiene permisos para editar estudiantes', 'error');
+        return;
     }
-    if (document.getElementById('studentCard')) {
-      document.getElementById('studentCard').value = student.studentCard || '';
-    }
-    emailEl.value = student.email || '';
-    passwordEl.value = '';
-    if (idGradeEl) {
-      setTimeout(() => {
-        idGradeEl.value = student.gradeId || '';
-      }, 0);
-    }
-    userIdEl.value = student.studentId || '';
-    submitBtn.textContent = 'Actualizar Estudiante';
-    cancelBtn.hidden = false;
-    passwordEl.disabled = false;
-  } catch (error) {
-    console.error('Error al cargar estudiante para editar:', error);
-    Swal.fire({
-        title: 'Error',
-        text: 'No se pudo cargar el estudiante para editar.',
-        icon: 'error',
-        customClass: {
-            popup: 'swal-custom-popup',
-            title: 'swal-custom-title',
-            content: 'swal-custom-content',
-            confirmButton: 'swal-custom-confirm-button'
-        },
-        buttonsStyling: false
-    });
-  }
-}
-
-async function borrarEstudiante(id) {
-  // Verificar permisos antes de permitir eliminación
-  if (userRole === 'Docente') {
-    Swal.fire({
-      title: 'Sin permisos',
-      text: 'No tiene permisos para eliminar estudiantes',
-      icon: 'error',
-      customClass: {
-        popup: 'swal-custom-popup',
-        title: 'swal-custom-title',
-        content: 'swal-custom-content',
-        confirmButton: 'swal-custom-confirm-button'
-      },
-      buttonsStyling: false
-    });
-    return;
-  }
-  
-  const result = await Swal.fire({
-    title: '¿Estás seguro?',
-    text: 'Esta acción eliminará el estudiante de forma permanente.',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonText: 'Sí, eliminar',
-    cancelButtonText: 'Cancelar',
-    customClass: {
-      popup: 'swal-custom-popup',
-      title: 'swal-custom-title',
-      content: 'swal-custom-content',
-      confirmButton: 'swal-custom-confirm-button',
-      cancelButton: 'swal-custom-cancel-button'
-    }
-  });
-  if (result.isConfirmed) {
+    
     try {
-      const res = await fetch(`${DELETE_STUDENT_API_URL}${id}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-      if (res.ok) {
-        Swal.fire({
-            title: '¡Eliminado!',
-            text: 'El estudiante ha sido eliminado.',
-            icon: 'success',
-            customClass: {
-                popup: 'swal-custom-popup',
-                title: 'swal-custom-title',
-                content: 'swal-custom-content',
-                confirmButton: 'swal-custom-confirm-button'
-            },
-            buttonsStyling: false
+        const response = await fetch(`${API_BASE_URL}/api/students/getStudentById/${id}`, { 
+            credentials: 'include' 
         });
-        cargarEstudiantes();
-      } else {
-        throw new Error('No se pudo eliminar el estudiante');
-      }
+        
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        const student = result.data || result; // Handle both response structures
+        
+        fullNameEl.value = student.firstName || '';
+        apellidosEl.value = student.lastName || '';
+        studentCardEl.value = student.studentCard || '';
+        emailEl.value = student.email || '';
+        passwordEl.value = '';
+        passwordEl.placeholder = 'Dejar vacío para mantener contraseña actual';
+        
+        setTimeout(() => {
+            idGradeEl.value = student.gradeId || '';
+        }, 0);
+        
+        userIdEl.value = student.studentId || '';
+        submitBtn.innerHTML = '<i class="fas fa-sync-alt"></i><span>Actualizar Estudiante</span>';
+        cancelBtn.style.display = 'flex';
+        
+        if (form) {
+            form.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        showMessage('Estudiante cargado para edición', 'success');
     } catch (error) {
-      console.error('Error al eliminar estudiante:', error);
-      Swal.fire({
-          title: 'Error',
-          text: 'No se pudo eliminar el estudiante. Intenta de nuevo.',
-          icon: 'error',
-          customClass: {
-              popup: 'swal-custom-popup',
-              title: 'swal-custom-title',
-              content: 'swal-custom-content',
-              confirmButton: 'swal-custom-confirm-button'
-          },
-          buttonsStyling: false
-      });
+        console.error('Error al cargar estudiante para editar:', error);
+        showMessage('Error al cargar el estudiante para editar: ' + error.message, 'error');
     }
-  }
 }
 
-// Exportar funciones para uso global (necesario para onclick en el HTML)
+// -----------------------------------------------------
+// UTILITY FUNCTIONS
+// -----------------------------------------------------
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function showMessage(message, type) {
+    const iconType = type === 'error' ? 'error' : 'success';
+    const title = type === 'error' ? 'Error' : 'Éxito';
+    
+    Swal.fire({
+        title: title,
+        text: message,
+        icon: iconType,
+        timer: 3000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end'
+    });
+}
+
+// -----------------------------------------------------
+// EVENT LISTENERS AND INITIALIZATION
+// -----------------------------------------------------
+
+window.addEventListener('DOMContentLoaded', async () => {
+    await getUserInfo();
+    
+    await Promise.all([
+        cargarLevels(),
+        cargarGrupos()
+    ]);
+    
+    await cargarEstudiantes();
+    setupEventListeners();
+});
+
+function setupEventListeners() {
+    if (form) {
+        form.addEventListener('submit', handleFormSubmit);
+    }
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', resetForm);
+    }
+    if (filtroAnoEl) {
+        filtroAnoEl.addEventListener('change', filtrarYMostrarEstudiantes);
+    }
+    if (filtroGrupoEl) {
+        filtroGrupoEl.addEventListener('change', filtrarYMostrarEstudiantes);
+    }
+    if (buscadorUsuariosEl) {
+        buscadorUsuariosEl.addEventListener('input', debounce(filtrarYMostrarEstudiantes, 300));
+    }
+}
+
+// Export functions for global use
 window.cargarParaEditarEstudiante = cargarParaEditarEstudiante;
-window.borrarEstudiante = borrarEstudiante;
+window.borrarEstudiante = deleteStudent;

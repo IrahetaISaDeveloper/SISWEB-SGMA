@@ -20,10 +20,7 @@ const buscadorModulosEl = document.getElementById('buscador-modulos');
 const filtroAnoModuloEl = document.getElementById('filtro-ano-modulo');
 const paginationContainer = document.getElementById('pagination-container');
 
-// Variables para paginación y datos
-let currentPage = 0;
-const pageSize = 10;
-let totalPages = 0;
+// Variables para datos (removed pagination variables)
 let levels = [];
 let instructors = [];
 let modules = [];
@@ -150,6 +147,29 @@ function populateLevelsCombo() {
             console.warn('Nivel con formato inválido omitido:', level);
         }
     });
+    
+    // Also populate the filter dropdown
+    populateYearFilter();
+}
+
+// Poblar filtro de años
+function populateYearFilter() {
+    if (!filtroAnoModuloEl) return;
+    
+    filtroAnoModuloEl.innerHTML = '<option value="">Todos los años</option>';
+    
+    if (!levels || levels.length === 0) {
+        return;
+    }
+    
+    levels.forEach(level => {
+        if (level && level.id && level.levelName) { 
+            const option = document.createElement('option');
+            option.value = level.id;
+            option.textContent = level.levelName;
+            filtroAnoModuloEl.appendChild(option);
+        }
+    });
 }
 
 // Poblar combobox de instructores
@@ -177,21 +197,15 @@ function populateInstructorsCombo() {
 // 3. LÓGICA DE MÓDULOS (CRUD)
 // -----------------------------------------------------
 
-// Cargar módulos con paginación
-async function loadModules(page = 0) {
+// Cargar módulos sin paginación
+async function loadModules() {
     try {
-        const url = `${API_BASE_URL}/api/modules/getAllModules?page=${page}&size=${pageSize}`;
+        const url = `${API_BASE_URL}/api/modules/getAllModules`;
         const result = await apiFetch(url);
         
         modules = result.datos;
-        // La info de paginación debe ser consistente con la estructura del JSON
-        if (result.paginacion.number !== undefined) {
-             currentPage = result.paginacion.number;
-             totalPages = result.paginacion.totalPages;
-        }
         
         renderModulesTable();
-        renderPagination();
     } catch (error) {
         console.error('Error al cargar módulos:', error);
         showMessage('Error al cargar módulos: ' + error.message, 'error');
@@ -272,7 +286,8 @@ async function deleteModule(id) {
             method: 'DELETE'
         });
         
-        loadModules(currentPage);
+        // Reload all modules after deletion
+        await loadModules();
         showMessage('Módulo eliminado exitosamente', 'success');
     } catch (error) {
         console.error('Error al eliminar módulo:', error);
@@ -280,7 +295,7 @@ async function deleteModule(id) {
     }
 }
 
-// Manejar envío del formulario (Crear/Actualizar)
+// Manejar envío del formulario (removed pagination logic)
 async function handleFormSubmit(e) {
     e.preventDefault();
     
@@ -311,7 +326,7 @@ async function handleFormSubmit(e) {
     try {
         if (botonEnviar) {
             botonEnviar.disabled = true;
-            botonEnviar.textContent = isEditing ? 'Actualizando...' : 'Creando...';
+            botonEnviar.innerHTML = isEditing ? '<i class="fas fa-sync-alt"></i><span>Actualizando...</span>' : '<i class="fas fa-spinner fa-spin"></i><span>Creando...</span>';
         }
         
         if (isEditing) {
@@ -321,8 +336,8 @@ async function handleFormSubmit(e) {
         }
         
         resetForm();
-        // Recargar la tabla (al inicio si es nuevo, o en la página actual si se editó)
-        loadModules(isEditing ? currentPage : 0); 
+        // Recargar todos los módulos
+        await loadModules(); 
         showMessage(`Módulo ${isEditing ? 'actualizado' : 'creado'} exitosamente`, 'success');
         
     } catch (error) {
@@ -332,7 +347,7 @@ async function handleFormSubmit(e) {
     } finally {
         if (botonEnviar) {
             botonEnviar.disabled = false;
-            botonEnviar.textContent = isEditing ? 'Actualizar' : 'Crear';
+            botonEnviar.innerHTML = isEditing ? '<i class="fas fa-sync-alt"></i><span>Actualizar Módulo</span>' : '<i class="fas fa-plus"></i><span>Agregar Módulo</span>';
         }
     }
 }
@@ -353,24 +368,28 @@ function renderModulesTable() {
         const instructorName = module.instructor?.instructorName || 
                                (module.instructorName || 'N/A');
 
-        // Generar botones de acción según el rol
+        // Generar botones de acción según el rol usando el nuevo diseño
         let actionButtons = '';
         if (userRole === 'Docente') {
-            // Para Docente: solo botón de ver (deshabilitado o sin funcionalidad de edición)
             actionButtons = `
-                <button class="btn btn-sm btn-secondary mb-1" disabled title="Sin permisos para editar">
-                    <i class="fas fa-eye"></i> Ver
-                </button>
+                <div class="acciones-futuristas">
+                    <button class="btn-futurista btn-ver-futurista" disabled style="opacity: 0.5; cursor: not-allowed;" title="Sin permisos para ver detalles">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
             `;
         } else {
-            // Para otros roles: botones completos de edición y eliminación
             actionButtons = `
-                <button class="btn btn-sm btn-warning mb-1 me-1" onclick="editModule(${module.moduleId})">
-                    <i class="fas fa-edit"></i> Editar
-                </button>
-                <button class="btn btn-sm btn-danger mb-1" onclick="deleteModule(${module.moduleId})">
-                    <i class="fas fa-trash"></i> Eliminar
-                </button>
+                <div class="acciones-futuristas">
+                    <button class="btn-futurista btn-editar-futurista" onclick="editModule(${module.moduleId})" title="Editar módulo">
+                        <i class="fas fa-edit"></i>
+                        <span>Editar</span>
+                    </button>
+                    <button class="btn-futurista btn-eliminar-futurista" onclick="deleteModule(${module.moduleId})" title="Eliminar módulo">
+                        <i class="fas fa-trash"></i>
+                        <span>Eliminar</span>
+                    </button>
+                </div>
             `;
         }
 
@@ -383,6 +402,18 @@ function renderModulesTable() {
         `;
         cuerpoTabla.appendChild(row);
     });
+
+    // Si no hay módulos, mostrar mensaje vacío
+    if (modules.length === 0) {
+        cuerpoTabla.innerHTML = `
+            <tr>
+                <td colspan="5" class="tabla-vacia">
+                    <i class="fas fa-puzzle-piece"></i>
+                    <p>No se encontraron módulos que coincidan con los filtros aplicados.</p>
+                </td>
+            </tr>
+        `;
+    }
 }
 
 // Editar módulo (ACTUALIZADA para verificar permisos)
@@ -416,10 +447,14 @@ function editModule(id) {
         comboInstructorEl.value = String(module.instructorId);
     }
     
-    // Cambiar el botón a modo edición
+    // Cambiar el botón a modo edición con nuevo diseño
     if (botonEnviar) {
-        botonEnviar.textContent = 'Actualizar';
-        botonEnviar.className = 'botones';
+        botonEnviar.innerHTML = '<i class="fas fa-sync-alt"></i><span>Actualizar Módulo</span>';
+        botonEnviar.className = 'boton-moderno boton-primario';
+    }
+    
+    if (botonCancelar) {
+        botonCancelar.style.display = 'flex';
     }
     
     if (formulario) {
@@ -441,8 +476,11 @@ function resetForm() {
         idModuloEl.value = '';
     }
     if (botonEnviar) {
-        botonEnviar.textContent = 'Crear';
-        botonEnviar.className = 'botones secundario';
+        botonEnviar.innerHTML = '<i class="fas fa-plus"></i><span>Agregar Módulo</span>';
+        botonEnviar.className = 'boton-moderno boton-primario';
+    }
+    if (botonCancelar) {
+        botonCancelar.style.display = 'none';
     }
 }
 
@@ -481,12 +519,12 @@ function validateForm() {
     return true;
 }
 
-// Filtrar módulos (se mantiene el original)
+// Filtrar módulos (updated to work with level IDs)
 function filterModules() {
     if (!buscadorModulosEl || !filtroAnoModuloEl) return;
     
     const searchTerm = buscadorModulosEl.value.toLowerCase();
-    const selectedYear = filtroAnoModuloEl.value;
+    const selectedLevelId = filtroAnoModuloEl.value;
     
     let filteredModules = modules;
     
@@ -498,9 +536,9 @@ function filterModules() {
         );
     }
     
-    if (selectedYear) {
+    if (selectedLevelId) {
         filteredModules = filteredModules.filter(module =>
-            module.levelName && module.levelName.includes(selectedYear)
+            module.levelId && String(module.levelId) === selectedLevelId
         );
     }
     
@@ -516,22 +554,28 @@ function renderFilteredTable(filteredModules) {
         const row = document.createElement('tr');
         const instructorName = module.instructor?.instructorName || (module.instructorName || 'N/A');
 
-        // Generar botones de acción según el rol
+        // Generar botones de acción según el rol usando el nuevo diseño
         let actionButtons = '';
         if (userRole === 'Docente') {
             actionButtons = `
-                <button class="btn btn-sm btn-secondary mb-1" disabled title="Sin permisos para editar">
-                    <i class="fas fa-eye"></i> Ver
-                </button>
+                <div class="acciones-futuristas">
+                    <button class="btn-futurista btn-ver-futurista" disabled style="opacity: 0.5; cursor: not-allowed;" title="Sin permisos para ver detalles">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
             `;
         } else {
             actionButtons = `
-                <button class="btn btn-sm btn-warning mb-1 me-1" onclick="editModule(${module.moduleId})">
-                    <i class="fas fa-edit"></i> Editar
-                </button>
-                <button class="btn btn-sm btn-danger mb-1" onclick="deleteModule(${module.moduleId})">
-                    <i class="fas fa-trash"></i> Eliminar
-                </button>
+                <div class="acciones-futuristas">
+                    <button class="btn-futurista btn-editar-futurista" onclick="editModule(${module.moduleId})" title="Editar módulo">
+                        <i class="fas fa-edit"></i>
+                        <span>Editar</span>
+                    </button>
+                    <button class="btn-futurista btn-eliminar-futurista" onclick="deleteModule(${module.moduleId})" title="Eliminar módulo">
+                        <i class="fas fa-trash"></i>
+                        <span>Eliminar</span>
+                    </button>
+                </div>
             `;
         }
 
@@ -544,33 +588,18 @@ function renderFilteredTable(filteredModules) {
         `;
         cuerpoTabla.appendChild(row);
     });
-}
 
-// Renderizar paginación (Se mantiene tu código original)
-function renderPagination() {
-    const paginationContainer = document.getElementById('pagination-container');
-    if (!paginationContainer) return;
-    
-    paginationContainer.innerHTML = '';
-    
-    const prevButton = document.createElement('button');
-    prevButton.textContent = 'Anterior';
-    prevButton.className = `btn btn-sm ${currentPage === 0 ? 'btn-secondary' : 'btn-primary'}`;
-    prevButton.disabled = currentPage === 0;
-    prevButton.onclick = () => currentPage > 0 && loadModules(currentPage - 1);
-    paginationContainer.appendChild(prevButton);
-    
-    const pageInfo = document.createElement('span');
-    pageInfo.textContent = ` Página ${currentPage + 1} de ${totalPages} `;
-    pageInfo.className = 'mx-2';
-    paginationContainer.appendChild(pageInfo);
-    
-    const nextButton = document.createElement('button');
-    nextButton.textContent = 'Siguiente';
-    nextButton.className = `btn btn-sm ${currentPage >= totalPages - 1 ? 'btn-secondary' : 'btn-primary'}`;
-    nextButton.disabled = currentPage >= totalPages - 1;
-    nextButton.onclick = () => currentPage < totalPages - 1 && loadModules(currentPage + 1);
-    paginationContainer.appendChild(nextButton);
+    // Si no hay módulos filtrados, mostrar mensaje vacío
+    if (filteredModules.length === 0) {
+        cuerpoTabla.innerHTML = `
+            <tr>
+                <td colspan="5" class="tabla-vacia">
+                    <i class="fas fa-puzzle-piece"></i>
+                    <p>No se encontraron módulos que coincidan con los filtros aplicados.</p>
+                </td>
+            </tr>
+        `;
+    }
 }
 
 // Función debounce para búsqueda (Se mantiene tu código original)
@@ -671,20 +700,22 @@ async function getUserInfo() {
  */
 function handleRoleBasedUI() {
     const formContainer = document.querySelector('.form-container');
-    const addNewButton = document.querySelector('.btn-add-new'); // Si tienes un botón para agregar nuevo
+    const glassCard = document.querySelector('.glass-card');
     
-    console.log('Handling UI for role:', userRole); // Debug log
+    console.log('Handling UI for role:', userRole);
     
     if (userRole === 'Docente') {
         // Ocultar el formulario para usuarios Docente
         if (formContainer) {
             formContainer.style.display = 'none';
-            console.log('Form hidden for Docente role'); // Debug log
+            formContainer.style.visibility = 'hidden';
+            console.log('Form hidden for Docente role');
         }
         
-        // Ocultar botón de agregar nuevo si existe
-        if (addNewButton) {
-            addNewButton.style.display = 'none';
+        // También ocultar la glass-card si es necesario
+        if (glassCard && glassCard.contains(document.getElementById('formulario-modulo'))) {
+            glassCard.style.display = 'none';
+            glassCard.style.visibility = 'hidden';
         }
         
         // Agregar mensaje informativo
@@ -693,11 +724,13 @@ function handleRoleBasedUI() {
         // Mostrar el formulario para otros roles
         if (formContainer) {
             formContainer.style.display = 'block';
-            console.log('Form shown for role:', userRole); // Debug log
+            formContainer.style.visibility = 'visible';
+            console.log('Form shown for role:', userRole);
         }
         
-        if (addNewButton) {
-            addNewButton.style.display = 'block';
+        if (glassCard && glassCard.contains(document.getElementById('formulario-modulo'))) {
+            glassCard.style.display = 'block';
+            glassCard.style.visibility = 'visible';
         }
     }
 }
@@ -706,7 +739,7 @@ function handleRoleBasedUI() {
  * Agrega un mensaje informativo para usuarios Docente
  */
 function addDocenteMessage() {
-    const mainContainer = document.querySelector('.container') || document.querySelector('main') || document.body;
+    const mainContainer = document.querySelector('.contenedor-principal');
     
     // Verificar si ya existe el mensaje
     if (document.querySelector('.docente-info-message')) {
@@ -714,28 +747,32 @@ function addDocenteMessage() {
     }
     
     const messageDiv = document.createElement('div');
-    messageDiv.className = 'docente-info-message';
+    messageDiv.className = 'docente-info-message glass-card';
     messageDiv.style.cssText = `
-        background: #e3f2fd;
-        border: 1px solid #2196f3;
-        border-radius: 8px;
-        padding: 16px;
-        margin: 20px 0;
-        color: #1976d2;
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        border-radius: var(--radio-borde-principal);
+        padding: var(--espaciado-xl);
+        margin: var(--espaciado-xl) 0;
+        color: var(--acento-azul);
         text-align: center;
         font-weight: 500;
+        backdrop-filter: blur(20px);
     `;
     messageDiv.innerHTML = `
-        <i class="fas fa-info-circle" style="margin-right: 8px;"></i>
+        <i class="fas fa-info-circle" style="margin-right: 8px; font-size: 1.2rem;"></i>
         Como usuario Docente, solo puede consultar la información de los módulos. 
         Las funciones de creación, edición y eliminación están restringidas.
     `;
     
-    // Insertar el mensaje al inicio del contenedor principal
-    if (mainContainer.firstChild) {
-        mainContainer.insertBefore(messageDiv, mainContainer.firstChild);
+    // Insertar el mensaje después del hero-header
+    const heroHeader = mainContainer.querySelector('.hero-header');
+    if (heroHeader) {
+        // Insert after the hero-header element
+        heroHeader.insertAdjacentElement('afterend', messageDiv);
     } else {
-        mainContainer.appendChild(messageDiv);
+        // Fallback: insert at the beginning of main container
+        mainContainer.insertBefore(messageDiv, mainContainer.firstChild);
     }
 }
 

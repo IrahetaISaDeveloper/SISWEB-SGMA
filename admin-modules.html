@@ -10,6 +10,7 @@
     <link rel="icon" type="image/png" sizes="16x16" href="imgs/favicon/favicon-16x16.png" />
     <link rel="manifest" href="imgs/favicon/site.webmanifest" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.12.0/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="css/admin-modules.css">
     <link rel="stylesheet" href="css/menu-hamburguesa.css">
@@ -69,70 +70,111 @@
   </aside>
 
     <main class="contenedor-principal">
+        <!-- Hero Header -->
+        <div class="hero-header">
+            <h1 class="hero-title">
+                <i class="fas fa-puzzle-piece"></i>
+                Gestión de Módulos
+            </h1>
+            <p class="hero-subtitle">
+                Administra y gestiona los módulos académicos de forma moderna y eficiente
+            </p>
+        </div>
 
-        <h1>Administración de Módulos</h1>
-
-        <div class="form-container">
-            <form id="formulario-modulo" class="formulario-modulo">
+        <!-- Form Card -->
+        <div class="glass-card form-container">
+            <form id="formulario-modulo" class="formulario-moderno">
                 <input type="hidden" id="idModulo" />
-                <div class="grupo-formulario">
-                    <label for="codigoModulo">Código del Módulo:</label>
-                    <input type="text" id="codigoModulo" required />
+                
+                <div class="campo-moderno codigo-modulo">
+                    <label class="etiqueta-moderna" for="codigoModulo">
+                        <i class="fas fa-code"></i>
+                        Código del Módulo
+                    </label>
+                    <input type="text" id="codigoModulo" class="input-moderno" placeholder="Ingrese el código del módulo" required />
                 </div>
-                <div class="grupo-formulario">
-                    <label for="nombreModulo">Nombre del Módulo:</label>
-                    <input type="text" id="nombreModulo" required />
+                
+                <div class="campo-moderno nombre-modulo">
+                    <label class="etiqueta-moderna" for="nombreModulo">
+                        <i class="fas fa-puzzle-piece"></i>
+                        Nombre del Módulo
+                    </label>
+                    <input type="text" id="nombreModulo" class="input-moderno" placeholder="Ingrese el nombre del módulo" required />
                 </div>
-                <div class="grupo-formulario seleccion-contenedor">
-                    <label for="comboLevel">Año académico:</label>
-                    <select id="comboLevel" required>
-                        <!-- Se llena dinámicamente desde JS -->
+                
+                <div class="campo-moderno nivel-academico">
+                    <label class="etiqueta-moderna" for="comboLevel">
+                        <i class="fas fa-graduation-cap"></i>
+                        Año Académico
+                    </label>
+                    <select id="comboLevel" class="input-moderno" required>
+                        <option value="">Seleccione un nivel</option>
                     </select>
                 </div>
-                <div class="grupo-formulario seleccion-contenedor">
-                    <label for="comboInstructor">Instructor:</label>
-                    <select id="comboInstructor" required>
-                        <!-- Se llena dinámicamente desde JS -->
+                
+                <div class="campo-moderno instructor">
+                    <label class="etiqueta-moderna" for="comboInstructor">
+                        <i class="fas fa-user-tie"></i>
+                        Instructor
+                    </label>
+                    <select id="comboInstructor" class="input-moderno" required>
+                        <option value="">Seleccione un instructor</option>
                     </select>
                 </div>
-                <button type="submit" id="btn-enviar" class="botones">Agregar Módulo</button>
-                <button type="button" id="btn-cancelar" class="botones secundario" hidden>Cancelar</button>
+                
+                <div class="grupo-botones">
+                    <button type="submit" id="btn-enviar" class="boton-moderno boton-primario">
+                        <i class="fas fa-plus"></i>
+                        <span>Agregar Módulo</span>
+                    </button>
+                    <button type="button" id="btn-cancelar" class="boton-moderno boton-secundario" style="display: none;">
+                        <i class="fas fa-times"></i>
+                        <span>Cancelar</span>
+                    </button>
+                </div>
             </form>
         </div>
 
-        <hr class="separador-seccion" />
-
-        <!-- Filtros y buscador de módulos -->
-        <div class="filtros-modulos">
-            <input type="text" id="buscador-modulos" placeholder="Buscar módulo..." />
-            <select id="filtro-ano-modulo">
-                <option value="">Todos los años</option>
-                <!-- This will be populated dynamically from the levels data -->
-            </select>
-            <select id="filtro-estado-modulo">
-                <option value="">Todos los estados</option>
-                <option value="activo">Activo</option>
-                <option value="finalizado">Finalizado</option>
-                <option value="en-proceso">En proceso</option>
-                <option value="no-inicializado">No inicializado</option>
-            </select>
+        <!-- Filters Section -->
+        <div class="seccion-filtros">
+            <div class="filtros-grid">
+                <div class="buscador-container">
+                    <i class="fas fa-search buscador-icon"></i>
+                    <input type="text" id="buscador-modulos" class="buscador-moderno" placeholder="Buscar módulo..." />
+                </div>
+                <div>
+                    <select id="filtro-ano-modulo" class="input-moderno">
+                        <option value="">Todos los años</option>
+                    </select>
+                </div>
+            </div>
         </div>
 
-        <div class="tabla-responsiva">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Código</th>
-                        <th>Nombre del Módulo</th>
-                        <th>Año Académico</th>
-                        <th>Instructor</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="cuerpo-tabla-modulos">
-                </tbody>
-            </table>
+        <!-- Revolutionary Table -->
+        <div class="tabla-revolucionaria">
+            <div class="tabla-scroll">
+                <table class="tabla-futurista">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-code"></i> Código</th>
+                            <th><i class="fas fa-puzzle-piece"></i> Nombre del Módulo</th>
+                            <th><i class="fas fa-graduation-cap"></i> Año Académico</th>
+                            <th><i class="fas fa-user-tie"></i> Instructor</th>
+                            <th><i class="fas fa-cogs"></i> Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpo-tabla-modulos">
+                        <tr>
+                            <td colspan="5" class="loading-futurista">
+                                <div class="spinner-futurista"></div>
+                                <p>Cargando datos...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
+
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.12.0/dist/sweetalert2.all.min.js"></script>

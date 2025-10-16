@@ -350,10 +350,10 @@ body {
 }
 
 .avatar-usuario-header img {
-    width: 80px; /* Reduced from 100px */
-    height: 80px; /* Reduced from 80px */
+    width: 130px; /* Reduced from 100px */
+    height: 130px; /* Reduced from 80px */
     border-radius: var(--radio-borde-avatar);
-    border: 4px solid var(--acento-rojo); /* Reduced border */
+    border: 0px solid var(--acento-rojo); /* Reduced border */
     object-fit: cover;
     box-shadow: 0 8px 20px rgba(231, 76, 60, 0.3); /* Reduced shadow */
     transition: all 0.3s ease;
