@@ -1,6 +1,66 @@
 const API_BASE_URL = 'https://sgma-66ec41075156.herokuapp.com/api';
 
+// Import the authentication service
+import { me } from './service/authService.js';
+
 document.addEventListener('DOMContentLoaded', function () {
+    // Load user information from token
+    async function cargarPerfil() {
+        try {
+            const data = await me();
+
+            if (!data.authenticated) {
+                Swal.fire('Error', 'No autenticado. Por favor inicia sesión.', 'error');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const instructor = data.instructor;
+            // Guardar el ID del instructor para uso futuro
+            window.instructorId = instructor.id;
+            
+            // Update avatar
+            const avatarElement = document.getElementById('avatar-usuario');
+            if (avatarElement && instructor.instructorImage) {
+                avatarElement.src = instructor.instructorImage;
+                avatarElement.alt = `Avatar de ${instructor.names || 'Usuario'}`;
+            }
+
+            // Update user name in header - proper case instead of uppercase
+            const nombreElement = document.getElementById('nombre-usuario-header');
+            if (nombreElement) {
+                const fullName = `${instructor.names || ''} ${instructor.lastNames || ''}`.trim();
+                // Capitalize first letter of each word instead of all uppercase
+                const properCaseName = fullName.replace(/\b\w/g, l => l.toUpperCase());
+                nombreElement.textContent = properCaseName || 'Usuario';
+            }
+
+            // Update role in header
+            const rolElement = document.getElementById('rol-usuario-header');
+            if (rolElement && instructor.role) {
+                rolElement.textContent = instructor.role;
+            }
+
+            // Update level/detail in header
+            const detalleElement = document.getElementById('detalle-usuario-header');
+            if (detalleElement && instructor.level) {
+                detalleElement.textContent = instructor.level;
+            }
+
+        } catch (error) {
+            console.error('Error loading user information:', error);
+            Swal.fire('Error', 'No se pudo cargar el perfil.', 'error');
+            // On error, show default values or redirect to login
+            const nombreElement = document.getElementById('nombre-usuario-header');
+            if (nombreElement) {
+                nombreElement.textContent = 'Error al cargar usuario';
+            }
+        }
+    }
+
+    // Load user info on page load
+    cargarPerfil();
+
     // Mostrar solo los módulos del año seleccionado
     function mostrarModulosPorAno(ano) {
         document.querySelectorAll('.elemento-modulo').forEach(function (modulo) {
@@ -27,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function () {
     mostrarModulosPorAno('primer');
 
     // Consulta y muestra datos reales de vehículos
-    fetch(`${API_BASE_URL}/vehicles/getAllVehicles`, {
+    fetch(`https://sgma-66ec41075156.herokuapp.com/api/vehicles/getAllVehicles`, {
         method: 'GET',
         credentials: 'include'
     })
@@ -120,12 +180,12 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    /*
+    
     // Cargar módulos desde el endpoint y mostrar por año
     async function cargarModulosYMostrar() {
         try {
-            const res = await fetch('https://sgma-66ec41075156.herokuapp.com/api/getAllModules', {
-// La URL termina aquí 👆
+            const res = await fetch('https://sgma-66ec41075156.herokuapp.com/api/modules/getAllModules', {
+                // La URL termina aquí 👆
     credentials: 'include'
 });
 // El error debería desaparecer.
@@ -158,6 +218,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     cargarModulosYMostrar();
-    */
+    
 
 });
