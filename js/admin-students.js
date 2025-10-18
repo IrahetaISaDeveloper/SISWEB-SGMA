@@ -11,6 +11,9 @@ const DELETE_STUDENT_API_URL = `${API_BASE_URL}/api/students/deleteStudent/`;
 const LEVELS_API_URL = `${API_BASE_URL}/api/levels/getAllLevels`;
 const GRADES_API_URL = `${API_BASE_URL}/api/grades/getAllGrades`;
 
+// Define el roleId fijo para estudiantes (ajusta este valor según tu BD)
+const STUDENT_ROLE_ID = 1;
+
 // DOM Elements
 const form = document.getElementById('user-form');
 const fullNameEl = document.getElementById('fullName');
@@ -252,6 +255,8 @@ async function cargarGrupos() {
         showMessage('Error al cargar grupos: ' + error.message, 'error');
     }
 }
+
+
 
 async function cargarEstudiantes() {
     try {
@@ -509,7 +514,8 @@ async function handleFormSubmit(e) {
         firstName: fullNameEl.value.trim(),
         lastName: apellidosEl.value.trim(),
         email: emailEl.value.trim(),
-        gradeId: Number(idGradeEl.value)
+        gradeId: Number(idGradeEl.value),
+        roleId: STUDENT_ROLE_ID
     };
     
     if (!isEditing || (isEditing && passwordEl.value.trim())) {
