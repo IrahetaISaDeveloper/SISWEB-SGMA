@@ -1175,3 +1175,72 @@ body {
         .btn-imprimir:hover {
             background: #218838;
         }
+
+/* SweetAlert2 custom styles */
+.swal-custom-popup {
+    background-color: #2c2c2c !important;
+    color: #e0e0e0 !important;
+    border-radius: 20px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6) !important;
+    z-index: 10000 !important;
+}
+
+.swal2-container {
+    z-index: 10000 !important;
+}
+
+.swal2-backdrop-show {
+    background-color: rgba(0, 0, 0, 0.8) !important;
+    z-index: 9999 !important;
+}
+
+.swal-custom-title {
+    color: #f0f0f0 !important;
+    font-weight: 700 !important;
+}
+
+.swal-custom-content {
+    color: #cccccc !important;
+}
+
+.swal-custom-confirm-button {
+    background-color: #881F1E !important;
+    color: white !important;
+    border-radius: 30px !important;
+    font-size: 1.1em !important;
+    padding: 10px 20px !important;
+    font-weight: 600 !important;
+}
+
+.swal-custom-confirm-button:hover {
+    background-color: #ad1414 !important;
+}
+
+.swal-custom-cancel-button {
+    background-color: transparent !important;
+    color: #888 !important;
+    border: 1px solid #666 !important;
+    border-radius: 30px !important;
+    font-size: 1.1em !important;
+    padding: 10px 20px !important;
+    font-weight: 600 !important;
+}
+
+.swal-custom-cancel-button:hover {
+    background-color: #444 !important;
+    border-color: #777 !important;
+}
+
+/* Modal styles override for higher z-index */
+.modal-overlay {
+    z-index: 3000;
+}
+
+.modal-overlay.activo {
+    z-index: 3000;
+}
+
+/* Support multiple sidebars */
+.panel-lateral .tarjeta-sidebar + .tarjeta-sidebar {
+    margin-top: var(--espaciado-l);
+}

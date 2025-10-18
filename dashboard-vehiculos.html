@@ -79,6 +79,17 @@
                         <!-- El contenido se llena dinámicamente con JS -->
                     </div>
                 </div>
+                
+                <!-- Nuevo sidebar para órdenes de trabajo -->
+                <div class="tarjeta-sidebar">
+                    <div class="header-sidebar">
+                        <h3 id="work-orders-sidebar-title">Órdenes Pendientes</h3>
+                        <span class="badge-contador" id="work-orders-badge">0</span>
+                    </div>
+                    <div class="lista-registros" id="work-orders-list">
+                        <!-- Las órdenes de trabajo se llenan dinámicamente con JS -->
+                    </div>
+                </div>
             </aside>
 
             <main class="contenido-principal">
@@ -182,8 +193,36 @@
         </div>
     </div>
 
+    <!-- Nuevo Modal para órdenes de trabajo -->
+    <div id="modalWorkOrder" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>Detalles de la Orden de Trabajo</h3>
+                <button class="btn-cerrar-modal" id="btn-cerrar-work-order-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="work-order-content">
+                    <!-- Contenido de la orden de trabajo se llena dinámicamente -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal secundario" id="btn-rechazar-orden">
+                    <i class="fas fa-times"></i>
+                    Rechazar
+                </button>
+                <button class="btn-modal primario" id="btn-aprobar-orden">
+                    <i class="fas fa-check"></i>
+                    Aprobar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script type="module" src="js/dashboard-vehiculos.js"></script>
     <script src="js/menu-hamburguesa.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 
 </html>

@@ -27,11 +27,23 @@ async function getUserInfo() {
 // Actualiza el título del sidebar según el rol
 function updateSidebarTitle() {
     const sidebarTitle = document.getElementById('sidebar-title');
+    const workOrdersSidebarTitle = document.getElementById('work-orders-sidebar-title');
+    
     if (sidebarTitle && userRole) {
         if (userRole === 'Animador') {
             sidebarTitle.textContent = 'Pendientes de Revisión';
         } else if (userRole === 'Coordinador') {
             sidebarTitle.textContent = 'En Revisión';
+        }
+    }
+    
+    if (workOrdersSidebarTitle && userRole) {
+        if (userRole === 'Animador') {
+            workOrdersSidebarTitle.textContent = 'Órdenes para Animador';
+        } else if (userRole === 'Coordinador') {
+            workOrdersSidebarTitle.textContent = 'Órdenes para Coordinador';
+        } else {
+            workOrdersSidebarTitle.textContent = 'Órdenes Pendientes';
         }
     }
 }
@@ -784,6 +796,359 @@ if (btnRechazar) {
     });
 }
 
+// Variables globales para órdenes de trabajo
+let allWorkOrders = [];
+let selectedWorkOrderId = null;
+let workOrderSeleccionada = null;
+
+// Obtiene órdenes de trabajo según el rol del instructor
+function fetchWorkOrdersByRole() {
+    console.log('Ejecutando fetchWorkOrdersByRole para rol:', userRole);
+    
+    let endpoint = '';
+    if (userRole === 'Animador') {
+        endpoint = 'https://sgma-66ec41075156.herokuapp.com/api/workOrders/getWorkOrdersByStatus1';
+    } else if (userRole === 'Coordinador') {
+        endpoint = 'https://sgma-66ec41075156.herokuapp.com/api/workOrders/getWorkOrdersByStatus2';
+    } else {
+        console.log('Rol no válido para órdenes de trabajo:', userRole);
+        renderSidebarWorkOrders([]);
+        return;
+    }
+
+    fetch(endpoint, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(res => {
+        console.log('Respuesta recibida de órdenes de trabajo:', res);
+        return res.json();
+    })
+    .then(data => {
+        console.log('Datos de órdenes de trabajo:', data);
+        
+        let workOrders = [];
+        if (data && data.workOrders && Array.isArray(data.workOrders)) {
+            workOrders = data.workOrders;
+        }
+        
+        allWorkOrders = workOrders;
+        renderSidebarWorkOrders(workOrders);
+    })
+    .catch(err => {
+        console.error('Error al obtener órdenes de trabajo:', err);
+        allWorkOrders = [];
+        renderSidebarWorkOrders([]);
+    });
+}
+
+// Renderiza órdenes de trabajo en la lista lateral
+function renderSidebarWorkOrders(workOrders) {
+    const lista = document.getElementById('work-orders-list');
+    const badge = document.getElementById('work-orders-badge');
+    
+    if (!lista) return;
+    
+    if (badge) badge.textContent = workOrders.length;
+    lista.innerHTML = '';
+    
+    if (workOrders.length === 0) {
+        lista.innerHTML = '<div style="text-align:center;color:#888;">No hay órdenes pendientes.</div>';
+        return;
+    }
+    
+    workOrders.forEach(workOrder => {
+        let imgSrc = workOrder.workOrderImage;
+        if (!imgSrc || imgSrc === 'null' || imgSrc === null || imgSrc === 'sin_imagen') {
+            imgSrc = 'imgs/default-car.png';
+        }
+        
+        const div = document.createElement('div');
+        div.className = 'item-registro';
+        div.__workOrderData = workOrder;
+        div.innerHTML = `
+            <img src="${imgSrc}" alt="Orden" class="vehiculo-imagen" onerror="this.src='imgs/default-car.png'">
+            <div class="info-vehiculo">
+                <span class="placa-vehiculo">Orden #${workOrder.workOrderId}</span>
+                <span class="servicio-vehiculo">${workOrder.vehiclePlateNumber || 'Sin placa'}</span>
+                <span class="fecha-vehiculo">${workOrder.moduleName || 'Sin módulo'}</span>
+            </div>
+            <div class="acciones-vehiculo">
+                <button class="btn-opciones" title="Más opciones">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+            </div>
+        `;
+        
+        div.addEventListener('click', function(e) {
+            if (!e.target.closest('.btn-opciones')) {
+                showWorkOrderModal(workOrder.workOrderId);
+            }
+        });
+        
+        lista.appendChild(div);
+    });
+}
+
+// Convierte ID de estado de orden a texto legible
+function getWorkOrderStatusText(statusId) {
+    switch(statusId) {
+        case 1:
+            return 'En aprobación del animador';
+        case 2:
+            return 'En aprobación del coordinador';
+        case 3:
+            return 'Aprobado - En progreso';
+        case 4:
+            return 'Completado';
+        case 5:
+            return 'Rechazado';
+        case 6:
+            return 'Atrasado';
+        default:
+            return 'Estado desconocido';
+    }
+}
+
+// Muestra el modal de detalles de la orden de trabajo
+window.showWorkOrderModal = function(workOrderId) {
+    const modal = document.getElementById('modalWorkOrder');
+    modal.classList.add('activo');
+    modal.removeAttribute('aria-hidden');
+    
+    document.body.classList.add('modal-open');
+    
+    selectedWorkOrderId = workOrderId;
+    
+    const workOrder = allWorkOrders.find(wo => wo.workOrderId === workOrderId);
+    workOrderSeleccionada = workOrder;
+    
+    const workOrderContent = document.getElementById('work-order-content');
+    
+    if (workOrder && workOrderContent) {
+        const imageSrc = workOrder.workOrderImage && workOrder.workOrderImage !== 'null' && workOrder.workOrderImage !== 'sin_imagen' 
+            ? workOrder.workOrderImage 
+            : 'imgs/default-car.png';
+        
+        const statusText = getWorkOrderStatusText(workOrder.idStatus);
+        
+        workOrderContent.innerHTML = `
+            <div class="modal-vehiculo-imagen-container">
+                <h4>Imagen de la Orden de Trabajo</h4>
+                <img src="${imageSrc}" class="modal-vehiculo-imagen imagen-vehiculo" alt="Imagen de la orden">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px;">
+                <div>
+                    <div class="detalle-item"><strong>Orden ID:</strong> <div class="detalle-valor">#${workOrder.workOrderId}</div></div>
+                    <div class="detalle-item"><strong>Estado:</strong> <div class="detalle-valor">${statusText}</div></div>
+                    <div class="detalle-item"><strong>Vehículo:</strong> <div class="detalle-valor">${workOrder.vehiclePlateNumber || '-'}</div></div>
+                    <div class="detalle-item"><strong>Marca/Modelo:</strong> <div class="detalle-valor">${workOrder.vehicleBrand || '-'} ${workOrder.vehicleModel || '-'}</div></div>
+                </div>
+                <div>
+                    <div class="detalle-item"><strong>Módulo:</strong> <div class="detalle-valor">${workOrder.moduleName || '-'}</div></div>
+                    <div class="detalle-item"><strong>Código Módulo:</strong> <div class="detalle-valor">${workOrder.moduleCode || '-'}</div></div>
+                    <div class="detalle-item"><strong>Tiempo Estimado:</strong> <div class="detalle-valor">${workOrder.estimatedTime || '-'} horas</div></div>
+                    <div class="detalle-item"><strong>Año:</strong> <div class="detalle-valor">${workOrder.vehicleYear || 'No especificado'}</div></div>
+                </div>
+            </div>
+            ${workOrder.description ? `
+                <div style="margin-top:20px;">
+                    <div class="detalle-item"><strong>Descripción del Trabajo:</strong></div>
+                    <div style="padding:15px;background:#f7fafc;border-radius:8px;margin-top:8px;border-left:4px solid #42A5F5;">
+                        <p style="margin:0;line-height:1.5;color:#2d3748;">${workOrder.description}</p>
+                    </div>
+                </div>
+            ` : ''}
+            <div style="margin-top:20px;padding:15px;background:#f7fafc;border-radius:8px;border:1px solid #e2e8f0;">
+                <div class="detalle-item"><strong>Información Adicional:</strong></div>
+                <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+                    <div><strong>Estado Nombre:</strong> ${workOrder.statusName || '-'}</div>
+                    <div><strong>ID Vehículo:</strong> ${workOrder.vehicleId || '-'}</div>
+                </div>
+            </div>
+        `;
+    } else if (workOrderContent) {
+        workOrderContent.innerHTML = '<div style="color:#888;text-align:center;">No se encontraron los datos de la orden.</div>';
+    }
+}
+
+// Función genérica para actualizar el estado de una orden de trabajo
+async function updateOrderStatus(orderId, newStatus) {
+    const response = await fetch(`https://sgma-66ec41075156.herokuapp.com/api/workOrders/${orderId}/status`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({ idStatus: newStatus })
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al actualizar el estado');
+    }
+
+    return response.json();
+}
+
+// Función para cerrar modales
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('activo');
+        modal.removeAttribute('aria-hidden');
+        document.body.classList.remove('modal-open');
+    }
+}
+
+// Event listeners para el modal de órdenes de trabajo
+function bindWorkOrderEventListeners() {
+    // Cierre del Modal de órdenes de trabajo
+    const btnCerrarWorkOrderModal = document.getElementById('btn-cerrar-work-order-modal');
+    if (btnCerrarWorkOrderModal) {
+        btnCerrarWorkOrderModal.addEventListener('click', () => {
+            closeModal('modalWorkOrder');
+        });
+    }
+
+    const modalWorkOrderOverlay = document.getElementById('modalWorkOrder');
+    if (modalWorkOrderOverlay) {
+        modalWorkOrderOverlay.addEventListener('click', function(e) {
+            if (e.target === modalWorkOrderOverlay) {
+                closeModal('modalWorkOrder');
+            }
+        });
+    }
+
+    // Botón de aprobar orden
+    const btnAprobarOrden = document.getElementById('btn-aprobar-orden');
+    if (btnAprobarOrden) {
+        btnAprobarOrden.addEventListener('click', async function() {
+            if (!workOrderSeleccionada) return;
+            
+            try {
+                const newStatus = userRole === 'Animador' ? 2 : 3;
+                await updateOrderStatus(workOrderSeleccionada.workOrderId, newStatus);
+                
+                if (typeof Swal !== 'undefined') {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: '¡Éxito!',
+                        text: 'Orden de trabajo aprobada exitosamente',
+                        customClass: {
+                            popup: 'swal-custom-popup',
+                            title: 'swal-custom-title',
+                            content: 'swal-custom-content',
+                            confirmButton: 'swal-custom-confirm-button'
+                        }
+                    });
+                } else {
+                    alert('Orden de trabajo aprobada exitosamente');
+                }
+                
+                await fetchWorkOrdersByRole();
+                closeModal('modalWorkOrder');
+                
+            } catch (err) {
+                console.error('Error al aprobar la orden de trabajo:', err);
+                
+                if (typeof Swal !== 'undefined') {
+                    await Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error al aprobar la orden de trabajo: ' + err.message,
+                        customClass: {
+                            popup: 'swal-custom-popup',
+                            title: 'swal-custom-title',
+                            content: 'swal-custom-content',
+                            confirmButton: 'swal-custom-confirm-button'
+                        }
+                    });
+                } else {
+                    alert('Error al aprobar la orden de trabajo');
+                }
+            }
+        });
+    }
+
+    // Botón de rechazar orden
+    const btnRechazarOrden = document.getElementById('btn-rechazar-orden');
+    if (btnRechazarOrden) {
+        btnRechazarOrden.addEventListener('click', async function() {
+            if (!workOrderSeleccionada) return;
+            
+            let shouldReject = false;
+            if (typeof Swal !== 'undefined') {
+                const result = await Swal.fire({
+                    icon: 'question',
+                    title: '¿Rechazar orden?',
+                    text: '¿Estás seguro de que deseas rechazar esta orden de trabajo?',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, rechazar',
+                    cancelButtonText: 'Cancelar',
+                    customClass: {
+                        popup: 'swal-custom-popup',
+                        title: 'swal-custom-title',
+                        content: 'swal-custom-content',
+                        confirmButton: 'swal-custom-confirm-button',
+                        cancelButton: 'swal-custom-cancel-button'
+                    }
+                });
+                shouldReject = result.isConfirmed;
+            } else {
+                shouldReject = confirm('¿Estás seguro de que deseas rechazar esta orden de trabajo?');
+            }
+
+            if (shouldReject) {
+                try {
+                    await updateOrderStatus(workOrderSeleccionada.workOrderId, 5);
+                    
+                    if (typeof Swal !== 'undefined') {
+                        await Swal.fire({
+                            icon: 'success',
+                            title: '¡Éxito!',
+                            text: 'Orden de trabajo rechazada exitosamente',
+                            customClass: {
+                                popup: 'swal-custom-popup',
+                                title: 'swal-custom-title',
+                                content: 'swal-custom-content',
+                                confirmButton: 'swal-custom-confirm-button'
+                            }
+                        });
+                    } else {
+                        alert('Orden de trabajo rechazada exitosamente');
+                    }
+                    
+                    await fetchWorkOrdersByRole();
+                    closeModal('modalWorkOrder');
+                    
+                } catch (err) {
+                    console.error('Error al rechazar la orden:', err);
+                    
+                    if (typeof Swal !== 'undefined') {
+                        await Swal.fire({
+                            icon: 'error',
+                            title: 'Error',  
+                            text: 'Error al rechazar la orden: ' + err.message,
+                            customClass: {
+                                popup: 'swal-custom-popup',
+                                title: 'swal-custom-title',
+                                content: 'swal-custom-content',
+                                confirmButton: 'swal-custom-confirm-button'
+                            }
+                        });
+                    } else {
+                        alert('Error al rechazar la orden');
+                    }
+                }
+            }
+        });
+    }
+}
+
 // Function to rebind event listeners after DOM replacement
 function bindEventListeners() {
     // Rebind close modal event
@@ -1098,4 +1463,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     await getUserInfo();
     console.log('User info obtained, fetching vehicles...'); // Debug log
     fetchAllVehicles();
+    fetchWorkOrdersByRole(); // Cargar órdenes de trabajo según el rol
+    
+    // Bind all event listeners
+    bindEventListeners();
+    bindWorkOrderEventListeners();
 });
